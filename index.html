@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>www.oscardumboa.com</title>
+
 <link rel="stylesheet" href="styles.css">
 <link rel="manifest" href="/manifest.webmanifest">
   <meta charset="UTF-8" />
@@ -83,36 +84,7 @@ button {
   color: green;
 }
      
-    </style>
-    <style>
-        .message-container {
-            max-width: 310px;
-            max-height: 450px;
-            overflow-y: scroll;     
-            padding: 10px;
-        }
-
-        .sender {
-            text-align: right;
-            position: right;
-            background-color: lightblue;
-            padding: 15px;
-            margin: 10px;
-            border-radius: 5px;
-            max-width: 100%;
-            color: black;
-        }
-
-        .receiver {
-            text-align: left;
-            background-color: lightgrey;
-            padding: 15px;
-            margin: 10px;
-            border-radius: 5px;
-            max-width: 100%;
-            color: red;
-        }
-
+    
         .bottom-menu {
             position: fixed;
             bottom: 0;
@@ -370,10 +342,13 @@ a:hover {
         }
 
                .c {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%; /* Pour créer une forme circulaire */
-            background-color: lightblue;
+            width: 100%;
+            height: 100%;
+            border-radius: 5px; 
+                  padding: 0px;
+      margin: 0px;
+/* Pour créer une forme circulaire */
+            background-color: transparent;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -1108,6 +1083,7 @@ function ouvrirLien() {
 <br><br/><br><br/>
 <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
+  <iframe class="c" src="https://www.rolling-chat.com/chat"></iframe>
     <br><br/>
 </section>
 </center>
