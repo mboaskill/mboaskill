@@ -13,7 +13,412 @@
   <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+<style>
+    .suggestions {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        white-space: nowrap;
+        position: relative;
+    }
 
+    .suggestion {
+        padding: 10px;
+        margin: 5px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+    }
+
+    footer {
+        background-image: url('https://ucarecdn.com/1d76535e-61fb-477a-81a5-16d8f749ddb7/-/preview/480x639/');
+        background-size: cover;
+        background-position: center;
+        height: 500px;
+        width: 20;
+        /* Ajustez la hauteur selon vos besoins */
+        color: white; /* Couleur du texte */
+        text-align: center; /* Centrage du texte */
+        padding: 30px; /* Remplissage intérieur du header */
+    }
+
+    /* Style pour le texte à l'intérieur du header (optionnel) */
+    h1 {
+        font-size: 2em;
+    }
+
+    p {
+        font-size: 1.2em;
+    }
+
+   .lemu {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f9f2f2;
+  padding: 10px;
+}
+
+button {
+  border: none;
+  background-color: transparent;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+}
+
+.heart {
+  color: red;
+}
+
+.eye {
+  color: blue;
+}
+
+.arrow {
+  color: green;
+}
+
+        .bottom-menu {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: white;
+            padding: 8px 0;
+            text-align: left;
+        }
+
+        #message-input {
+            width: 70%;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #send-button {
+            background-color: limegreen;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+    body {
+    margin: 0;
+.menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 10%;
+    width: 100%;
+    background-color: white;
+    color: #fff;
+    z-index: 9999;
+}
+
+.menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 2;
+    text-align: center;
+
+}
+
+.menu ul li {
+    display: inline;
+    margin: 11px;
+}
+
+.menu ul li a {
+    color: #fff;
+    text-decoration: none;
+
+}
+
+.content {
+    padding-top: 80px; /* Ajustez la hauteur selon la hauteur de votre menu */
+     background-color: #3b5998; /* Couleur de survol de Facebook */
+   
+}
+
+a:hover {
+    background-color: #3b5998; /* Couleur de survol de Facebook */
+}
+
+         
+          .bottom-menu {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background-color: skyblue;
+        color: white;
+        text-align: center;
+        padding: 5px 0;
+    }
+
+    .dropbtn {
+        background-color: white;
+        color: white;
+        padding: 8px;
+        font-size: 6px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #F4F4F4;
+        min-width: 6px;
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 2px 6px;
+        text-decoration: none;
+    }
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: white;
+        min-width: 160px;
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 2px 6px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {
+        background-color: white;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+          .conteneu {
+            display: flex;
+        }
+
+          .conteneu {
+            display: flex;
+        }
+
+        
+            }
+          .flag {
+            width: 300px;
+            height: 40px;
+        }
+
+        .green-stripe {
+            background-color: #007A5E;
+            width: 33.33%;
+            height: 90%;
+            float: left;
+        }
+
+        .red-stripe {
+            background-color: #D21034;
+            width: 33.33%;
+            height: 90%;
+            float: left;
+        }
+
+        .yellow-stripe {
+            background-color: #FCD116;
+            width: 33.34%;
+            height: 90%;
+            float: left;
+        }
+         #browser {
+            width: 80%;
+            height: 50vh;
+            border: 4;
+        }
+          #boom {
+            width: 70%;
+            height: 30vh;
+            border: 4;
+                    }
+          #bom {
+            width: 90%;
+            height: 50vh;
+            border: 4;
+}
+                #bm {
+;
+}
+
+          .conteneu {
+            display: flex;
+        }
+
+        .contenu-gauche {
+            flex: 1; /* Prend autant d'espace que possible */
+        }
+
+        .contenu-droit {
+            width: 300px; /* Largeur fixe du contenu à droite */
+        }
+        
+ 
+    /* Styles CSS pour la mise en forme */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: white;
+      color: #fff;
+      padding: 1em;
+      text-align: center;
+    }
+    section {
+      padding: 0px;
+      margin: 0px;
+      background-color: none;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    footer {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 1em;
+      position: relative;
+      bottom: 0;
+      width: 100%;
+    }
+          .flag {
+            width: 300px;
+            height: 40px;
+        }
+
+        .green-stripe {
+            background-color: #007A5E;
+            width: 33.33%;
+            height: 90%;
+            float: left;
+        }
+
+        .red-stripe {
+            background-color: #D21034;
+            width: 33.33%;
+            height: 90%;
+            float: left;
+        }
+
+        .yellow-stripe {
+            background-color: #FCD116;
+            width: 33.34%;
+            height: 90%;
+            float: left;
+        }
+         #browser {
+            width: 80%;
+            height: 50vh;
+            border: 4;
+        }
+          #boom {
+            width: 70%;
+            height: 30vh;
+            border: 4;
+                    }
+          #bom {
+            width: 90%;
+            height: 50vh;
+            border: 4;
+}
+                #bm {
+            width: 90%;
+            height: 80vh;
+            border: 4        padding: 8px;
+        font-size: 6px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #F4F4F4;
+        min-width: 6px;
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 2px 6px;
+        text-decoration: none;
+    }
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: white;
+        min-width: 160px;
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 2px 6px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {
+        background-color: white;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+          .conteneu {
+            display: flex;
+        }
+
+          .conteneu {
+            display: flex;
+        }
+
+        
+    /* Styles CSS pour la mise en forme */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: white;
+      color: #fff;
+      padding: 1em;
+      text-align: center;
+    }
+    section {
+      padding: 0px;
+      margin: 0px;
+      background-color: none;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    footer {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 1em;
+      position: relative;
+      bottom: 0;
+      width: 100%;
+
+    </style>
 
 </head>
 <script>
