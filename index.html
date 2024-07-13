@@ -1100,9 +1100,7 @@ document.getElementById('textform').addEventListener('submit', function(event) {
                 const imageurl = e.target.result;
                 const newphoto = document.createElement('img');
                 newphoto.src = imageurl;
-                newphoto.width = '300';
-                newphoto.height = '400';
-
+                newphoto.className='cir';
                 const titleText = title.value;
                 const titlepara = document.createElement('p');
                 titlepara.textContent = titleText;
