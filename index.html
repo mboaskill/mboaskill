@@ -852,7 +852,57 @@ et il n’attend pas que personne aille à lui.</b>
     <section id="imag" class="tab">
              <br> <br/> 
       <iframe class="c" src="https://cinaf.tv"></iframe>
-        <h2 style=background-color:lime>Images et Videos</h2>
+        
+</section>
+    <script>
+        function searchFunction(event) {
+            event.preventDefault(); // Empêcher la soumission du formulaire
+
+            const formData = new FormData(document.getElementById('searchForm'));
+            const query = formData.get('q').toLowerCase(); // Convertir la requête en minuscules pour la recherche sans distinction entre majuscules et minuscules
+
+            // Récupérer la liste d'éléments à rechercher
+            const items = document.querySelectorAll('#items li');
+
+            // Filtrer les éléments en fonction de la requête
+            items.forEach(item => {
+                const itemText = item.textContent.toLowerCase();
+                if (itemText.includes(query)) {
+                    item.style.display = 'block'; // Afficher l'élément si correspondance
+                } else {
+                    item.style.display = 'none'; // Masquer l'élément s'il n'y a pas de correspondance
+                }
+            });
+        }
+    </script>
+
+
+<section id="reg" class="tab" style=background-color:black>
+<br><br/>
+<b style="color:lime; font-size:45" onclick="openTab('accueil')">⬅️</b>
+    <center>
+        <img class="cir" src="https://ucarecdn.com/1d76535e-61fb-477a-81a5-16d8f749ddb7/-/preview/480x639/">
+        </center>
+<b style=background-color:skyblue>Mario APK</b>
+      <hr>
+     <h3>contactez nous sur whatsap</h3>
+<button style=background-color:lime id="whatsappButton">Envoyer un message WhatsApp</button>
+<script>
+document.getElementById("whatsappButton").addEventListener("click", function() {
+    var phoneNumber = "681388871"; // Remplacez par votre numéro de téléphone au format international sans le signe "+" ni d'autres caractères spéciaux
+    var message = "Bonjour, je suis intéressé par vos services."; // Message par défaut
+
+    var whatsappLink = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+    window.open(whatsappLink);
+});
+
+</script>
+<a style=background-color:skyblue href="https://www.appcreator24.com/app3159489-jvw860">Download app</a>
+<br><br/><br><br/>
+</section>
+<section id="mms" class="tab">
+         <br> <br/> 
+<h2 style=background-color:lime>Images et Videos</h2>
             <form id="searchForm" onsubmit="searchFunction(event)">
         <label for="search">Rechercher :</label>
         <input type="text" id="search" name="q" placeholder="Entrez votre recherche...">
@@ -909,56 +959,7 @@ et il n’attend pas que personne aille à lui.</b>
 
 <br><br/>
      <br> <br/>  
-</section>
-    <script>
-        function searchFunction(event) {
-            event.preventDefault(); // Empêcher la soumission du formulaire
-
-            const formData = new FormData(document.getElementById('searchForm'));
-            const query = formData.get('q').toLowerCase(); // Convertir la requête en minuscules pour la recherche sans distinction entre majuscules et minuscules
-
-            // Récupérer la liste d'éléments à rechercher
-            const items = document.querySelectorAll('#items li');
-
-            // Filtrer les éléments en fonction de la requête
-            items.forEach(item => {
-                const itemText = item.textContent.toLowerCase();
-                if (itemText.includes(query)) {
-                    item.style.display = 'block'; // Afficher l'élément si correspondance
-                } else {
-                    item.style.display = 'none'; // Masquer l'élément s'il n'y a pas de correspondance
-                }
-            });
-        }
-    </script>
-
-
-<section id="reg" class="tab" style=background-color:black>
-<br><br/>
-<b style="color:lime; font-size:45" onclick="openTab('accueil')">⬅️</b>
-    <center>
-        <img class="cir" src="https://ucarecdn.com/1d76535e-61fb-477a-81a5-16d8f749ddb7/-/preview/480x639/">
-        </center>
-<b style=background-color:skyblue>Mario APK</b>
-      <hr>
-     <h3>contactez nous sur whatsap</h3>
-<button style=background-color:lime id="whatsappButton">Envoyer un message WhatsApp</button>
-<script>
-document.getElementById("whatsappButton").addEventListener("click", function() {
-    var phoneNumber = "681388871"; // Remplacez par votre numéro de téléphone au format international sans le signe "+" ni d'autres caractères spéciaux
-    var message = "Bonjour, je suis intéressé par vos services."; // Message par défaut
-
-    var whatsappLink = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
-    window.open(whatsappLink);
-});
-
-</script>
-<a style=background-color:skyblue href="https://www.appcreator24.com/app3159489-jvw860">Download app</a>
-<br><br/><br><br/>
-</section>
-<section id="mms" class="tab">
-         <br> <br/> 
-<footer class="cil">
+  <footer class="cil">
 <center>
     <br> <br/> 
     <button style=background-color:lime onclick="ouvrirLin()">contacter le service client</button>
