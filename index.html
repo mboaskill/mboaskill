@@ -1137,7 +1137,8 @@ document.getElementById('textform').addEventListener('submit', function(event) {
                 photodiv.appendChild(newphoto);
                 photodiv.appendChild(lemudiv);
                 photogallery.insertBefore(photodiv, photogallery.firstChild);
-
+photogallery.insertBefore(document.createElement('hr'),photogallery.firstChild);
+                                                
                 photos.unshift({ photo: newphoto, menu: lemudiv });
             }
 
