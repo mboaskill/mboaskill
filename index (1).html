@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>www.oscardumboa.com</title>
+
+<link rel="stylesheet" href="styles.css">
+<link rel="manifest" href="/manifest.webmanifest">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+<style>
+       .cir {
+            width: 100%;
+            height: 400px;
+            border-radius: 0%; /* Pour créer une forme circulaire */
+            background-color: lightblue;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+        }
+               .cil {
+            width: 250px;
+            height: 500px;
+            border-radius: 0%; /* Pour créer une forme circulaire */
+            background-color: lightblue;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+        }
+
+               .ro {
+            width: 250px;
+            height: 300px;
+            border-radius: 0%; /* Pour créer une forme circulaire */
+            background-color: lightblue;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+        }
+
+               .ci {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%; /* Pour créer une forme circulaire */
+            background-color: lightblue;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+        }
+
+               .c {
+            width: 100%;
+            height: 480px;
+              top: 0;
+           left: 0;
+/* Pour créer une forme circulaire */
+            background-color: transparent;
+            display: inline;
+            justify-content: center;
+            align-items: center;
+            
+        }
+               .r {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%; /* Pour créer une forme circulaire */
+            background-color: lightblue;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+      }
+      
+    </style>
+
+    <style>
+        /* Style pour mettre en forme les onglets */
+        .tab {
+            display: none;
+        }
+    </style>
+<style>
+    .heart-radio {
+        position: relative;
+    }
+
+    .heart-radio input {
+        display: none;
+    }
+
+    .heart-radio label {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .heart-radio label:before {
+        content: '\2665'; /* Code Unicode pour le symbole de cœur */
+        font-size: 34px;
+        color: #ff0000; /* Couleur du cœur */
+    }
+
+    .heart-radio input:checked + label:before {
+        color: #ff0000; /* Couleur du cœur lorsque sélectionné */
+    }
+            #boom {
+            width: 100%;
+            height: 50vh;
+            border: 4;
+                    }
+ 
+    @keyframes run {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(150%); }
+    }
+
+    .running {
+        display: inline-block;
+        animation: run 2s linear infinite;
+    }
+</style>
+    <style>
+  .color-change {
+    transition: color 0.5s;
+  }
+
+  .red {
+    color: lime;
+  }
+
+  .blue {
+    color: skyblue;
+  }
+
+  .green {
+    color: orange;
+  }
+</style>
+
+
+    <style>
+    body {
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  max-width: 400px;
+  margin: 0 auto;
+  text-align: center;
+}
+  .circl {
+            width: 160px;
+            height: 160px;
+            border-radius: 30%; /* Pour créer une forme circulaire */
+            background-color: lightblue;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+        }
+  
+
+
+button {
+  padding:9px 0;
+
+</style>
+<style>
+    #imageContaine {
+        margin-top: 20px;
+    }
+        header {
+      background-color: #333;
+      color: #fff;
+      padding: 1em;
+      text-align: center;
+    }
+    .suggestions {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        white-space: nowrap;
+        position: relative;
+    }
+
+    .suggestion {
+        padding: 10px;
+        margin: 5px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+    }
+
+    footer {
+        background-image: url('https://ucarecdn.com/1d76535e-61fb-477a-81a5-16d8f749ddb7/-/preview/480x639/');
+        background-size: cover;
+        background-position: center;
+        height: 500px;
+        width: 20;
+        /* Ajustez la hauteur selon vos besoins */
+        color: white; /* Couleur du texte */
+        text-align: center; /* Centrage du texte */
+        padding: 30px; /* Remplissage intérieur du header */
+    }
+
+    /* Style pour le texte à l'intérieur du header (optionnel) */
+    h1 {
+        font-size: 2em;
+    }
+
+    p {
+        font-size: 1.2em;
+    }
+
+   .lemu {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f9f2f2;
+  padding: 10px;
+}
+
+button {
+  border: none;
+  background-color: transparent;
+  font-size: 16px;
+  cursor: pointer;
+  position: relative;
+}
+
+.heart {
+  color: red;
+}
+
+.eye {
+  color: blue;
+}
+
+.arrow {
+  color: green;
+}
+
+        .bottom-menu {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: white;
+            padding: 8px 0;
+            text-align: left;
+        }
+
+        #message-input {
+            width: 70%;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #send-button {
+            background-color: limegreen;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+    body {
+    margin: 0;
+.menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 10%;
+    width: 100%;
+    background-color: white;
+    color: #fff;
+    z-index: 9999;
+}
+
+.menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 2;
+    text-align: center;
+
+}
+
+.menu ul li {
+    display: inline;
+    margin: 11px;
+}
+
+.menu ul li a {
+    color: #fff;
+    text-decoration: none;
+
+}
+
+.content {
+    padding-top: 80px; /* Ajustez la hauteur selon la hauteur de votre menu */
+     background-color: #3b5998; /* Couleur de survol de Facebook */
+   
+}
+
+a:hover {
+    background-color: #3b5998; /* Couleur de survol de Facebook */
+}
+
+         
+          .bottom-menu {
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background-color: skyblue;
+        color: white;
+        text-align: center;
+        padding: 5px 0;
+    }
+
+    .dropbtn {
+        background-color: white;
+        color: white;
+        padding: 8px;
+        font-size: 6px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #F4F4F4;
+        min-width: 6px;
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 2px 6px;
+        text-decoration: none;
+    }
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: white;
+        min-width: 160px;
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 2px 6px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {
+        background-color: white;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+          .conteneu {
+            display: flex;
+        }
+
+          .conteneu {
+            display: flex;
+        }
+
+        
+            }
+          .flag {
+            width: 300px;
+            height: 40px;
+        }
+
+        .green-stripe {
+            background-color: #007A5E;
+            width: 33.33%;
+            height: 90%;
+            float: left;
+        }
+
+        .red-stripe {
+            background-color: #D21034;
+            width: 33.33%;
+            height: 90%;
+            float: left;
+        }
+
+        .yellow-stripe {
+            background-color: #FCD116;
+            width: 33.34%;
+            height: 90%;
+            float: left;
+        }
+         #browser {
+            width: 80%;
+            height: 50vh;
+            border: 4;
+        }
+          #boom {
+            width: 70%;
+            height: 30vh;
+            border: 4;
+                    }
+          #bom {
+            width: 90%;
+            height: 50vh;
+            border: 4;
+}
+                #bm {
+;
+}
+
+          .conteneu {
+            display: flex;
+        }
+
+        .contenu-gauche {
+            flex: 1; /* Prend autant d'espace que possible */
+        }
+
+        .contenu-droit {
+            width: 300px; /* Largeur fixe du contenu à droite */
+        }
+        
+ 
+    /* Styles CSS pour la mise en forme */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: white;
+      color: #fff;
+      padding: 1em;
+      text-align: center;
+    }
+    section {
+      padding: 0px;
+      margin: 0px;
+      background-color: none;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    footer {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 1em;
+      position: relative;
+      bottom: 0;
+      width: 100%;
+    }
+          .flag {
+            width: 300px;
+            height: 40px;
+        }
+
+        .green-stripe {
+            background-color: #007A5E;
+            width: 33.33%;
+            height: 90%;
+            float: left;
+        }
+
+        .red-stripe {
+            background-color: #D21034;
+            width: 33.33%;
+            height: 90%;
+            float: left;
+        }
+
+        .yellow-stripe {
+            background-color: #FCD116;
+            width: 33.34%;
+            height: 90%;
+            float: left;
+        }
+         #browser {
+            width: 80%;
+            height: 50vh;
+            border: 4;
+        }
+          #boom {
+            width: 70%;
+            height: 30vh;
+            border: 4;
+                    }
+          #bom {
+            width: 90%;
+            height: 50vh;
+            border: 4;
+}
+                #bm {
+            width: 90%;
+            height: 80vh;
+            border: 4        padding: 8px;
+        font-size: 6px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #F4F4F4;
+        min-width: 6px;
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 2px 6px;
+        text-decoration: none;
+    }
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: white;
+        min-width: 160px;
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 2px 6px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {
+        background-color: white;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+          .conteneu {
+            display: flex;
+        }
+
+          .conteneu {
+            display: flex;
+        }
+
+        
+    /* Styles CSS pour la mise en forme */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: white;
+      color: #fff;
+      padding: 1em;
+      text-align: center;
+    }
+    section {
+      padding: 0px;
+      margin: 0px;
+      background-color: none;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    footer {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 1em;
+      position: relative;
+      bottom: 0;
+      width: 100%;
+
+    </style>
+
+</head>
+<script>
+ document.querySelector('.like-btn').addEventListener('click', function() {
+  // Code pour gérer le clic sur le bouton "Like"
+});
+
+document.querySelector('.view-btn').addEventListener('click', function() {
+  // Code pour gérer le clic sur le bouton "Vue"
+});
+
+document.querySelector('.share-btn').addEventListener('click', function() {
+  // Code pour gérer le clic sur le bouton "Partager"
+});
+   
+</script>
+<body>
+<div class="menu">
+    <ul>
+        <li><a href="#" onclick="openTab('accueil')" style="color:black">Accueil</a></li>
+        <li><a href="#" onclick="openTab('imag')" style="color:black">séries</a></li>
+        <li><a href="#" onclick="openTab('sls')" style="color:black">sms</a></li>
+        
+        <li><a href="#" onclick="openTab('mms')" style="color:black">Videos</a></li>
+    </ul>
+</div>
+<br><br/>
+<b style="width:100%; position:fixed; background-color:white; z-index:9999; text-align:right; font-size:30; color:lime" onclick="openTab('lls')">+</b>
+<center>
+    <section id="accueil" class="tab" style="display: block;">
+        
+        <br> <br/>
+<div class="suggestions">
+    <div class="suggestion">       <img class="ci" src="https://ucarecdn.com/1d76535e-61fb-477a-81a5-16d8f749ddb7/-/preview/480x639/">
+    <u id="sendMessageButton"> Oscar mimba 237</u>        
+</div>
+    <div class="suggestion">
+        <img class="ci" src="https://ucarecdn.com/1cd7062d-90d7-40f6-9843-e83d648a5a48/-/preview/390x693/">
+        <a href="https://www.facebook.com/profile.php?id=100081621636032">Mboa skill</a>
+    </div>
+
+    <div class="suggestion">
+        <img class="ci" src="https://ucarecdn.com/01f878cd-8876-4b9f-aa18-e820e235763e/-/preview/480x320/">
+        <a href="https://www.facebook.com/edzigui">Navaro officiel</a>
+    </div>
+        <div class="suggestion">
+        <img class="ci" src="https://ucarecdn.com/591a12a5-46ee-4f2e-b318-6038500298dc/-/preview/480x640/">
+        <a href="https://www.facebook.com/titan.du.mboa237">Ton titan Pro</a>
+    </div>
+    <div class="suggestion"> <img class="ci" src="https://ucarecdn.com/b793086f-7b1a-400d-b18b-78e99e7c153d/-/preview/453x454/">
+    <b>Alors tu telecharge?</b>
+</div>
+    <div class="suggestion">     <img class="ci" src="https://ucarecdn.com/c4ea94c6-efc5-4fe2-81f3-2b18f066eb80/-/preview/480x480/">
+    <b>moi j'utulise tiof et toi?</b>
+</div>
+    <div class="suggestion">
+        <img class="ci" src="https://ucarecdn.com/33254597-3727-4732-93c1-8862dc9280c1/-/preview/480x480/">
+        <b>communauté mboa skill</b>
+    </div>
+    <div class="suggestion">
+    <img class="ci" src="https://ucarecdn.com/3c8ef6b4-3683-4bb2-b778-b6b94fc151c8/-/preview/480x480/">
+    <b>Ola detergent 👍👍</b>
+    </div>
+    <div class="suggestion">        <img class="ci" src="https://ucarecdn.com/91b20ece-8456-424f-bf8b-bae6c699d99d/-/preview/480x480/">
+    <b>fait tes transaction sans stress</b></div>
+    <div class="suggestion">        <img class="ci" src="https://ucarecdn.com/336ab5b3-78b9-438e-9104-3a2974062e66/-/preview/1000x500/">
+    <b>très bon outils</b></div>
+ <div class="suggestion">
+     <img class="ci" src="https://ucarecdn.com/b793086f-7b1a-400d-b18b-78e99e7c153d/-/preview/453x454/">
+     <b>500f=1Go sur *123*10#</b>
+ </div>   
+</div>
+
+
+ <span class="running">🔜🔜🔜</span></div>
+ <div id="previews"></div>
+             <div id="publicationcontainer"></div>
+        <div id="photogallery"></div>
+        <b>dans la vie il faut apprendre à dire merci seigneur 👏 
+<a href="https://mboaskill.netlify.app">#https://mboaskill.netlify.app/#</a>👈👈</b>      
+     <img class="cir" src="https://ucarecdn.com/7789d23b-2ae3-4a77-8623-c3eba2f22581/-/preview/475x478/">
+          <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 2k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span>5k</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div>
+    <br><br/>
+
+            
+               <header style="background-color:skyblue">
+      <b>  Tiktok : oscar du mboa ✅
+Facebook: oscar du mboa ✅
+WhatsApp:67193891😁✅
+YouTube: oscar du mboa ✅
+Abonné vous</b>
+</header>
+     <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 1k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span>20k</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div>
+    <br><br/>
+
+   <b>𝐉𝐞 𝐧𝐞 𝐩𝐨𝐫𝐭𝐞 𝐩𝐚𝐬 ▫️𝐆𝐮𝐜𝐜𝐢▫️ 😥💔
+𝐉𝐞 𝐧𝐞 𝐩𝐨𝐫𝐭𝐞 𝐩𝐚𝐬 ▫️𝐅𝐞𝐧𝐝𝐢 ▫️😥💔
+𝐉𝐞 𝐧𝐞 𝐩𝐨𝐫𝐭𝐞 𝐩𝐚𝐬 ▫️𝐀𝐝𝐝𝐢𝐝𝐚𝐬▫️😥💔
+
+𝐂'𝐞𝐬𝐭 𝐜𝐞 𝐪𝐮𝐞 𝐦𝐞𝐬 𝐩𝐚𝐫𝐞𝐧𝐭𝐬 𝐩𝐞𝐮𝐯𝐞𝐧𝐭 𝐦𝐞 𝐩𝐞𝐫𝐦𝐞𝐭𝐭𝐫𝐞 💕 𝐢𝐥𝐬 𝐬𝐨𝐧𝐭 𝐩𝐚𝐮𝐯𝐫𝐞𝐬 💕</b>
+        <img class="cir" src="https://ucarecdn.com/1d76535e-61fb-477a-81a5-16d8f749ddb7/-/preview/480x639/">   
+     <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 2k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span> 2k</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div> <br> <br/>
+    <b>pas de commentaire ce soir</b>
+            <img class="cir" src="https://ucarecdn.com/6e724a4f-14b1-4c33-a58e-45622ce5a4b0/-/preview/395x855/">   
+     <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 3k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span>30k</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div> <br> <br/>
+
+ <h1>Oscar du mboa est avec: </h1>
+<hr>
+<div class="suggestions">
+    <div class="suggestion">
+        <img class="r" src="https://ucarecdn.com/1cd7062d-90d7-40f6-9843-e83d648a5a48/-/preview/390x693/">
+        <b>Mboa skill</b>
+    </div>
+    <br><br/>
+    <div class="suggestion">
+        <img class="r" src="https://ucarecdn.com/b793086f-7b1a-400d-b18b-78e99e7c153d/-/preview/453x454/">
+        <b>MY mtn</b>
+    </div>    <br><br/>
+        <div class="suggestion">
+        <img class="r" src="https://ucarecdn.com/01f878cd-8876-4b9f-aa18-e820e235763e/-/preview/480x320/">
+        <b>Navaro officiel</b>
+    </div>    <br><br/>
+    <div class="suggestion">
+        <img class="r" src="https://ucarecdn.com/591a12a5-46ee-4f2e-b318-6038500298dc/-/preview/480x640/">
+        <b>Ton titan Pro</b>
+    </div>    <br><br/>
+    <div class="suggestion">
+        <img class="r" src="https://ucarecdn.com/1d76535e-61fb-477a-81a5-16d8f749ddb7/-/preview/480x639/">
+        <b>oscar MC</b> </div> 
+        <br><br/>
+         <div class="suggestion">
+        <img class="r" src="https://ucarecdn.com/c75a4a4e-b9e3-4446-a906-a8d83598bf11/-/preview/480x480/">
+        <b>Whatsapp pro</b>
+    </div>
+   
+    </div>
+
+</div>
+<hr>
+<br><br/>
+       <header style="background-color:pink">
+       <b>Avec <u>Oscar MC </u>– Je viens d’être reconnu(e) comme l’un(e) de ses meilleurs fans ! merci beaucoup</b>
+</header>
+      <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 1k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span> 21</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div>
+            <br> <br/>
+ <span style="text-transform:uppercase;">#oscar du mboa</span>
+ <img class="cir" src="https://ucarecdn.com/31705016-e1f4-43d4-8263-74e3b714b68c/-/preview/480x480/">
+
+  <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 10k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span> 12k</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div> <br> <br/>
+   <header style="background-color:red">
+       <b>Fière d'être camerounais 🇨🇲🇨🇲🇨🇲🇨🇲🇨🇲🇨🇲🇨🇲🇨🇲🇨🇲🇨🇲🇨🇲🇨🇲🇨🇲🇨🇲🇨🇲</b>
+</header>
+      <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 2k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span> 21</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div>
+          <br> <br/>
+       <b style="background-color:skyblue">Debut de l'Euro</b>
+     <img class="cir" src="https://ucarecdn.com/200e4168-b3d4-4797-a76d-0fe034a134dd/-/preview/320x168/">
+
+     <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 1k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span> 70</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div>
+
+<br><br/>
+    <hr>    
+            <div class="section">
+        <div class="cont">
+            <!-- Votre contenu défilant ici -->
+        <i>La première nation éliminée de cette
+Euro 2024 est désormais connue.
+Ce, après le match nul concédé, ce
+vendredi soir, par la France face auX
+Pays-Bas (0-0).
+.
+</i>
+        </div>
+    </div>
+<hr>
+
+<br><br/>
+   <header style="background-color:pink">
+       <b>Le succès n’arrive pas à ceux qui l’attendent 
+et il n’attend pas que personne aille à lui.</b>
+   </header>
+     <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 80k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span> 780</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div>
+ 
+<br><br/>
+           <b style=background-color:skyblue>oscar du mboa</b>
+           <img class="cir" src="https://ucarecdn.com/df63933d-2b9e-40fa-988d-390ad9c11d92/-/preview/355x355/">
+
+                <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 48k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span> 21</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div>
+
+    <br><br/>
+   <header style="background-color:pink">
+   <b>Ton mari verse ta nourriture pour un petit malentendu et il va se coucher affamé. En tant qu’une bonne épouse, tu feras quoi ?
+
+🤭</b>    
+   </header>
+                <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 43k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span> 50</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div>
+
+    <br><br/>
+           <b style=background-color:skyblue>mboaskill direct bientôt disponible</b>
+           <img class="cir" src="https://ucarecdn.com/3699924e-c153-4627-94b3-cc9d0a7b78bb/-/preview/351x355/">
+                <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 9k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span> 420</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div>
+<br><br/>
+<a href="https://directs.netlify.app">cliquer pour voir en Direct</a>
+
+    <br><br/>
+       <header style="background-color:pink">
+           <b>Socrate affirme : << Le temps qui était le temps n'est plus le temps qui est le temps >>
+🥴🤣🤣</b>
+</header>
+                <div class="lemu">
+  <button class="like-btn"><span class="heart">❤️</span> 60k</button>
+  <button class="view-btn"><span class="eye">👁️‍🗨️</span> 90</button>
+  <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
+</div>
+
+    <hr>    
+     </section>
+       <script>
+    document.getElementById('download').addEventListener('click', function() {
+      var image = document.getElementById('image');
+      var downloadLink = document.createElement('a');
+      downloadLink.href = image.src;
+      downloadLink.download = 'nom_de_votre_image.jpg';
+      downloadLink.click();
+    });
+  </script>
+    <section id="imag" class="tab">
+             <br> <br/> 
+      <iframe class="c" src="https://cinaf.tv"></iframe>
+        
+</section>
+    <script>
+        function searchFunction(event) {
+            event.preventDefault(); // Empêcher la soumission du formulaire
+
+            const formData = new FormData(document.getElementById('searchForm'));
+            const query = formData.get('q').toLowerCase(); // Convertir la requête en minuscules pour la recherche sans distinction entre majuscules et minuscules
+
+            // Récupérer la liste d'éléments à rechercher
+            const items = document.querySelectorAll('#items li');
+
+            // Filtrer les éléments en fonction de la requête
+            items.forEach(item => {
+                const itemText = item.textContent.toLowerCase();
+                if (itemText.includes(query)) {
+                    item.style.display = 'block'; // Afficher l'élément si correspondance
+                } else {
+                    item.style.display = 'none'; // Masquer l'élément s'il n'y a pas de correspondance
+                }
+            });
+        }
+    </script>
+
+
+<section id="reg" class="tab" style=background-color:black>
+<br><br/>
+<b style="color:lime; font-size:45" onclick="openTab('accueil')">⬅️</b>
+    <center>
+        <img class="cir" src="https://ucarecdn.com/1d76535e-61fb-477a-81a5-16d8f749ddb7/-/preview/480x639/">
+        </center>
+<b style=background-color:skyblue>Mario APK</b>
+      <hr>
+     <h3>contactez nous sur whatsap</h3>
+<button style=background-color:lime id="whatsappButton">Envoyer un message WhatsApp</button>
+<script>
+document.getElementById("whatsappButton").addEventListener("click", function() {
+    var phoneNumber = "681388871"; // Remplacez par votre numéro de téléphone au format international sans le signe "+" ni d'autres caractères spéciaux
+    var message = "Bonjour, je suis intéressé par vos services."; // Message par défaut
+
+    var whatsappLink = `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+    window.open(whatsappLink);
+});
+
+</script>
+<a style=background-color:skyblue href="https://www.appcreator24.com/app3159489-jvw860">Download app</a>
+<br><br/><br><br/>
+</section>
+<section id="mms" class="tab">
+         <br> <br/> 
+<h2 style=background-color:lime>Images et Videos</h2>
+            <form id="searchForm" onsubmit="searchFunction(event)">
+        <label for="search">Rechercher :</label>
+        <input type="text" id="search" name="q" placeholder="Entrez votre recherche...">
+        <button style=background-color:lime type="submit">Rechercher</button>
+    </form>
+    <br><br/>
+        <div id="search-results"></div>
+          <br><br/>
+    <ul id="items">
+<li> <b>oscar dumboa : derrangement😂😂😂</b>       
+    <iframe class="cil" src="https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2F100081621636032%2Fvideos%2F1131485884767721%2F&show_text=false&width=267&t=0" width="267" height="476" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" allowFullScreen="true"></iframe>    
+</li>
+<hr>
+  <li> <p>mon amie utulise Mboa skill</p>
+    <iframe class="cil"  src="https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fweb.facebook.com%2F100081621636032%2Fvideos%2F4260965880797459%2F&show_text=false&width=357&t=0" width="357" height="476" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" allowFullScreen="true"></iframe>
+</li>
+<br><br/>
+<li><p>mon amie a la roulexe</p>
+    <iframe class="cil" src="https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fweb.facebook.com%2F100081621636032%2Fvideos%2F430123186461896%2F&show_text=false&width=267&t=0" width="267" height="476" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" allowFullScreen="true"></iframe>
+</li>
+  </ul> 
+<h1>Oscar du mboa est avec: </h1>
+<hr>
+<div class="suggestions">
+    <div class="suggestion">
+        <img class="r" src="https://ucarecdn.com/1cd7062d-90d7-40f6-9843-e83d648a5a48/-/preview/390x693/">
+        <b>Mboa skill</b>
+    </div>
+    <br><br/>
+    <div class="suggestion">
+        <img class="r" src="https://ucarecdn.com/b793086f-7b1a-400d-b18b-78e99e7c153d/-/preview/453x454/">
+        <b>MY mtn</b>
+    </div>    <br><br/>
+        <div class="suggestion">
+        <img class="r" src="https://ucarecdn.com/01f878cd-8876-4b9f-aa18-e820e235763e/-/preview/480x320/">
+        <b>Navaro officiel</b>
+    </div>    <br><br/>
+    <div class="suggestion">
+        <img class="r" src="https://ucarecdn.com/591a12a5-46ee-4f2e-b318-6038500298dc/-/preview/480x640/">
+        <b>Ton titan Pro</b>
+    </div>    <br><br/>
+    <div class="suggestion">
+        <img class="r" src="https://ucarecdn.com/1d76535e-61fb-477a-81a5-16d8f749ddb7/-/preview/480x639/">
+        <b>oscar MC</b> </div> 
+        <br><br/>
+         <div class="suggestion">
+        <img class="r" src="https://ucarecdn.com/c75a4a4e-b9e3-4446-a906-a8d83598bf11/-/preview/480x480/">
+        <b>Whatsapp pro</b>
+    </div>
+   
+    </div>
+
+</div> 
+
+<br><br/>
+     <br> <br/>  
+
+<center>
+    <br> <br/> 
+    <button style=background-color:lime onclick="ouvrirLin()">contacter le service client</button>
+
+<script>
+function ouvrirLin() {
+    window.open('https://www.rolling-chat.com/chat');
+}
+</script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@uploadcare/blocks@0.44.0/web/lr-file-uploader-regular.min.css" >
+<script type="module">
+  import * as LR from 'https://cdn.jsdelivr.net/npm/@uploadcare/blocks@0.44.0/web/lr-file-uploader-regular.min.js';
+  LR.registerBlocks(LR);
+</script>
+
+<lr-config
+  ctx-name="my-uploader"
+  pubkey="691cdeba5d7083dc56fe"
+></lr-config>
+
+<lr-file-uploader-regular
+  ctx-name="my-uploader"
+></lr-file-uploader-regular>
+<lr-upload-ctx-provider
+  ctx-name="my-uploader"
+  id="my-uploader-provider"
+></lr-upload-ctx-provider>
+
+<br><br/><br><br/>
+<br><br/>
+</section>
+<section id="lls" class="tab">
+     
+            <br> <br/> 
+   <h1>envoyer une image</h1>
+               <br> <br/> 
+    <input type="file" id="fileinput">
+                <br> <br/> 
+            <input type="text" id="title" placeholder="Titre de l'image">
+            <br> <br/> 
+    <button style=background-color:lime onclick="uploadphoto();openTab('accueil')"><a href="#">envoyer</a></button>
+<br><br/>
+ 
+          
+</section>
+<script>
+        document.getElementById('sendMessageButton').addEventListener('click', function() {
+            window.location.href = 'https://www.facebook.com/profile.php?id=100091983017759'; // Remplacez 'votreProfil' par votre nom d'utilisateur ou votre ID Facebook
+        });
+    </script>
+<script>
+    const providerNode = document.getElementById('my-uploader-provider');
+const previewsNode = document.getElementById('previews');
+
+providerNode.addEventListener('change', event => {
+  renderFiles(event.detail.allEntries.filter((file) => file.status === 'success'));
+});
+
+function renderFiles(files) {
+  const renderedFiles = files.map(file => {
+    const imgNode = document.createElement('img');
+    imgNode.setAttribute('src', file.cdnUrl);
+    imgNode.setAttribute('alt', file.fileInfo.originalFilename);
+
+    return imgNode;
+  });
+
+  previewsNode.replaceChildren(...renderedFiles);
+}
+
+document.getElementById('textform').addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    const textinput = document.getElementById('textinput').value;
+    
+    // création des éléments html pour afficher la publication texte
+    const headerelement = document.createElement('header');
+    headerelement.style= 'background-color:white';
+    const textelement = document.createElement('p');
+    textelement.style= 'background-color:pink'; 
+    textelement.textContent = textinput;
+    
+    // construction du menu avec les boutons de like, de vue et de partage
+    const lemudiv = document.createElement('div');
+    lemudiv.classList.add('lemu');
+    
+    const likebtn = document.createElement('button');
+    likebtn.classList.add('like-btn');
+    likebtn.innerHTML = '<span class="heart">❤️</span> 0';
+    let likecount = 0;
+      likebtn.addEventListener('click', function() {
+        likecount++;
+        likebtn.innerHTML = `<span class="heart">❤️</span> ${likecount}`;
+    });
+
+    const formdata = new FormData();
+    formdata.append('text', textinput);
+
+    fetch('https://jsonplaceholder.typicode.com/todos/1')
+  .then(response => response.json())
+  .then(data => {
+         document.getElementById('todo').textContent = JSON.stringify(data);
+ 
+    })
+    .then(response => {
+        console.log('publication texte envoyée avec succès !');
+    })
+    .catch(error => {
+        console.error('erreur lors de l\'envoi de la publication texte :', error);
+    });
+
+    const viewbtn = document.createElement('button');
+    viewbtn.classList.add('view-btn');
+    viewbtn.innerHTML = '<span class="eye">👁️‍🗨️</span> ';
+    const sharebtn = document.createElement('button');
+    sharebtn.classList.add('share-btn');
+    sharebtn.innerHTML = '<span class="arrow">🔁</span> partager';
+
+    lemudiv.appendChild(likebtn);
+    lemudiv.appendChild(viewbtn);
+    lemudiv.appendChild(sharebtn);
+    
+    // Ajout des éléments au contenu de la publication
+    headerelement.appendChild(textelement);
+    headerelement.appendChild(lemudiv);
+ 
+    // Ajout de la publication complète au conteneur de publication
+    const publicationcontainer = document.getElementById('publicationcontainer');
+    publicationcontainer.insertBefore(headerelement, publicationcontainer.firstChild);
+     const hrElement = document.createElement('hr');
+    document.getElementById('textinput').value = '';
+});
+    </script>
+
+    <script>
+        const fileinput = document.getElementById('fileinput');
+        const photogallery = document.getElementById('photogallery');
+        const title = document.getElementById('title');
+        const photos = [];
+
+        function uploadphoto() {
+            const file = fileinput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const imageurl = e.target.result;
+                const newphoto = document.createElement('img');
+                newphoto.src = imageurl;
+                newphoto.className='cir';
+                const titleText = title.value;
+                const titlepara = document.createElement('p');
+                titlepara.textContent = titleText;
+
+                const photodiv
+= document.createElement('div');
+                photodiv.classList.add('photodiv');
+
+                const lemudiv = document.createElement('div');
+                lemudiv.classList.add('lemu');
+
+                const likebtn = document.createElement('button');
+                likebtn.classList.add('like-btn');
+                let likecount = 0;
+                likebtn.innerHTML = `<span class="heart">❤️</span> ${likecount}`;
+                likebtn.addEventListener('click', function() {
+                    likecount++;
+                    likebtn.innerHTML = `<span class="heart">❤️</span> ${likecount}`;
+                });
+
+                const viewbtn = document.createElement('button');
+                viewbtn.classList.add('view-btn');
+                viewbtn.innerHTML = '<span class="eye">👁️‍🗨️</span>';
+
+                const sharebtn = document.createElement('button');
+                sharebtn.classList.add('share-btn');
+                sharebtn.innerHTML = '<span class="arrow">🔁</span> Partager';
+
+                lemudiv.appendChild(likebtn);
+                lemudiv.appendChild(viewbtn);
+                lemudiv.appendChild(sharebtn);
+
+                photodiv.appendChild(titlepara);
+                photodiv.appendChild(newphoto);
+                photodiv.appendChild(lemudiv);
+                photogallery.insertBefore(photodiv, photogallery.firstChild);
+photogallery.insertBefore(document.createElement('hr'),photogallery.firstChild);
+                                                
+                photos.unshift({ photo: newphoto, menu: lemudiv });
+            }
+
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function renderphotos() {
+            photogallery.innerHTML = '';
+            photos.forEach(item => {
+                const photodiv = document.createElement('div');
+                photodiv.classList.add('photodiv');
+
+                const lemudiv = item.menu;
+                const image = item.photo;
+
+                photodiv.appendChild(titlepara);
+                photodiv.appendChild(image);
+                photodiv.appendChild(lemudiv);
+
+                photogallery.appendChild(photodiv);
+            });
+        }
+    </script>
+<section style=background-color:skyblue id="chat" class="tab">
+<center>
+    <div class="flag">
+        <div class="green-stripe"></div>
+        <div class="red-stripe"><span style="color: #FFD700; font-size: 30px;">★</span></div>
+        <div class="yellow-stripe"> 
+</div> 
+<iframe class="cil" src="https://chatroll.com/embed/chat/p7yq;jsessionid=11zpr2nz4z7gzquccsxkoqqg510216641?id=EBrZzbBSFMr"></iframe>
+</center>
+<br><br/>    
+</section>
+<section id="lite" class="tab">
+    <br><br/>
+        <button style=background-color:lime onclick="ouvrirLien()">connecter vous au chat</button>
+
+<script>
+function ouvrirLien() {
+    window.open('https://chatroll.com/embed/chat/p7yq;jsessionid=11zpr2nz4z7gzquccsxkoqqg510216641?id=EBrZzbBSFMr', 'newWindow', 'toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,resizable=no,copyhistory=no,width=500,height=400');
+}
+</script>
+<br>
+ <iframe src="https://www.facebook.com/plugins/page.php?href=https%3A%2F%2Fwww.facebook.com%2Fprofile.php%3Fid%3D100091983017759&tabs=timeline&width=310&height=500&small_header=false&adapt_container_width=false&hide_cover=true&show_facepile=false&appId=986107159671122" width="310" height="150" style="border:none;overflow:hidden" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>
+  <h1>envoyer du text</h1>
+<form id="textform">
+    <textarea id="textinput" placeholder="ajouter un texte..." rows="4" cols="30"></textarea>
+    <button style=background-color:lime type="submit">publier</button>
+</form>
+ </center> 
+</section>
+<section id="sls" class="tab">
+<br><br/><br><br/>
+<div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+  <iframe class="c" src="https://chatroll.com/embed/chat/p7yq;jsessionid=11zpr2nz4z7gzquccsxkoqqg510216641?id=EBrZzbBSFMr"></iframe>
+    <br><br/>
+</section>
+</center>
+          <script>
+        function openTab(tabName) {
+            var i, tabcontent;
+            tabcontent = document.getElementsByClassName("tab");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            document.getElementById(tabName).style.display = "block";
+        }
+    </script>
+</body>
+</html>
