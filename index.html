@@ -12,6 +12,28 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
+ <style>
+    #fileinput {
+        display: none;
+    }
+
+    .file-upload-label {
+        display: inline-block;
+        background-color: black;
+        color: white;
+        padding: 10px;
+        cursor: pointer;
+        border-radius: 14px;
+        text-align: center;
+    }
+
+    .file-upload-label::before {
+        content: ' +';
+        font-size: 20px;
+        margin-right: 5px;
+    }
+ </style>
+  
   <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 <style>
        .cir {
@@ -999,7 +1021,9 @@ function ouvrirLin() {
             <br> <br/> 
    <h1>envoyer une image</h1>
                <br> <br/> 
-    <input type="file" id="fileinput">
+    <label class="file-upload-label" for="fileinput"></label>
+<input type="file" id="fileinput" accept="image/*">
+  
                 <br> <br/> 
             <input type="text" id="title" placeholder="Titre de l'image">
             <br> <br/> 
