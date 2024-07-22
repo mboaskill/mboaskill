@@ -602,7 +602,13 @@ a:hover {
       width: 100%;
 
     </style>
-
+    </style>
+        <style>
+        #bo {
+            width: 100%;
+        }
+        </style>
+  
 </head>
 <script>
  document.querySelector('.like-btn').addEventListener('click', function() {
@@ -621,13 +627,40 @@ document.querySelector('.share-btn').addEventListener('click', function() {
 <body>
 <div class="menu">
     <ul>
-        <li><a href="#" onclick="openTab('accueil')" style="color:black">Accueil</a></li>
-        <li><a href="#" onclick="openTab('imag')" style="color:black">Infos</a></li>
-        <li><a href="#" onclick="openTab('sls')" style="color:black">Sms</a></li>
+        <li><a href="#" onclick="openTab('accueil')" style="color:black"         class="control">Accueil</a></li>
+        <li><a href="#" onclick="openTab('imag')" style="color:black"         class="control">Infos</a></li>
+        <li><a href="#" onclick="openTab('sls')" style="color:black"         class="control">Sms</a></li>
         
-        <li><a href="#" onclick="openTab('mms')" style="color:black">Videos</a></li>
+        <li><a href="#" onclick="openTab('mms')" style="color:black"         class="control">Videos</a></li>
     </ul>
+         <input id="bo" type="range" min="0" max="100" value="0">
 </div>
+      <script>
+        const rangeElement = document.getElementById('bo');
+        const buttons = document.querySelectorAll('.control');
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                rangeElement.value = 0; // Remise à zéro
+                rangeElement.disabled = false; // Active le curseur
+
+                let start = 0;
+            const interval = setInterval(() => {
+                    if (start < 100) {
+                        start++;
+                        rangeElement.value = start;
+                    } else {
+                        clearInterval(interval);
+                        setTimeout(() => {
+                            rangeElement.value = 0; // Rétablit à zéro après 5 secondes
+                            rangeElement.disabled = true; // Désactive le curseur
+                        }, 20);
+                    }
+                }, 20); // Temps pour atteindre 100 en 2 secondes
+            });
+        });
+      </script>
+  
 <center>
     <section id="accueil" class="tab" style="display: block;">
         
