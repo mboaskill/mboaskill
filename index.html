@@ -1035,7 +1035,23 @@ function ouvrirLin() {
 }
 </script>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@uploadcare/blocks@0.44.0/web/lr-file-uploader-regular.min.css" >
+
+</section>
+<section id="lls" class="tab">
+     
+            <br> <br/> 
+   <h1>envoyer une image</h1>
+               <br> <br/> 
+    <label class="file-upload-label" for="fileinput"></label>
+<input type="file" id="fileinput" accept="image/*">
+  
+              
+            <input type="text" id="title" placeholder="Titre de l'image">
+  
+    <button style=background-color:lime onclick="uploadphoto();openTab('accueil')"><a href="#">envoyer</a></button>
+<br><br/>
+  <p>voici le seul disponible pour l'instant 👇👇</p>
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@uploadcare/blocks@0.44.0/web/lr-file-uploader-regular.min.css" >
 <script type="module">
   import * as LR from 'https://cdn.jsdelivr.net/npm/@uploadcare/blocks@0.44.0/web/lr-file-uploader-regular.min.js';
   LR.registerBlocks(LR);
@@ -1056,21 +1072,6 @@ function ouvrirLin() {
 
 <br><br/><br><br/>
 <br><br/>
-</section>
-<section id="lls" class="tab">
-     
-            <br> <br/> 
-   <h1>envoyer une image</h1>
-               <br> <br/> 
-    <label class="file-upload-label" for="fileinput"></label>
-<input type="file" id="fileinput" accept="image/*">
-  
-              
-            <input type="text" id="title" placeholder="Titre de l'image">
-  
-    <button style=background-color:lime onclick="uploadphoto();openTab('accueil')"><a href="#">envoyer</a></button>
-<br><br/>
- 
           
 </section>
 <script>
