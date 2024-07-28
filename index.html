@@ -1067,8 +1067,28 @@ function ouvrirLin() {
     <button style=background-color:lime onclick="uploadphoto();openTab('accueil')"><a href="#">envoyer</a></button>
 <br><br/>
   <p>voici le seul disponible pour l'instant 👇👇</p>
-  </div>
-  	<script>
+  
+  	
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@uploadcare/blocks@0.44.0/web/lr-file-uploader-regular.min.css" >
+<script type="module">
+  import * as LR from 'https://cdn.jsdelivr.net/npm/@uploadcare/blocks@0.44.0/web/lr-file-uploader-regular.min.js';
+  LR.registerBlocks(LR);
+</script>
+
+<lr-config
+  ctx-name="my-uploader"
+  pubkey="691cdeba5d7083dc56fe"
+></lr-config>
+
+<lr-file-uploader-regular
+  ctx-name="my-uploader"
+></lr-file-uploader-regular>
+<lr-upload-ctx-provider
+  ctx-name="my-uploader"
+  id="my-uploader-provider"
+></lr-upload-ctx-provider>
+	</div>
+	<script>
 		// Définissez le mot de passe
 		const motDePasse = "2610";
 		
@@ -1089,25 +1109,6 @@ function ouvrirLin() {
 		});
     </script>
   
- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@uploadcare/blocks@0.44.0/web/lr-file-uploader-regular.min.css" >
-<script type="module">
-  import * as LR from 'https://cdn.jsdelivr.net/npm/@uploadcare/blocks@0.44.0/web/lr-file-uploader-regular.min.js';
-  LR.registerBlocks(LR);
-</script>
-
-<lr-config
-  ctx-name="my-uploader"
-  pubkey="691cdeba5d7083dc56fe"
-></lr-config>
-
-<lr-file-uploader-regular
-  ctx-name="my-uploader"
-></lr-file-uploader-regular>
-<lr-upload-ctx-provider
-  ctx-name="my-uploader"
-  id="my-uploader-provider"
-></lr-upload-ctx-provider>
-
 <br><br/><br><br/>
 <br><br/>
           
