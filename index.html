@@ -1051,7 +1051,11 @@ function ouvrirLin() {
 </section>
 <section id="lls" class="tab">
      
-            <br> <br/> 
+            <br> <br/>
+              	<h1>Section protégée</h1>
+	<button style=background-color:green id="voir">Verifier</button>
+	<div id="section-protegee" style="display: none;">
+    
    <h1>envoyer une image</h1>
                <br> <br/> 
     <label class="file-upload-label" for="fileinput"></label>
@@ -1063,6 +1067,28 @@ function ouvrirLin() {
     <button style=background-color:lime onclick="uploadphoto();openTab('accueil')"><a href="#">envoyer</a></button>
 <br><br/>
   <p>voici le seul disponible pour l'instant 👇👇</p>
+  </div>
+  	<script>
+		// Définissez le mot de passe
+		const motDePasse = "2610";
+		
+		// Ajoutez un écouteur d'événement au bouton "Voir"
+		document.getElementById("voir").addEventListener("click", function() {
+			// Demandez le mot de passe à l'utilisateur
+			const password = prompt("Entrez le mot de passe pour accéder à la section protégée");
+			
+			// Vérifiez si le mot de passe est correct
+			if (password === motDePasse) {
+				// Affichez la section protégée
+				document.getElementById("section-protegee").style.display = "block";
+			} else {
+				// Masquez la section protégée et affichez un message d'erreur
+				document.getElementById("section-protegee").style.display = "none";
+				alert("Mot de passe incorrect");
+			}
+		});
+    </script>
+  
  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@uploadcare/blocks@0.44.0/web/lr-file-uploader-regular.min.css" >
 <script type="module">
   import * as LR from 'https://cdn.jsdelivr.net/npm/@uploadcare/blocks@0.44.0/web/lr-file-uploader-regular.min.js';
