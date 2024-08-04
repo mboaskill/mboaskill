@@ -1231,85 +1231,94 @@ document.getElementById('textform').addEventListener('submit', function(event) {
     document.getElementById('textinput').value = '';
 });
     </script>
+	<script>
+  const fileinput = document.getElementById('fileinput');
+  const photogallery = document.getElementById('photogallery');
+  const title = document.getElementById('title');
+  const photos = [];
 
-    <script>
-        const fileinput = document.getElementById('fileinput');
-        const photogallery = document.getElementById('photogallery');
-        const title = document.getElementById('title');
-        const photos = [];
+  function uploadphoto() {
+    const file = fileinput.files[0];
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const imageurl = e.target.result;
+      const newphoto = document.createElement('img');
+      newphoto.src = imageurl;
+      newphoto.className='cir';
+      const titleText = title.value;
+      const titlepara = document.createElement('p');
+      titlepara.textContent = titleText;
+      truncateText(titlepara, 40); // Tronquer le texte du titre
+      const photodiv = document.createElement('div');
+      photodiv.classList.add('photodiv');
+      const lemudiv = document.createElement('div');
+      lemudiv.classList.add('lemu');
+      const likebtn = document.createElement('button');
+      likebtn.classList.add('like-btn');
+      let likecount = 0;
+      likebtn.innerHTML = `<span class="heart">❤️</span> ${likecount}`;
+      likebtn.addEventListener('click', function() {
+        likecount++;
+        likebtn.innerHTML = `<span class="heart">❤️</span> ${likecount}`;
+      });
+      const viewbtn = document.createElement('button');
+      viewbtn.classList.add('view-btn');
+      viewbtn.innerHTML = '<span class="eye">️‍️</span>';
+      const sharebtn = document.createElement('button');
+      sharebtn.classList.add('share-btn');
+      sharebtn.innerHTML = '<span class="arrow"></span> Partager';
+      lemudiv.appendChild(likebtn);
+      lemudiv.appendChild(viewbtn);
+      lemudiv.appendChild(sharebtn);
+      photodiv.appendChild(titlepara);
+      photodiv.appendChild(newphoto);
+      photodiv.appendChild(lemudiv);
+      photogallery.insertBefore(photodiv, photogallery.firstChild);
+      photogallery.insertBefore(document.createElement('hr'),photogallery.firstChild);
+      photos.unshift({ photo: newphoto, menu: lemudiv });
+    }
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  }
 
-        function uploadphoto() {
-            const file = fileinput.files[0];
-            const reader = new FileReader();
+  function renderphotos() {
+    photogallery.innerHTML = '';
+    photos.forEach(item => {
+      const photodiv = document.createElement('div');
+      photodiv.classList.add('photodiv');
+      const lemudiv = item.menu;
+      const image = item.photo;
+      const titlepara = document.createElement('p');
+      titlepara.textContent = item.photo.alt; // Utiliser l'attribut alt de l'image pour le titre
+      truncateText(titlepara, 40); // Tronquer le texte du titre
+      photodiv.appendChild(titlepara);
+      photodiv.appendChild(image);
+      photodiv.appendChild(lemudiv);
+      photogallery.appendChild(photodiv);
+    });
+  }
 
-            reader.onload = function(e) {
-                const imageurl = e.target.result;
-                const newphoto = document.createElement('img');
-                newphoto.src = imageurl;
-                newphoto.className='cir';
-                const titleText = title.value;
-                const titlepara = document.createElement('p');
-                titlepara.textContent = titleText;
+  function truncateText(element, maxLength) {
+  if (element.innerHTML.length > maxLength) {
+    element.dataset.fullText = element.innerHTML; // Stocker le texte complet
+    element.innerHTML = element.innerHTML.substring(0, maxLength) + '... <a href="#" onclick="return showMore(this)">Lire plus</a>';
+  }
+}
 
-                const photodiv
-= document.createElement('div');
-                photodiv.classList.add('photodiv');
+function showMore(element) {
+  var parent = element.parentNode;
+  parent.innerHTML = parent.dataset.fullText; // Afficher le texte complet
+  return false;
+}
 
-                const lemudiv = document.createElement('div');
-                lemudiv.classList.add('lemu');
-
-                const likebtn = document.createElement('button');
-                likebtn.classList.add('like-btn');
-                let likecount = 0;
-                likebtn.innerHTML = `<span class="heart">❤️</span> ${likecount}`;
-                likebtn.addEventListener('click', function() {
-                    likecount++;
-                    likebtn.innerHTML = `<span class="heart">❤️</span> ${likecount}`;
-                });
-
-                const viewbtn = document.createElement('button');
-                viewbtn.classList.add('view-btn');
-                viewbtn.innerHTML = '<span class="eye">👁️‍🗨️</span>';
-
-                const sharebtn = document.createElement('button');
-                sharebtn.classList.add('share-btn');
-                sharebtn.innerHTML = '<span class="arrow">🔁</span> Partager';
-
-                lemudiv.appendChild(likebtn);
-                lemudiv.appendChild(viewbtn);
-                lemudiv.appendChild(sharebtn);
-
-                photodiv.appendChild(titlepara);
-                photodiv.appendChild(newphoto);
-                photodiv.appendChild(lemudiv);
-                photogallery.insertBefore(photodiv, photogallery.firstChild);
-photogallery.insertBefore(document.createElement('hr'),photogallery.firstChild);
-                                                
-                photos.unshift({ photo: newphoto, menu: lemudiv });
-            }
-
-            if (file) {
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function renderphotos() {
-            photogallery.innerHTML = '';
-            photos.forEach(item => {
-                const photodiv = document.createElement('div');
-                photodiv.classList.add('photodiv');
-
-                const lemudiv = item.menu;
-                const image = item.photo;
-
-                photodiv.appendChild(titlepara);
-                photodiv.appendChild(image);
-                photodiv.appendChild(lemudiv);
-
-                photogallery.appendChild(photodiv);
-            });
-        }
-    </script>
+function showLess(element) {
+  var parent = element.parentNode;
+  parent.innerHTML = parent.dataset.truncatedText;
+  return false;
+}
+	</script>
+		   
 <section id="lives" class="tab">
   <center>
       <iframe class="cir" src="https://www.youtube.com/embed/l8PMl7tUDIE" title="FRANCE 24 – EN DIRECT – Info et actualités internationales en continu 24h/24" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
