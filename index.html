@@ -645,6 +645,36 @@ document.querySelector('.share-btn').addEventListener('click', function() {
 });
    
 </script>
+		<script>
+  function truncateText(element, maxLength) {
+    if (element.innerHTML.length > maxLength) {
+      element.innerHTML = element.innerHTML.substring(0, maxLength) + '... <a href="#" onclick="return showMore(this)">Lire plus</a>';
+    }
+  }
+
+  function showMore(element) {
+    var parent = element.parentNode;
+    parent.innerHTML = parent.dataset.fullText + ' <a href="#" onclick="return showLess(this)">Lire moins</a>';
+    return false;
+  }
+
+  function showLess(element) {
+    var parent = element.parentNode;
+    parent.innerHTML = parent.dataset.truncatedText;
+    return false;
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var elements = document.querySelectorAll('b');
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      element.dataset.fullText = element.innerHTML;
+      element.dataset.truncatedText = element.innerHTML.substring(0, 40) + '... <a href="#" onclick="return showMore(this)">Lire plus</a>';
+      truncateText(element, 40);
+    }
+  });
+		</script>
+	
 <body>
    <ul class="menu top-menu">
 <li><a href="#publier" onclick="openTab('lls')"><i class="fa fa-plus"></i></a></li>
@@ -708,7 +738,7 @@ document.querySelector('.share-btn').addEventListener('click', function() {
  <span class="running">🔜🔜🔜</span></div>
              <div id="publicationcontainer"></div>
         <div id="photogallery"></div>
-     <b>Bonjour à tous merci pour votre soutien on est ensemble 👍👍</b>
+     <b id="text">Bonjour à tous merci pour votre soutien on est ensemble 👍👍</b>
       <img class="cir" src="https://ucarecdn.com/ee86986c-092c-4f22-982e-6df06ba3c4bd/-/preview/480x638/">
       <div class="lemu">
   <button class="like-btn"><span class="heart">❤️</span> 1k</button>
@@ -716,7 +746,7 @@ document.querySelector('.share-btn').addEventListener('click', function() {
   <button class="share-btn"><span class="arrow">🔁</span> Partager</button>
       </div>
       <hr>
-        <b>dans la vie il faut apprendre à dire merci seigneur 👏 
+        <b id="text">dans la vie il faut apprendre à dire merci seigneur 👏 
 <a href="https://mboaskill.netlify.app">#https://mboaskill.netlify.app/#</a>👈👈</b>      
      <img class="cir" src="https://ucarecdn.com/7789d23b-2ae3-4a77-8623-c3eba2f22581/-/preview/475x478/">
           <div class="lemu">
@@ -727,7 +757,7 @@ document.querySelector('.share-btn').addEventListener('click', function() {
     <br><br/>
       <a href="https://directs.netlify.app">cliquer pour voir en Direct</a>
      <hr>
-      <b>c'est en étudiant et en s'exerçant qu'on devient informaticien ☑️☑️</b>      
+      <b id="text">c'est en étudiant et en s'exerçant qu'on devient informaticien ☑️☑️</b>      
      <img class="cir" src="https://ucarecdn.com/1cd7062d-90d7-40f6-9843-e83d648a5a48/-/preview/390x693/">
           <div class="lemu">
   <button class="like-btn"><span class="heart"><i class="fa fa-thumbs-up"></i></span> 2k</button>
@@ -750,7 +780,7 @@ Abonné vous</b>
 </div>
     <br><br/>
 <hr>
-   <b>𝐉𝐞 𝐧𝐞 𝐩𝐨𝐫𝐭𝐞 𝐩𝐚𝐬 ▫️𝐆𝐮𝐜𝐜𝐢▫️ 😥💔
+   <b id="text">𝐉𝐞 𝐧𝐞 𝐩𝐨𝐫𝐭𝐞 𝐩𝐚𝐬 ▫️𝐆𝐮𝐜𝐜𝐢▫️ 😥💔
 𝐉𝐞 𝐧𝐞 𝐩𝐨𝐫𝐭𝐞 𝐩𝐚𝐬 ▫️𝐅𝐞𝐧𝐝𝐢 ▫️😥💔
 𝐉𝐞 𝐧𝐞 𝐩𝐨𝐫𝐭𝐞 𝐩𝐚𝐬 ▫️𝐀𝐝𝐝𝐢𝐝𝐚𝐬▫️😥💔
 
