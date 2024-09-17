@@ -12,6 +12,11 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico" />
   <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300,0,0" />
+    
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
 <style>
 .menu {
 list-style-type: none;
@@ -68,9 +73,6 @@ hr {
 margin: 10px 0;
 }
   </style>
-  
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
   
   <style>
     #fileinput {
@@ -1069,8 +1071,9 @@ document.getElementById("whatsappButton").addEventListener("click", function() {
      <br> <br/>  
 
 <center>
-    <br> <br/> 
-    <button style=background-color:lime onclick="ouvrirLin()">contacter le service client</button>
+    <br> <br/>
+    
+    <button type="button" class="btn btn-primary " onclick="ouvrirLin()">contacter le service client</button>
 <br><br/>
 <script>
 function ouvrirLin() {
@@ -1084,7 +1087,7 @@ function ouvrirLin() {
      
             <br> <br/>
               	<h1>Section protégée</h1>
-	<button style=background-color:green id="voir">Verifier</button>
+	<button type="button" class="btn btn-danger" id="voir">Verifier</button>
 	<div id="section-protegee" style="display: none;">
     
    <h1>envoyer une image</h1>
@@ -1095,7 +1098,7 @@ function ouvrirLin() {
               
             <input type="text" id="title" placeholder="Titre de l'image">
   
-    <button style=background-color:lime onclick="uploadphoto();openTab('accueil')"><a href="#">envoyer</a></button>
+    <button type="button" class="btn btn-succes" onclick="uploadphoto();openTab('accueil')"><a href="#">envoyer</a></button>
 <br><br/>
   <p>voici le seul disponible pour l'instant 👇👇</p>
   
@@ -1328,7 +1331,7 @@ function showLess(element) {
 </section>
 <section id="lite" class="tab">
     
-        <button style=background-color:lime onclick="ouvrirLien()">connecter vous au chat</button>
+        <button type="button" class="btn btn-primary" onclick="ouvrirLien()">connecter vous au chat</button>
 
 <script>
 function ouvrirLien() {
