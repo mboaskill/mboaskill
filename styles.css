@@ -255,7 +255,7 @@ button {
     }
 
     footer {
-        background-image: url('https://ucarecdn.com/1d76535e-61fb-477a-81a5-16d8f749ddb7/-/preview/480x639/');
+        background-color: black;
         background-size: cover;
         background-position: center;
         height: 500px;
