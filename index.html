@@ -94,6 +94,11 @@
    b {
        color:none;
    }
+   button {
+       height: 2px;
+       border-radius: 3px;
+       color: black;
+   }
   </style>
 </head>
 <body>
@@ -103,10 +108,27 @@
 <br><br/>
     <h2><u>choisir le moyen de paiement:</u></h2>
   <div id="form">
-    <a href=''> <div id="lemu">mtn</div></a>
+    <button id="depot-btt" style="background-color:yellow;color:black">MTN</button>
       <br><br/>
-    <a href=''><div id="lenu">Orange</div>
-  </div></a>
+    <button id="depot-b" style="background-color:orange;color:black">ORANGE</button>
+    <script>
+        document.getElementById("depot-btt").addEventListener("click", () => {
+
+    // Ouvrir l'application téléphone avec le code
+    const phoneNumber = "674073769";
+    const code = `*126*1*1*${phoneNumber}*200%23`;
+    window.location.href = `tel:${code}`;
+});
+
+ document.getElementById("depot-b").addEventListener("click", () => {
+
+    // Ouvrir l'application téléphone avec le code
+    const phoneNumber = "674073769";
+    const code = `%23150*1*1*${phoneNumber}*200%23`;
+    window.location.href = `tel:${code}`;
+});
+ 
+    </script>
  
 </body>
 </html>
