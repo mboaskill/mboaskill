@@ -106,10 +106,13 @@
           <img id="userProfilePic" src="" alt="Profil" class="profile-img" />
           <textarea id="textPost" placeholder="À quoi pensez-vous ?"></textarea>
         </div>
-        <input type="file" id="imageUpload" accept="image/*" />
-        <input type="file" id="videoUpload" accept="video/*" />
+<input type="text" id="imageTitle" placeholder="Titre de l’image" />
+<input type="file" id="imageUpload" accept="image/*" />
+
+<input type="text" id="videoTitle" placeholder="Titre de la vidéo" />
+<input type="file" id="videoUpload" accept="video/*" />
         <button id="submitPost">Publier</button>
-      </div>
+</div>
       <div class="feed" id="feed"></div>
     </div>
   </section>
@@ -129,147 +132,207 @@
   </section>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, updateDoc, doc, increment } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  updateDoc,
+  doc,
+  increment
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
-      authDomain: "mboa-ec602.firebaseapp.com",
-      projectId: "mboa-ec602",
-      storageBucket: "mboa-ec602.appspot.com",
-      messagingSenderId: "498505132403",
-      appId: "1:498505132403:web:eb46547745f8d1a77b3d06"
-    };
+// 🔧 Config Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
+  authDomain: "mboa-ec602.firebaseapp.com",
+  projectId: "mboa-ec602",
+  storageBucket: "mboa-ec602.appspot.com",
+  messagingSenderId: "498505132403",
+  appId: "1:498505132403:web:eb46547745f8d1a77b3d06"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const db = getFirestore();
-    const storage = getStorage();
-    let currentUser = null;
+const app = initializeApp(firebaseConfig);
+const auth = getAuth();
+const db = getFirestore();
+const storage = getStorage();
+let currentUser = null;
 
-    onAuthStateChanged(auth, user => {
-      currentUser = user;
-      document.getElementById("userProfilePic").src = user?.photoURL || "https://via.placeholder.com/50";
+// 🔐 État utilisateur
+onAuthStateChanged(auth, user => {
+  currentUser = user;
+  document.getElementById("userProfilePic").src =
+    user?.photoURL || "https://via.placeholder.com/50";
+});
+
+// 🔧 Inscription
+window.signUp = async function () {
+  const email = document.getElementById("authEmail").value;
+  const password = document.getElementById("authPassword").value;
+  const name = document.getElementById("authName").value;
+  const photo = document.getElementById("authPhoto").files[0];
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    let photoURL = "";
+    if (photo) {
+      const storageRef = ref(storage, `profiles/${photo.name}`);
+      await uploadBytes(storageRef, photo);
+      photoURL = await getDownloadURL(storageRef);
+    }
+    await updateProfile(userCredential.user, {
+      displayName: name,
+      photoURL: photoURL
     });
+    document.getElementById("authStatus").innerText = "Inscription réussie.";
+  } catch (error) {
+    document.getElementById("authStatus").innerText = error.message;
+  }
+};
 
-    window.signUp = async function () {
-      const email = document.getElementById('authEmail').value;
-      const password = document.getElementById('authPassword').value;
-      const name = document.getElementById('authName').value;
-      const photo = document.getElementById('authPhoto').files[0];
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        let photoURL = '';
-        if (photo) {
-          const storageRef = ref(storage, `profiles/${photo.name}`);
-          await uploadBytes(storageRef, photo);
-          photoURL = await getDownloadURL(storageRef);
-        }
-        await updateProfile(userCredential.user, {
-          displayName: name,
-          photoURL: photoURL
-        });
-        document.getElementById('authStatus').innerText = "Inscription réussie.";
-      } catch (error) {
-        document.getElementById('authStatus').innerText = error.message;
-      }
-    };
+// 🔓 Connexion
+window.signIn = async function () {
+  const email = document.getElementById("authEmail").value;
+  const password = document.getElementById("authPassword").value;
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    document.getElementById("authStatus").innerText = "Connexion réussie.";
+  } catch (error) {
+    document.getElementById("authStatus").innerText = error.message;
+  }
+};
 
-    window.signIn = async function () {
-      const email = document.getElementById('authEmail').value;
-      const password = document.getElementById('authPassword').value;
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        document.getElementById('authStatus').innerText = "Connexion réussie.";
-      } catch (error) {
-        document.getElementById('authStatus').innerText = error.message;
-      }
-    };
+// 🚪 Déconnexion
+window.disconnect = function () {
+  signOut(auth);
+};
 
-    window.disconnect = function () {
-      signOut(auth);
-    };
+// 📝 Publication
+document.getElementById("submitPost").addEventListener("click", async () => {
+  if (!currentUser) return alert("Veuillez vous connecter.");
+  const text = document.getElementById("textPost").value;
+  const image = document.getElementById("imageUpload").files[0];
+  const video = document.getElementById("videoUpload").files[0];
+  const imageTitle = document.getElementById("imageTitle").value;
+  const videoTitle = document.getElementById("videoTitle").value;
 
-    document.getElementById("submitPost").addEventListener("click", async () => {
-      if (!currentUser) return alert("Veuillez vous connecter.");
-      const text = document.getElementById("textPost").value;
-      const image = document.getElementById("imageUpload").files[0];
-      const video = document.getElementById("videoUpload").files[0];
-      let imageUrl = "";
-      let videoUrl = "";
-      if (image) {
-        const imgRef = ref(storage, `posts/${image.name}-${Date.now()}`);
-        await uploadBytes(imgRef, image);
-        imageUrl = await getDownloadURL(imgRef);
-      }
-      if (video) {
-        const vidRef = ref(storage, `posts/${video.name}-${Date.now()}`);
-        await uploadBytes(vidRef, video);
-        videoUrl = await getDownloadURL(vidRef);
-      }
-      await addDoc(collection(db, "posts"), {
-        text,
-        imageUrl,
-        videoUrl,
-        createdAt: Date.now(),
-        userName: currentUser.displayName,
-        userPhoto: currentUser.photoURL,
-        userId: currentUser.uid,
-        likes: 0,
-        views: videoUrl ? 0 : undefined
-      });
-      document.getElementById("textPost").value = "";
-    });
+  let imageUrl = "";
+  let videoUrl = "";
 
-    onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snapshot => {
-      const feed = document.getElementById("feed");
-      feed.innerHTML = "";
-      snapshot.forEach(docSnap => {
-        const post = docSnap.data();
-        const postEl = document.createElement("div");
-        postEl.className = "post";
-        postEl.innerHTML = `
-          <div><img src="${post.userPhoto}" class="profile-img" /> <strong>${post.userName}</strong></div>
-          <p>${post.text}</p>
-          ${post.imageUrl ? `<img src="${post.imageUrl}" />` : ""}
-          ${post.videoUrl ? `
-            <div>
-              <video src="${post.videoUrl}" controls onplay="recordView('${docSnap.id}')" muted></video>
-              <small>${post.views || 0} vues</small>
-            </div>` : ""}
-          <div class="actions">
-            <i class="fa fa-thumbs-up" onclick="likePost('${docSnap.id}')"></i> <span id="like-${docSnap.id}">${post.likes}</span>
-          </div>
-        `;
-        feed.appendChild(postEl);
-      });
-    });
+  if (image) {
+    const imgRef = ref(storage, `posts/${image.name}-${Date.now()}`);
+    await uploadBytes(imgRef, image);
+    imageUrl = await getDownloadURL(imgRef);
+  }
 
-    window.likePost = async function (postId) {
-      const postRef = doc(db, "posts", postId);
-      await updateDoc(postRef, { likes: increment(1) });
-    };
+  if (video) {
+    const vidRef = ref(storage, `posts/${video.name}-${Date.now()}`);
+    await uploadBytes(vidRef, video);
+    videoUrl = await getDownloadURL(vidRef);
+  }
 
-    window.recordView = async function(postId) {
-      if (!currentUser) return;
-      const postRef = doc(db, "posts", postId);
-      await updateDoc(postRef, { views: increment(1) });
-    };
+  const postData = {
+    text,
+    imageUrl,
+    videoUrl,
+    createdAt: Date.now(),
+    userName: currentUser.displayName,
+    userPhoto: currentUser.photoURL,
+    userId: currentUser.uid,
+    likes: 0
+  };
 
-    window.openTab = function(evt, tabName) {
-      document.querySelectorAll(".tabcontent").forEach(tab => {
-        tab.style.display = "none";
-        tab.classList.remove("active");
-      });
-      document.querySelectorAll(".tablinks").forEach(icon => {
-        icon.classList.remove("selected");
-      });
-      document.getElementById(tabName).style.display = "block";
-      document.getElementById(tabName).classList.add("active");
-      evt.currentTarget.classList.add("selected");
-    };
-  </script>
+  if (videoUrl) {
+    postData.views = 0;
+    postData.videoTitle = videoTitle || "Vidéo";
+  }
+
+  if (imageUrl) {
+    postData.imageTitle = imageTitle || "Image";
+  }
+
+  await addDoc(collection(db, "posts"), postData);
+
+  // Reset fields
+  document.getElementById("textPost").value = "";
+  document.getElementById("imageUpload").value = "";
+  document.getElementById("videoUpload").value = "";
+  document.getElementById("imageTitle").value = "";
+  document.getElementById("videoTitle").value = "";
+});
+
+// 📡 Affichage des posts (temps réel)
+onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snapshot => {
+  const feed = document.getElementById("feed");
+  feed.innerHTML = "";
+  snapshot.forEach(docSnap => {
+    const post = docSnap.data();
+    const postEl = document.createElement("div");
+    postEl.className = "post";
+    postEl.style.marginBottom = "1rem";
+    postEl.style.border = "1px solid #ddd";
+    postEl.style.borderRadius = "8px";
+    postEl.style.padding = "1rem";
+    postEl.innerHTML = `
+      <div><img src="${post.userPhoto}" class="profile-img" style="width:30px; height:30px; border-radius:50%;"/> <strong>${post.userName}</strong></div>
+      <p>${post.text}</p>
+      ${post.imageUrl ? `<img src="${post.imageUrl}" style="max-width:100%; border-radius:8px;" />` : ""}
+      ${post.videoUrl ? `
+        <div>
+          <video src="${post.videoUrl}" controls onplay="recordView('${docSnap.id}')" muted style="max-width:100%; border-radius:8px;"></video>
+          <small>${post.views || 0} vues</small>
+        </div>` : ""}
+      <div class="actions" style="margin-top:0.5rem;">
+        <i class="fa fa-thumbs-up" onclick="likePost('${docSnap.id}')"></i>
+        <span id="like-${docSnap.id}">${post.likes}</span>
+      </div>
+    `;
+    feed.appendChild(postEl);
+  });
+});
+
+// 👍 Like
+window.likePost = async function (postId) {
+  const postRef = doc(db, "posts", postId);
+  await updateDoc(postRef, { likes: increment(1) });
+};
+
+// 👁️ Vue vidéo
+window.recordView = async function (postId) {
+  if (!currentUser) return;
+  const postRef = doc(db, "posts", postId);
+  await updateDoc(postRef, { views: increment(1) });
+};
+
+// 🔁 Navigation entre les onglets
+window.openTab = function (evt, tabName) {
+  document.querySelectorAll(".tabcontent").forEach(tab => {
+    tab.style.display = "none";
+    tab.classList.remove("active");
+  });
+  document.querySelectorAll(".tablinks").forEach(icon => {
+    icon.classList.remove("selected");
+  });
+  document.getElementById(tabName).style.display = "block";
+  document.getElementById(tabName).classList.add("active");
+  evt.currentTarget.classList.add("selected");
+};
+</script>
 </body>
 </html>
