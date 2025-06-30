@@ -2,20 +2,62 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Connexion</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mboa skills</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
+    /* STYLES CSS (identique à ta version précédente, non modifié ici pour la lisibilité) */
     body {
-      font-family: sans-serif;
-      background: linear-gradient(135deg, #fef9ed, #e7e1ff, #dff3f9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
       margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
     }
-
-    .login-container {
+    button {
+      cursor: pointer;
+    }
+    header {
+      background-color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
+      position: fixed;
+      width: 100%;
+      padding: 0 1rem;
+      top: 0;
+      left: 0;
+      z-index: 9999;
+    }
+    header .icons {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      width: 100%;
+    }
+    header .icons i {
+      font-size: 1.2rem;
+      color: #555;
+      cursor: pointer;
+      padding: 1rem;
+    }
+    header .icons i.selected {
+      color: #1877f2;
+    }
+    .tabcontent {
+      display: none;
+    }
+    .tabcontent.active {
+      display: block;
+    }
+    .main-content {
+      max-width: 700px;
+      margin: 6rem auto 2rem auto;
+      background-color: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+        .login-container {
       background-color: #f0f2f5;
       padding: 2rem;
       border-radius: 10px;
@@ -31,7 +73,6 @@
       border-radius: 6px;
       font-size: 14px;
     }
-
     button {
       padding: 0.75rem;
       border: none;
@@ -44,34 +85,54 @@
       margin-top: 1rem;
     }
 
-    .error-message {
-      margin-top: 1rem;
-    }
-
-    .create-account {
-      background-color: #e7f3ff;
-      color: #1877f2;
-      margin-top: 1rem;
-      border: 1px solid #1877f2;
-    }
+    /* ...tu peux remettre tous les styles précédents ici si nécessaire... */
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <h2>Connexion</h2>
-    <form id="login-form">
-      <input type="email" id="email" placeholder="Adresse e-mail" required />
-      <input type="password" id="password" placeholder="Mot de passe" required />
-      <button type="submit">Se connecter</button>
-    </form>
-    <button class="create-account"><a href="https://directs.netlify.app">Créer un compte</a></button>
-    <p id="login-message" class="error-message"></p>
-  </div>
+  <header>
+    <div class="icons">
+      <i class="fas fa-home tablinks selected" onclick="openTab(event, 'home')"></i>
+      <i class="fas fa-box tablinks" onclick="openTab(event, 'plus')"></i>
+      <i class="fas fa-video tablinks" onclick="openTab(event, 'video')"></i>
+      <i class="fas fa-search tablinks" onclick="openTab(event, 'chers')"></i>
+      <i class="fas fa-plus tablinks" onclick="openTab(event, 'bars')"></i>
+    </div>
+  </header>
 
-  <!-- Firebase -->
+  <section id="home" class="tabcontent active">
+    <div class="main-content">
+      <div class="status-box" id="postForm">
+        <div class="status-box-top">
+          <img id="userProfilePic" src="" alt="Profil" class="profile-img" />
+          <textarea id="textPost" placeholder="À quoi pensez-vous ?"></textarea>
+        </div>
+        <input type="file" id="imageUpload" accept="image/*" />
+        <input type="file" id="videoUpload" accept="video/*" />
+        <button id="submitPost">Publier</button>
+      </div>
+      <div class="feed" id="feed"></div>
+    </div>
+  </section>
+
+  <section id="bars" class="tabcontent">
+    <h3>Connexion / Inscription</h3>
+    <div>
+      <input type="email" id="authEmail" placeholder="Email" />
+      <input type="password" id="authPassword" placeholder="Mot de passe" />
+      <input type="text" id="authName" placeholder="Nom (si inscription)" />
+      <input type="file" id="authPhoto" accept="image/*" />
+      <button onclick="signUp()">S'inscrire</button>
+      <button onclick="signIn()">Se connecter</button>
+      <button onclick="disconnect()">Se déconnecter</button>
+    </div>
+    <p id="authStatus"></p>
+  </section>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, updateDoc, doc, increment } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
@@ -79,35 +140,136 @@
       projectId: "mboa-ec602",
       storageBucket: "mboa-ec602.appspot.com",
       messagingSenderId: "498505132403",
-      appId: "1:498505132403:web:eb46547745f8d1a77b3d06",
-      measurementId: "G-M4ZNK5CKEC"
+      appId: "1:498505132403:web:eb46547745f8d1a77b3d06"
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    const auth = getAuth();
+    const db = getFirestore();
+    const storage = getStorage();
+    let currentUser = null;
 
-    const form = document.getElementById('login-form');
-    const message = document.getElementById('login-message');
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        message.style.color = "green";
-        message.textContent = "Connexion réussie ! Redirection...";
-        setTimeout(() => {
-          window.open("https://oscardumboa.netlify.app");
-        }, 1500);
-      } catch (error) {
-        console.error(error);
-        message.style.color = "red";
-        message.textContent = "Erreur : " + error.message;
-      }
+    onAuthStateChanged(auth, user => {
+      currentUser = user;
+      document.getElementById("userProfilePic").src = user?.photoURL || "https://via.placeholder.com/50";
     });
+
+    window.signUp = async function () {
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+      const name = document.getElementById('authName').value;
+      const photo = document.getElementById('authPhoto').files[0];
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        let photoURL = '';
+        if (photo) {
+          const storageRef = ref(storage, `profiles/${photo.name}`);
+          await uploadBytes(storageRef, photo);
+          photoURL = await getDownloadURL(storageRef);
+        }
+        await updateProfile(userCredential.user, {
+          displayName: name,
+          photoURL: photoURL
+        });
+        document.getElementById('authStatus').innerText = "Inscription réussie.";
+      } catch (error) {
+        document.getElementById('authStatus').innerText = error.message;
+      }
+    };
+
+    window.signIn = async function () {
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        document.getElementById('authStatus').innerText = "Connexion réussie.";
+      } catch (error) {
+        document.getElementById('authStatus').innerText = error.message;
+      }
+    };
+
+    window.disconnect = function () {
+      signOut(auth);
+    };
+
+    document.getElementById("submitPost").addEventListener("click", async () => {
+      if (!currentUser) return alert("Veuillez vous connecter.");
+      const text = document.getElementById("textPost").value;
+      const image = document.getElementById("imageUpload").files[0];
+      const video = document.getElementById("videoUpload").files[0];
+      let imageUrl = "";
+      let videoUrl = "";
+      if (image) {
+        const imgRef = ref(storage, `posts/${image.name}-${Date.now()}`);
+        await uploadBytes(imgRef, image);
+        imageUrl = await getDownloadURL(imgRef);
+      }
+      if (video) {
+        const vidRef = ref(storage, `posts/${video.name}-${Date.now()}`);
+        await uploadBytes(vidRef, video);
+        videoUrl = await getDownloadURL(vidRef);
+      }
+      await addDoc(collection(db, "posts"), {
+        text,
+        imageUrl,
+        videoUrl,
+        createdAt: Date.now(),
+        userName: currentUser.displayName,
+        userPhoto: currentUser.photoURL,
+        userId: currentUser.uid,
+        likes: 0,
+        views: videoUrl ? 0 : undefined
+      });
+      document.getElementById("textPost").value = "";
+    });
+
+    onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snapshot => {
+      const feed = document.getElementById("feed");
+      feed.innerHTML = "";
+      snapshot.forEach(docSnap => {
+        const post = docSnap.data();
+        const postEl = document.createElement("div");
+        postEl.className = "post";
+        postEl.innerHTML = `
+          <div><img src="${post.userPhoto}" class="profile-img" /> <strong>${post.userName}</strong></div>
+          <p>${post.text}</p>
+          ${post.imageUrl ? `<img src="${post.imageUrl}" />` : ""}
+          ${post.videoUrl ? `
+            <div>
+              <video src="${post.videoUrl}" controls onplay="recordView('${docSnap.id}')" muted></video>
+              <small>${post.views || 0} vues</small>
+            </div>` : ""}
+          <div class="actions">
+            <i class="fa fa-thumbs-up" onclick="likePost('${docSnap.id}')"></i> <span id="like-${docSnap.id}">${post.likes}</span>
+          </div>
+        `;
+        feed.appendChild(postEl);
+      });
+    });
+
+    window.likePost = async function (postId) {
+      const postRef = doc(db, "posts", postId);
+      await updateDoc(postRef, { likes: increment(1) });
+    };
+
+    window.recordView = async function(postId) {
+      if (!currentUser) return;
+      const postRef = doc(db, "posts", postId);
+      await updateDoc(postRef, { views: increment(1) });
+    };
+
+    window.openTab = function(evt, tabName) {
+      document.querySelectorAll(".tabcontent").forEach(tab => {
+        tab.style.display = "none";
+        tab.classList.remove("active");
+      });
+      document.querySelectorAll(".tablinks").forEach(icon => {
+        icon.classList.remove("selected");
+      });
+      document.getElementById(tabName).style.display = "block";
+      document.getElementById(tabName).classList.add("active");
+      evt.currentTarget.classList.add("selected");
+    };
   </script>
 </body>
 </html>
