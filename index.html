@@ -119,6 +119,67 @@
 #retirer:active {
     background-color: #2f793d;
 }
+.post {
+    background-color: #fff;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    background-color: skyblue;
+}
+
+.post-header img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.post-header .username {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.post-content {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.post-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.post-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.post-actions .like {
+    font-size: 16px;
+    color: #666;
+    cursor: pointer;
+}
+
+.post-actions .comment {
+    font-size: 16px;
+    color: #666;
+    cursor: pointer;
+}
+
+.post-actions .share {
+    font-size: 16px;
+    color: #666;
+    cursor: pointer;
+}
 
   </style>
 </head>
@@ -402,8 +463,9 @@ onSnapshot(
       const postEl = document.createElement("div");
       postEl.innerHTML = `
         <hr>
-        <div style="display:flex; align-items:center; gap:10px;">
-          <img src="${post.userPhoto}" alt="Profil" style="width:30px; height:30px; border-radius:50%;" />
+        <div class="post">
+        <div class="post-header">
+          <img src="https://ucarecdn.com/eef6203e-8e06-417b-8dbd-06f1a97d16d3/-/preview/475x475/" alt="Profil" style="width:30px; height:30px; border-radius:50%;" />
           <strong>${post.userName}</strong>
         </div>
         <p>${post.text || ""}</p>
@@ -416,6 +478,8 @@ onSnapshot(
         <div>
           <i class="fa fa-thumbs-up" onclick="likePost('${docSnap.id}')" style="cursor:pointer;"></i>
           <span id="like-${docSnap.id}">${post.likes || 0}</span>
+          </div>
+          </div>
         </div>`;
       feed.appendChild(postEl);
     });
