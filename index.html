@@ -50,7 +50,7 @@
       display: block;
     }
     .main-content {
-      max-width: 700px;
+      max-width: 7700px;
       margin: 6rem auto 2rem auto;
       background-color: white;
       padding: 1rem;
@@ -84,8 +84,42 @@
       cursor: pointer;
       margin-top: 1rem;
     }
+    		img {
+			width: 60px;
+			height: 80px;
+			border-radius: 10%;
+			background-color:none;
+		}
+  
+        /* Style pour les boutons sélectionnés */
+        .selecte {
+            background-color:orange;
+            color: #fff;
+        }
 
-    /* ...tu peux remettre tous les styles précédents ici si nécessaire... */
+#total-views, #solde {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#retirer {
+    background-color: #4CAF50;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#retirer:hover {
+    background-color: #3e8e41;
+}
+
+#retirer:active {
+    background-color: #2f793d;
+}
+
   </style>
 </head>
 <body>
@@ -94,8 +128,8 @@
       <i class="fas fa-home tablinks selected" onclick="openTab(event, 'home')"></i>
       <i class="fas fa-box tablinks" onclick="openTab(event, 'plus')"></i>
       <i class="fas fa-video tablinks" onclick="openTab(event, 'video')"></i>
-      <i class="fas fa-search tablinks" onclick="openTab(event, 'chers')"></i>
-      <i class="fas fa-plus tablinks" onclick="openTab(event, 'bars')"></i>
+      <i class="fas fa-plus tablinks" onclick="openTab(event, 'chers')"></i>
+      <i class="fas fa-bars tablinks" onclick="openTab(event, 'bars')"></i>
     </div>
   </header>
 
@@ -104,20 +138,20 @@
       <div class="status-box" id="postForm">
         <div class="status-box-top">
           <img id="userProfilePic" src="" alt="Profil" class="profile-img" />
-          <textarea id="textPost" placeholder="À quoi pensez-vous ?"></textarea>
-        </div>
-<input type="text" id="imageTitle" placeholder="Titre de l’image" />
-<input type="file" id="imageUpload" accept="image/*" />
-
-<input type="text" id="videoTitle" placeholder="Titre de la vidéo" />
-<input type="file" id="videoUpload" accept="video/*" />
-        <button id="submitPost">Publier</button>
 </div>
-      <div class="feed" id="feed"></div>
+<div class="feed" id="feed"></div>
     </div>
   </section>
-
+  <section id="plus" class="tabcontent">
+<br><br/>
+<p id="total-views" style="color:orange"></p>
+<p id="solde" style="color:limegreen">Solde : 0</p>
+<button id="retirer" style="display: none;">Retirer</button>
+<a href="https://oscardumboa.netlify.app">chat</a>
+  </section>
   <section id="bars" class="tabcontent">
+ <br><br/>
+<center> 
     <h3>Connexion / Inscription</h3>
     <div>
       <input type="email" id="authEmail" placeholder="Email" />
@@ -126,11 +160,83 @@
       <input type="file" id="authPhoto" accept="image/*" />
       <button onclick="signUp()">S'inscrire</button>
       <button onclick="signIn()">Se connecter</button>
+      <hr>
       <button onclick="disconnect()">Se déconnecter</button>
-    </div>
-    <p id="authStatus"></p>
+   </div>
+    </center>
+    <p id="authStatus" style="color:lime"></p>
   </section>
+  <section id="video" class="tabcontent">
+<h1>Dépôt</h1>
+<input type="number" id="montant" placeholder="Entrez le montant">
+<button id="ple">+</button>
+<p>Solde : <span id="sold">0</span></p>
+<p style="background-color:skyblue">Montant déposé : <span id="montant-depose">0</span></p>
+<button id="A" onclick="choisir(this, 950)">2k-6k (950)</button>
+<button id="B" onclick="choisir(this, 2200)">10K-20k (2200)</button>
+<button id="C" onclick="choisir(this, 3400)">30k-50k (3400)</button>
+<button id="D" onclick="choisir(this, 4500)">50-70k (4500)</button>
+<button id="E" onclick="choisir(this, 6000)">80-100k (6000)</button>
+<button id="valider" style="background-color:orange" onclick="valider()">Valider</button>
+  </section>
+  <section id="chers" class="tabcontent">
+      <br><br/>      <br><br/>
+      <center> 
+      <input type="file" id="imageInput" accept="image/*" />
+<input type="file" id="videoInput" accept="video/*" />
+<input type="text" id="imageTitle" placeholder="Titre image" />
+<input type="text" id="videoTitle" placeholder="Titre vidéo" />
+<textarea id="textPost"></textarea>
+<button id="submitPost">Publier</button>
+  </center>  
+  </section> 
+<script>
+    let sold = 0;
+    let montantChoisi = 0;
+    let montantTotalDepose = 0;
+    const montantInput = document.getElementById("montant");
+    const soldSpan = document.getElementById("sold");
+    let boutonSelectionne = null;
+    const depotMinimum = 2000;
 
+    document.getElementById("ple").addEventListener("click", function () {
+        const montant = parseInt(montantInput.value);
+        if (!isNaN(montant) && montant >= depotMinimum) {
+            sold += montant;
+            soldSpan.textContent = sold;
+            montantTotalDepose += montant;
+            document.getElementById("montant-depose").textContent = montantTotalDepose;
+            montantInput.value = "";
+        } else if (!isNaN(montant) && montant < depotMinimum) {
+            alert(`Le montant minimum de dépôt est de ${depotMinimum}`);
+        }
+    });
+
+    function choisir(bouton, montant) {
+        if (boutonSelectionne) {
+            boutonSelectionne.classList.remove("selecte");
+        }
+        boutonSelectionne = bouton;
+        boutonSelectionne.classList.add("selecte");
+        montantChoisi = montant;
+    }
+
+    function valider() {
+        if (boutonSelectionne && sold >= montantChoisi) {
+            sold -= montantChoisi;
+            soldSpan.textContent = sold;
+            boutonSelectionne.classList.remove("selecte");
+            boutonSelectionne = null;
+            montantChoisi = 0;
+        } else if (boutonSelectionne && sold < montantChoisi) {
+            alert("Solde insuffisant");
+        } else {
+            alert("Veuillez choisir un montant");
+        }
+    }
+</script>
+
+ <br><br/>
   <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
 import {
@@ -150,7 +256,9 @@ import {
   orderBy,
   updateDoc,
   doc,
-  increment
+  increment,
+  getDocs,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import {
   getStorage,
@@ -224,89 +332,88 @@ window.disconnect = function () {
 };
 
 // 📝 Publication
+// 📝 Publication
 document.getElementById("submitPost").addEventListener("click", async () => {
-  if (!currentUser) return alert("Veuillez vous connecter.");
-  const text = document.getElementById("textPost").value;
-  const image = document.getElementById("imageUpload").files[0];
-  const video = document.getElementById("videoUpload").files[0];
-  const imageTitle = document.getElementById("imageTitle").value;
-  const videoTitle = document.getElementById("videoTitle").value;
+  const textPost = document.getElementById("textPost").value.trim();
+  const imageInput = document.getElementById("imageInput");
+  const videoInput = document.getElementById("videoInput");
+  const imageTitle = document.getElementById("imageTitle").value.trim();
+  const videoTitle = document.getElementById("videoTitle").value.trim();
 
-  let imageUrl = "";
-  let videoUrl = "";
+  const imageFile = imageInput.files[0] || null;
+  const videoFile = videoInput.files[0] || null;
 
-  if (image) {
-    const imgRef = ref(storage, `posts/${image.name}-${Date.now()}`);
-    await uploadBytes(imgRef, image);
-    imageUrl = await getDownloadURL(imgRef);
-  }
-
-  if (video) {
-    const vidRef = ref(storage, `posts/${video.name}-${Date.now()}`);
-    await uploadBytes(vidRef, video);
-    videoUrl = await getDownloadURL(vidRef);
+  if (!textPost && !imageFile && !videoFile) {
+    alert("Veuillez entrer un texte ou ajouter une image/vidéo.");
+    return;
   }
 
   const postData = {
-    text,
-    imageUrl,
-    videoUrl,
-    createdAt: Date.now(),
-    userName: currentUser.displayName,
-    userPhoto: currentUser.photoURL,
-    userId: currentUser.uid,
-    likes: 0
+    text: textPost,
+    timestamp: serverTimestamp(),
+    userId: auth.currentUser.uid,
+    imageUrl: null,
+    videoUrl: null,
+    imageTitle: imageTitle || null,
+    videoTitle: videoTitle || null,
   };
 
-  if (videoUrl) {
-    postData.views = 0;
-    postData.videoTitle = videoTitle || "Vidéo";
+  // Gestion image
+  if (imageFile) {
+    const imageRef = ref(storage, `images/${Date.now()}_${imageFile.name}`);
+    const snapshot = await uploadBytes(imageRef, imageFile);
+    postData.imageUrl = await getDownloadURL(snapshot.ref);
   }
 
-  if (imageUrl) {
-    postData.imageTitle = imageTitle || "Image";
+  // Gestion vidéo
+  if (videoFile) {
+    const videoRef = ref(storage, `videos/${Date.now()}_${videoFile.name}`);
+    const snapshot = await uploadBytes(videoRef, videoFile);
+    postData.videoUrl = await getDownloadURL(snapshot.ref);
   }
 
+  // Enregistrement Firestore
   await addDoc(collection(db, "posts"), postData);
 
-  // Reset fields
+  // Reset des champs
   document.getElementById("textPost").value = "";
-  document.getElementById("imageUpload").value = "";
-  document.getElementById("videoUpload").value = "";
+  imageInput.value = "";
+  videoInput.value = "";
   document.getElementById("imageTitle").value = "";
   document.getElementById("videoTitle").value = "";
-});
 
-// 📡 Affichage des posts (temps réel)
-onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), snapshot => {
-  const feed = document.getElementById("feed");
-  feed.innerHTML = "";
-  snapshot.forEach(docSnap => {
-    const post = docSnap.data();
-    const postEl = document.createElement("div");
-    postEl.className = "post";
-    postEl.style.marginBottom = "1rem";
-    postEl.style.border = "1px solid #ddd";
-    postEl.style.borderRadius = "8px";
-    postEl.style.padding = "1rem";
-    postEl.innerHTML = `
-      <div><img src="${post.userPhoto}" class="profile-img" style="width:30px; height:30px; border-radius:50%;"/> <strong>${post.userName}</strong></div>
-      <p>${post.text}</p>
-      ${post.imageUrl ? `<img src="${post.imageUrl}" style="max-width:100%; border-radius:8px;" />` : ""}
-      ${post.videoUrl ? `
+  alert("Publication réussie !");
+});// 📡 Affichage des posts (temps réel)
+onSnapshot(
+  query(collection(db, "posts"), orderBy("createdAt", "desc")),
+  snapshot => {
+    console.log("Posts reçus:", snapshot.size);
+    const feed = document.getElementById("feed");
+    feed.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const post = docSnap.data();
+      const postEl = document.createElement("div");
+      postEl.innerHTML = `
+        <hr>
         <div>
-          <video src="${post.videoUrl}" controls onplay="recordView('${docSnap.id}')" muted style="max-width:100%; border-radius:8px;"></video>
-          <small>${post.views || 0} vues</small>
-        </div>` : ""}
-      <div class="actions" style="margin-top:0.5rem;">
-        <i class="fa fa-thumbs-up" onclick="likePost('${docSnap.id}')"></i>
-        <span id="like-${docSnap.id}">${post.likes}</span>
-      </div>
-    `;
-    feed.appendChild(postEl);
-  });
-});
-
+          <img src="${post.userPhoto}" style="width:30px;height:30px;border-radius:50%;" />
+          <strong>${post.userName}</strong>
+        </div>
+        <p>${post.text || ""}</p>
+        ${post.imageUrl ? `<img src="${post.imageUrl}" style="max-width:100%;border-radius:8px;" />` : ""}
+        ${post.videoUrl ? `
+          <div>
+            <video src="${post.videoUrl}" controls onplay="recordView('${docSnap.id}')" muted style="max-width:100%;border-radius:8px;"></video>
+            <small id="views-${docSnap.id}">${post.views || 0} vues</small>
+          </div>` : ""}
+        <div>
+          <i class="fa fa-thumbs-up" onclick="likePost('${docSnap.id}')"></i>
+          <span id="like-${docSnap.id}">${post.likes || 0}</span>
+        </div>`;
+      feed.appendChild(postEl);
+    });
+  }
+);
 // 👍 Like
 window.likePost = async function (postId) {
   const postRef = doc(db, "posts", postId);
@@ -333,6 +440,45 @@ window.openTab = function (evt, tabName) {
   document.getElementById(tabName).classList.add("active");
   evt.currentTarget.classList.add("selected");
 };
+    let totalViews = 0;
+    let solde = 0;
+
+    // Fonction pour obtenir le nombre total de vues
+    window.getTotalViews = async function () {
+const postsRef = collection(db, "posts");
+const querySnapshot = await getDocs(postsRef);
+        totalViews = 0;
+        querySnapshot.forEach((doc) => {
+            totalViews += doc.data().views;
+        });
+        document.getElementById("total-views").innerHTML = `Total de vues : ${totalViews}`;
+        calculerSolde();
+    };
+
+    // Fonction pour calculer le solde
+    function calculerSolde() {
+        solde = Math.floor(totalViews / 1000) * 50;
+        document.getElementById("solde").innerHTML = `Solde : ${solde}`;
+        if (solde > 0) {
+            document.getElementById("retirer").style.display = "block";
+        } else {
+            document.getElementById("retirer").style.display = "none";
+        }
+    }
+
+    // Appeler la fonction pour afficher le nombre total de vues
+    getTotalViews();
+
+    // Ajouter un événement pour le bouton retirer
+    document.getElementById("retirer").addEventListener("click", function() {
+        // Code pour retirer les gains
+        alert("Gains retirés avec succès !");
+        // Réinitialiser le solde
+        solde = 0;
+        document.getElementById("solde").innerHTML = `Solde : ${solde}`;
+        document.getElementById("retirer").style.display = "none";
+    });
+
 </script>
 </body>
 </html>
