@@ -182,11 +182,14 @@
   <section id="chers" class="tabcontent">
       <br><br/>      <br><br/>
       <center> 
+      <input type="text" id="imageTitle" placeholder="Titre image" />
       <input type="file" id="imageInput" accept="image/*" />
+      <hr>
+      <input type="text" id="videoTitle" placeholder="Titre vidéo" />
 <input type="file" id="videoInput" accept="video/*" />
-<input type="text" id="imageTitle" placeholder="Titre image" />
-<input type="text" id="videoTitle" placeholder="Titre vidéo" />
-<textarea id="textPost"></textarea>
+<hr>
+<textarea id="textPost" placeholder="je pense !!"></textarea>
+<hr>
 <button id="submitPost">Publier</button>
   </center>  
   </section> 
@@ -352,10 +355,14 @@ document.getElementById("submitPost").addEventListener("click", async () => {
     text: textPost,
     timestamp: serverTimestamp(),
     userId: auth.currentUser.uid,
+    userName: auth.currentUser.displayName || "Utilisateur",
+    userPhoto: auth.currentUser.photoURL || "https://via.placeholder.com/50",
     imageUrl: null,
     videoUrl: null,
     imageTitle: imageTitle || null,
     videoTitle: videoTitle || null,
+    views: 0,
+    likes: 0
   };
 
   // Gestion image
@@ -383,11 +390,11 @@ document.getElementById("submitPost").addEventListener("click", async () => {
   document.getElementById("videoTitle").value = "";
 
   alert("Publication réussie !");
-});// 📡 Affichage des posts (temps réel)
+});
+// 📡 Affichage des posts (temps réel)
 onSnapshot(
-  query(collection(db, "posts"), orderBy("createdAt", "desc")),
+  query(collection(db, "posts"), orderBy("timestamp", "desc")),
   snapshot => {
-    console.log("Posts reçus:", snapshot.size);
     const feed = document.getElementById("feed");
     feed.innerHTML = "";
     snapshot.forEach(docSnap => {
@@ -395,19 +402,19 @@ onSnapshot(
       const postEl = document.createElement("div");
       postEl.innerHTML = `
         <hr>
-        <div>
-          <img src="${post.userPhoto}" style="width:30px;height:30px;border-radius:50%;" />
+        <div style="display:flex; align-items:center; gap:10px;">
+          <img src="${post.userPhoto}" alt="Profil" style="width:30px; height:30px; border-radius:50%;" />
           <strong>${post.userName}</strong>
         </div>
         <p>${post.text || ""}</p>
-        ${post.imageUrl ? `<img src="${post.imageUrl}" style="max-width:100%;border-radius:8px;" />` : ""}
+        ${post.imageUrl ? `<img src="${post.imageUrl}" style="max-width:100%; border-radius:8px;" />` : ""}
         ${post.videoUrl ? `
           <div>
-            <video src="${post.videoUrl}" controls onplay="recordView('${docSnap.id}')" muted style="max-width:100%;border-radius:8px;"></video>
+            <video src="${post.videoUrl}" controls onplay="recordView('${docSnap.id}')" muted style="max-width:100%; border-radius:8px;"></video>
             <small id="views-${docSnap.id}">${post.views || 0} vues</small>
           </div>` : ""}
         <div>
-          <i class="fa fa-thumbs-up" onclick="likePost('${docSnap.id}')"></i>
+          <i class="fa fa-thumbs-up" onclick="likePost('${docSnap.id}')" style="cursor:pointer;"></i>
           <span id="like-${docSnap.id}">${post.likes || 0}</span>
         </div>`;
       feed.appendChild(postEl);
