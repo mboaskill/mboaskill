@@ -289,9 +289,7 @@
               <span id="likes-${postId}">${post.likes || 0} j'aime</span>
               <span>${post.views || 0} vues</span>
           `;
-          if(currentUser && currentUser.uid === post.userId) {
-            html += `<button onclick="editPost('${postId}')">Modifier</button>`;
-          }
+        
           html += `</div>`;
 
           postDiv.innerHTML = html;
