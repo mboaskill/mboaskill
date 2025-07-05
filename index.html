@@ -65,14 +65,16 @@
       box-shadow: 0 0 5px rgba(0,0,0,0.1);
       padding: 1rem;
       margin-bottom: 1rem;
+      width: 100%;
     }
     .post-header {
       display: flex;
       align-items: center;
+      width: 100%;
     }
     .post-header img {
-      width: 40px;
-      height: 40px;
+      width: auto;
+      height: auto;
       border-radius: 50%;
       margin-right: 10px;
       object-fit: cover;
@@ -85,7 +87,7 @@
       border-radius: 10px;
       margin-top: 10px;
     }
-    .text-bg {
+.text-bg {
   display: inline-block; /* Affiche la couleur juste autour du texte */
   padding: 0.5rem 1rem;
   background-color: #333;
@@ -96,8 +98,7 @@
   white-space: pre-wrap;
   border-radius: 10px;
   max-width: 90%; /* Limite la largeur si le texte est très long */
-    }
-    .post-actions {
+}.post-actions {
       margin-top: 10px;
       display: flex;
       justify-content: space-between;
@@ -158,7 +159,10 @@
     <input id="password" placeholder="Mot de passe" type="password" />
     <button onclick="signIn()">Se connecter</button>
     <button onclick="signOutUser()">Se déconnecter</button>
+    <hr>
+  <button onclick="signInWithGoogle()">Se connecter avec Google</button>  
     <p id="status"></p>
+    <p id="authStatus"></p>
   </section>
 
   <script type="module">
@@ -166,7 +170,7 @@
     import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, updateDoc, doc, increment, getDocs, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
-
+import { GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
     const firebaseConfig = {
       apiKey: "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
       authDomain: "mboa-ec602.firebaseapp.com",
@@ -193,7 +197,18 @@
         document.getElementById("selectPost").innerHTML = "";
       }
     });
+const provider = new GoogleAuthProvider();
 
+window.signInWithGoogle = async function () {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    document.getElementById("authStatus").innerText = `Connecté en tant que ${user.displayName}`;
+  } catch (error) {
+    console.error("Erreur Google Auth:", error);
+    document.getElementById("authStatus").innerText = error.message;
+  }
+};
     window.signIn = async function () {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
@@ -289,8 +304,7 @@
               <span id="likes-${postId}">${post.likes || 0} j'aime</span>
               <span>${post.views || 0} vues</span>
           `;
-        
-          html += `</div>`;
+         html += `</div>`;
 
           postDiv.innerHTML = html;
           feed.appendChild(postDiv);
