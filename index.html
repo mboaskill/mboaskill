@@ -73,8 +73,8 @@
       width: 100%;
     }
     .post-header img {
-      width: auto;
-      height: auto;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       margin-right: 10px;
       object-fit: cover;
@@ -87,18 +87,19 @@
       border-radius: 10px;
       margin-top: 10px;
     }
-.text-bg {
-  display: inline-block; /* Affiche la couleur juste autour du texte */
-  padding: 0.5rem 1rem;
-  background-color: #333;
-  color: white;
-  font-weight: bold;
-  text-align: center;
-  word-wrap: break-word;
-  white-space: pre-wrap;
-  border-radius: 10px;
-  max-width: 90%; /* Limite la largeur si le texte est très long */
-}.post-actions {
+    .text-bg {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background-color: #333;
+      color: white;
+      font-weight: bold;
+      text-align: center;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      border-radius: 10px;
+      max-width: 90%;
+    }
+    .post-actions {
       margin-top: 10px;
       display: flex;
       justify-content: space-between;
@@ -118,6 +119,10 @@
       font-weight: bold;
       padding: 0;
       margin-left: 10px;
+    }
+    textarea {
+      border-radius: 15px;
+      font-size: 15px;
     }
   </style>
 </head>
@@ -148,29 +153,29 @@
     <h3>Créer une publication</h3>
     <textarea id="postText" placeholder="Exprimez-vous..."></textarea>
     <input type="color" id="bgColor" value="#1877f2" />
+    <hr>
     <input type="text" id="videoTitle" placeholder="Titre de la vidéo" />
     <input type="file" id="videoFile" accept="video/*" />
     <button onclick="publishPost()">Publier</button>
+    <p id="status"></p>
   </section>
 
   <section id="account" class="tabcontent">
     <h3>Connexion</h3>
-    <input id="email" placeholder="Email" type="email" />
-    <input id="password" placeholder="Mot de passe" type="password" />
-    <button onclick="signIn()">Se connecter</button>
-    <button onclick="signOutUser()">Se déconnecter</button>
+
+    <button onclick="signInWithGoogle()"><i class="fab fa-google"></i> Connexion/inscription Google</button>
     <hr>
-  <button onclick="signInWithGoogle()">Se connecter avec Google</button>  
-    <p id="status"></p>
+       <button onclick="signOutUser()">Se déconnecter</button>
+
     <p id="authStatus"></p>
-  </section>
+  </section> 
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
     import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, updateDoc, doc, increment, getDocs, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
-import { GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+    import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
       authDomain: "mboa-ec602.firebaseapp.com",
@@ -181,52 +186,58 @@ import { GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/fir
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth();
-    const db = getFirestore();
-    const storage = getStorage();
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
     let currentUser = null;
     let likedPosts = new Set();
+
+    const provider = new GoogleAuthProvider();
 
     onAuthStateChanged(auth, (user) => {
       currentUser = user;
       if(user) {
+        document.getElementById("authStatus").innerText = `Connecté en tant que ${user.displayName || user.email}`;
         loadLikedPosts();
         loadBoostablePosts();
       } else {
         likedPosts.clear();
         document.getElementById("selectPost").innerHTML = "";
+        document.getElementById("authStatus").innerText = "";
       }
+      renderFeed();
     });
-const provider = new GoogleAuthProvider();
 
-window.signInWithGoogle = async function () {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-    document.getElementById("authStatus").innerText = `Connecté en tant que ${user.displayName}`;
-  } catch (error) {
-    console.error("Erreur Google Auth:", error);
-    document.getElementById("authStatus").innerText = error.message;
-  }
-};
+    window.signInWithGoogle = async function () {
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        document.getElementById("authStatus").innerText = `Connecté en tant que ${user.displayName || user.email}`;
+      } catch (error) {
+        console.error("Erreur Google Auth:", error);
+        document.getElementById("authStatus").innerText = error.message;
+      }
+    };
+
     window.signIn = async function () {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       try {
         await signInWithEmailAndPassword(auth, email, password);
-        document.getElementById("status").innerText = "Connecté avec succès.";
+        document.getElementById("authStatus").innerText = `Connecté en tant que ${email}`;
         loadBoostablePosts();
         loadLikedPosts();
       } catch (error) {
-        document.getElementById("status").innerText = error.message;
+        document.getElementById("authStatus").innerText = error.message;
       }
     };
 
     window.signOutUser = async function () {
       await signOut(auth);
-      document.getElementById("status").innerText = "Déconnecté.";
+      document.getElementById("authStatus").innerText = "Déconnecté.";
       likedPosts.clear();
       document.getElementById("selectPost").innerHTML = "";
+      renderFeed();
     };
 
     window.publishPost = async function () {
@@ -239,53 +250,82 @@ window.signInWithGoogle = async function () {
 
       if (!text && !video) return alert("Ajoutez un texte ou une vidéo.");
 
+      document.getElementById("status").innerText = "Publication en cours...";
+
       let videoUrl = null;
+
+      const publier = async () => {
+        await addDoc(collection(db, "posts"), {
+          userId: currentUser.uid,
+          userName: currentUser.displayName || currentUser.email,
+          text,
+          bgColor,
+          videoUrl,
+          videoTitle,
+          views: 0,
+          likes: 0,
+          createdAt: serverTimestamp(),
+          boosted: 0
+        });
+
+        // Reset inputs
+        document.getElementById("postText").value = "";
+        document.getElementById("videoFile").value = "";
+        document.getElementById("videoTitle").value = "";
+        document.getElementById("status").innerText = "Publication créée avec succès.";
+      };
+
       if (video) {
         const refV = ref(storage, `videos/${Date.now()}_${video.name}`);
-        await uploadBytes(refV, video);
-        videoUrl = await getDownloadURL(refV);
+        const uploadTask = uploadBytesResumable(refV, video);
+
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            document.getElementById("status").innerText = `Téléchargement : ${Math.floor(progress)}%`;
+          },
+          (error) => {
+            console.error("Erreur upload :", error);
+            alert("Erreur pendant l'envoi de la vidéo.");
+            document.getElementById("status").innerText = "";
+          },
+          async () => {
+            videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            await publier();
+          }
+        );
+      } else {
+        await publier();
       }
-
-      await addDoc(collection(db, "posts"), {
-        userId: currentUser.uid,
-        userName: currentUser.email,
-        text,
-        bgColor,
-        videoUrl,
-        videoTitle,
-        views: 0,
-        likes: 0,
-        createdAt: serverTimestamp(),
-        boosted: 0
-      });
-
-      // Reset inputs
-      document.getElementById("postText").value = "";
-      document.getElementById("videoFile").value = "";
-      document.getElementById("videoTitle").value = "";
-      alert("Publication créée avec succès.");
     };
 
-    // Charge les posts et les affiche dans le feed
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
     function renderFeed() {
       const feed = document.getElementById("feed");
-      onSnapshot(query(collection(db, "posts"), orderBy("createdAt", "desc")), (snapshot) => {
+      // On se désabonne puis s'abonne à la collection posts (éviter doublons)
+      if (window.unsubscribePosts) window.unsubscribePosts();
+      const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+      window.unsubscribePosts = onSnapshot(q, (snapshot) => {
         feed.innerHTML = "";
         snapshot.forEach(docSnap => {
           const post = docSnap.data();
           const postId = docSnap.id;
 
-          // Vérifie si l'utilisateur a liké ce post
           const isLiked = likedPosts.has(postId);
 
           const postDiv = document.createElement("div");
           postDiv.className = "post";
 
-          // Construction du HTML du post
           let html = `
             <div class="post-header">
               <img src="https://via.placeholder.com/40" alt="Avatar" />
-              <strong>${post.userName || "Anonyme"}</strong>
+              <strong>${escapeHtml(post.userName || "Anonyme")}</strong>
             </div>
             <div class="post-content">
           `;
@@ -304,19 +344,12 @@ window.signInWithGoogle = async function () {
               <span id="likes-${postId}">${post.likes || 0} j'aime</span>
               <span>${post.views || 0} vues</span>
           `;
-         html += `</div>`;
+          html += `</div>`;
 
           postDiv.innerHTML = html;
           feed.appendChild(postDiv);
         });
       });
-    }
-
-    // Protection contre injection HTML (XSS basique)
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
     }
 
     window.recordView = async function (postId) {
@@ -331,17 +364,20 @@ window.signInWithGoogle = async function () {
     async function loadLikedPosts() {
       if (!currentUser) return;
       likedPosts.clear();
-      const likesSnapshot = await getDocs(collection(db, `posts`));
-      for(const postDoc of likesSnapshot.docs) {
-        const likesSubcol = collection(db, `posts/${postDoc.id}/likes`);
-        const userLikeQuery = query(likesSubcol, where("user", "==", currentUser.uid));
-        const userLikesSnapshot = await getDocs(userLikeQuery);
-        if(!userLikesSnapshot.empty) {
-          likedPosts.add(postDoc.id);
+      try {
+        const postsSnapshot = await getDocs(collection(db, "posts"));
+        for(const postDoc of postsSnapshot.docs) {
+          const likesSubcol = collection(db, `posts/${postDoc.id}/likes`);
+          const userLikeQuery = query(likesSubcol, where("user", "==", currentUser.uid));
+          const userLikesSnapshot = await getDocs(userLikeQuery);
+          if(!userLikesSnapshot.empty) {
+            likedPosts.add(postDoc.id);
+          }
         }
+        renderFeed();
+      } catch (e) {
+        console.error("Erreur loadLikedPosts:", e);
       }
-      // Refresh le feed pour mettre à jour les icônes like
-      renderFeed();
     }
 
     window.toggleLike = async function (postId) {
@@ -354,12 +390,10 @@ window.signInWithGoogle = async function () {
         const userLikesSnapshot = await getDocs(userLikeQuery);
 
         if (userLikesSnapshot.empty) {
-          // Ajouter le like
           await addDoc(likesSubcol, { user: currentUser.uid });
           await updateDoc(likeRef, { likes: increment(1) });
           likedPosts.add(postId);
         } else {
-          // Retirer le like
           for (const d of userLikesSnapshot.docs) {
             await d.ref.delete();
           }
@@ -396,29 +430,33 @@ window.signInWithGoogle = async function () {
       select.innerHTML = "";
 
       try {
-        const postsSnapshot = await getDocs(query(collection(db, "posts"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc")));
+        // Firestore n'autorise pas where + orderBy sur différents champs sans index => ici on charge juste les posts de l'utilisateur, puis on filtre côté client
+        const postsSnapshot = await getDocs(query(
+          collection(db, "posts"),
+          where("userId", "==", currentUser.uid),
+          orderBy("createdAt", "desc")
+        ));
+
         postsSnapshot.forEach(docSnap => {
           const post = docSnap.data();
           const created = post.createdAt?.toDate?.();
+
           if (created && created >= sevenDaysAgo) {
             const option = document.createElement("option");
             option.value = docSnap.id;
-            option.textContent = post.text ? post.text.slice(0, 50) : post.videoTitle || "(vidéo)";
+            if(post.text) option.textContent = post.text.length > 50 ? post.text.slice(0, 47) + "..." : post.text;
+            else option.textContent = post.videoTitle || "(vidéo)";
             select.appendChild(option);
           }
         });
-      } catch(e) {
+      } catch (e) {
         console.error("Erreur loadBoostablePosts:", e);
       }
     }
 
-    // Initial feed render
     renderFeed();
-
-    // Actualise la liste des posts boostables régulièrement (5 sec)
     setInterval(loadBoostablePosts, 5000);
 
-    // Fonction d'ouverture d'onglet
     window.openTab = function(evt, tabName) {
       document.querySelectorAll(".tabcontent").forEach(tab => {
         tab.classList.remove("active");
@@ -428,11 +466,6 @@ window.signInWithGoogle = async function () {
       });
       document.getElementById(tabName).classList.add("active");
       evt.currentTarget.classList.add("selected");
-    };
-
-    // Placeholder fonction pour modification de post (à implémenter si besoin)
-    window.editPost = function(postId) {
-      alert("Fonction de modification non implémentée. Post ID: " + postId);
     };
   </script>
 </body>
