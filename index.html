@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="fr">
+<!DOCTYPE html>
+<html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -131,10 +132,15 @@
     <i class="fas fa-video tablinks" onclick="openTab(event, 'video')"></i>
     <i class="fas fa-user-friends tablinks" onclick="openTab(event, 'feedme')"></i>
     <i class="fas fa-plus tablinks" onclick="openTab(event, 'post')"></i>
+    <i class="fas fa-search tablinks" onclick="openTab(event, 'search')"></i>
     <i class="fas fa-user tablinks" onclick="openTab(event, 'account')"></i>
-  </header>  <section id="home" class="tabcontent active">
+  </header>
+
+  <section id="home" class="tabcontent active">
     <div id="feed"></div>
-  </section>  <section id="video" class="tabcontent">
+  </section>
+
+  <section id="video" class="tabcontent">
     <h3>Booster une publication</h3>
     <select id="selectPost"></select>
     <select id="boostViews">
@@ -143,7 +149,9 @@
       <option value="5000">5000 vues</option>
     </select>
     <button onclick="boostPost()">Booster</button>
-  </section>  <section id="post" class="tabcontent">
+  </section>
+
+  <section id="post" class="tabcontent">
     <h3>Créer une publication</h3>
     <textarea id="postText" placeholder="Exprimez-vous..."></textarea>
     <input type="color" id="bgColor" value="#1877f2" />
@@ -152,27 +160,41 @@
     <input type="file" id="videoFile" accept="video/*" />
     <button onclick="publishPost()">Publier</button>
     <p id="status"></p>
-  </section>  <section id="account" class="tabcontent">
+  </section>
+
+  <section id="account" class="tabcontent">
     <h3>Connexion</h3>
     <button onclick="signInWithGoogle()"><i class="fab fa-google"></i> Connexion/inscription Google</button>
     <hr>
     <button onclick="signOutUser()">Se déconnecter</button>
     <p id="authStatus"></p>
-  </section>   <section id="feedme" class="tabcontent">
+  </section>
+
+  <section id="feedme" class="tabcontent">
     <h3>Mon fil</h3>
     <div id="myFeed"></div>
-  </section>  
+  </section>
+
+  <section id="search" class="tabcontent">
+    <h3>Rechercher un utilisateur</h3>
+    <input type="text" id="searchUserInput" placeholder="Nom ou email de l'utilisateur">
+    <button onclick="searchUser()">Rechercher</button>
+    <div id="searchResults"></div>
+  </section>
+
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-import { 
-  getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, 
-  GoogleAuthProvider, signInWithPopup 
+ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+import {
+  getAuth, onAuthStateChanged, signInWithPopup, signOut,
+  GoogleAuthProvider
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
-import { 
-  getFirestore, collection, addDoc, onSnapshot, query, orderBy, 
-  updateDoc, doc, increment, getDocs, where, serverTimestamp 
+import {
+  getFirestore, collection, addDoc, onSnapshot, query, orderBy,
+  updateDoc, doc, increment, getDocs, where, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
+import {
+  getStorage, ref, uploadBytesResumable, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
@@ -187,24 +209,22 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+const provider = new GoogleAuthProvider();
 
 let currentUser = null;
 let likedPosts = new Set();
-const provider = new GoogleAuthProvider();
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   currentUser = user;
-
-  if(user) {
+  if (user) {
     document.getElementById("authStatus").innerText = `Connecté en tant que ${user.displayName || user.email}`;
-    loadLikedPosts();
-    loadBoostablePosts();
+    await loadLikedPosts();
+    await loadBoostablePosts();
   } else {
     likedPosts.clear();
     document.getElementById("authStatus").innerText = "";
     document.getElementById("selectPost").innerHTML = "";
   }
-
   renderFeed();
   renderMyFeed();
 });
@@ -231,36 +251,27 @@ window.signOutUser = async function () {
 
 window.publishPost = async function () {
   if (!currentUser) return alert("Connectez-vous pour publier.");
-
   const text = document.getElementById("postText").value.trim();
   const bgColor = document.getElementById("bgColor").value;
   const video = document.getElementById("videoFile").files[0];
   const videoTitle = document.getElementById("videoTitle").value.trim();
-
   if (!text && !video) return alert("Ajoutez un texte ou une vidéo.");
 
   document.getElementById("status").innerText = "Publication en cours...";
 
-  let videoUrl = null;
-
-  const publier = async () => {
-    await addDoc(collection(db, "posts"), {
-      userId: currentUser.uid,
-      userName: currentUser.displayName || currentUser.email,
-      text,
-      bgColor,
-      videoUrl,
-      videoTitle,
-      views: 0,
-      likes: 0,
-      createdAt: serverTimestamp(),
-      boosted: 0
-    });
-
-    document.getElementById("postText").value = "";
-    document.getElementById("videoFile").value = "";
-    document.getElementById("videoTitle").value = "";
-    document.getElementById("status").innerText = "Publication créée avec succès.";
+  const postData = {
+    userEmail: currentUser.email,
+    userId: currentUser.uid,
+    userName: currentUser.displayName || currentUser.email,
+    userPhoto: currentUser.photoURL || "https://via.placeholder.com/40",
+    text,
+    bgColor,
+    videoUrl: null,
+    videoTitle,
+    views: 0,
+    likes: 0,
+    createdAt: serverTimestamp(),
+    boosted: 0
   };
 
   if (video) {
@@ -279,17 +290,23 @@ window.publishPost = async function () {
         document.getElementById("status").innerText = "";
       },
       async () => {
-        videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
-        await publier();
+        postData.videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
+        await addDoc(collection(db, "posts"), postData);
+        document.getElementById("status").innerText = "Publication réussie.";
+        document.getElementById("postText").value = "";
+        document.getElementById("videoFile").value = "";
+        document.getElementById("videoTitle").value = "";
       }
     );
   } else {
-    await publier();
+    await addDoc(collection(db, "posts"), postData);
+    document.getElementById("status").innerText = "Publication réussie.";
+    document.getElementById("postText").value = "";
   }
 };
 
 function escapeHtml(text) {
-  const div = document.createElement('div');
+  const div = document.createElement("div");
   div.textContent = text;
   return div.innerHTML;
 }
@@ -311,27 +328,28 @@ function renderFeed() {
 
       let html = `
         <div class="post-header">
-          <img src="https://via.placeholder.com/40" alt="Avatar" />
+          <img src="${escapeHtml(post.userPhoto || '')}" alt="Avatar" />
           <strong>${escapeHtml(post.userName || "Anonyme")}</strong>
         </div>
         <div class="post-content">
       `;
-      if(post.text) {
+      if (post.text) {
         html += `<div class="text-bg" style="background:${post.bgColor || '#1877f2'}">${escapeHtml(post.text)}</div>`;
       }
-      if(post.videoTitle) {
+      if (post.videoTitle) {
         html += `<h4>${escapeHtml(post.videoTitle)}</h4>`;
       }
-      if(post.videoUrl) {
+      if (post.videoUrl) {
         html += `<video src="${post.videoUrl}" controls muted onplay="recordView('${postId}')"></video>`;
       }
-      html += `</div>
+      html += `
+        </div>
         <div class="post-actions">
           <i class="fa fa-thumbs-up like${isLiked ? ' liked' : ''}" onclick="toggleLike('${postId}')"></i>
           <span id="likes-${postId}">${post.likes || 0} j'aime</span>
           <span>${post.views || 0} vues</span>
+        </div>
       `;
-      html += `</div>`;
 
       postDiv.innerHTML = html;
       feed.appendChild(postDiv);
@@ -364,7 +382,7 @@ function renderMyFeed() {
 
       let html = `
         <div class="post-header">
-          <img src="https://via.placeholder.com/40" alt="Avatar" />
+          <img src="${escapeHtml(post.userPhoto || '')}" alt="Avatar" />
           <strong>${escapeHtml(post.userName || "Moi")}</strong>
         </div>
         <div class="post-content">
@@ -378,7 +396,8 @@ function renderMyFeed() {
       if (post.videoUrl) {
         html += `<video src="${post.videoUrl}" controls muted onplay="recordView('${postId}')"></video>`;
       }
-      html += `</div>
+      html += `
+        </div>
         <div class="post-actions">
           <i class="fa fa-thumbs-up like${isLiked ? ' liked' : ''}" onclick="toggleLike('${postId}')"></i>
           <span id="likes-${postId}">${post.likes || 0} j'aime</span>
@@ -396,7 +415,7 @@ window.recordView = async function (postId) {
   try {
     const refPost = doc(db, "posts", postId);
     await updateDoc(refPost, { views: increment(1) });
-  } catch(e) {
+  } catch (e) {
     console.error("Erreur recordView:", e);
   }
 };
@@ -406,16 +425,14 @@ async function loadLikedPosts() {
   likedPosts.clear();
   try {
     const postsSnapshot = await getDocs(collection(db, "posts"));
-    for(const postDoc of postsSnapshot.docs) {
+    for (const postDoc of postsSnapshot.docs) {
       const likesSubcol = collection(db, `posts/${postDoc.id}/likes`);
       const userLikeQuery = query(likesSubcol, where("user", "==", currentUser.uid));
       const userLikesSnapshot = await getDocs(userLikeQuery);
-      if(!userLikesSnapshot.empty) {
+      if (!userLikesSnapshot.empty) {
         likedPosts.add(postDoc.id);
       }
     }
-    renderFeed();
-    renderMyFeed();
   } catch (e) {
     console.error("Erreur loadLikedPosts:", e);
   }
@@ -441,6 +458,7 @@ window.toggleLike = async function (postId) {
       await updateDoc(likeRef, { likes: increment(-1) });
       likedPosts.delete(postId);
     }
+
     renderFeed();
     renderMyFeed();
   } catch (error) {
@@ -459,7 +477,7 @@ window.boostPost = async function () {
     const refPost = doc(db, "posts", postId);
     await updateDoc(refPost, { views: increment(viewsToAdd), boosted: increment(viewsToAdd) });
     alert("Publication boostée avec succès.");
-  } catch(e) {
+  } catch (e) {
     alert("Erreur lors du boost : " + e.message);
   }
 };
@@ -481,38 +499,94 @@ async function loadBoostablePosts() {
     postsSnapshot.forEach(docSnap => {
       const post = docSnap.data();
       const created = post.createdAt?.toDate?.();
-
       if (created && created >= sevenDaysAgo) {
         const option = document.createElement("option");
         option.value = docSnap.id;
-        if(post.text) option.textContent = post.text.length > 50 ? post.text.slice(0, 47) + "..." : post.text;
-        else option.textContent = post.videoTitle || "(vidéo)";
+        option.textContent = post.text?.slice(0, 50) || post.videoTitle || "(vidéo)";
         select.appendChild(option);
       }
     });
   } catch (e) {
     console.error("Erreur loadBoostablePosts:", e);
   }
-}    
- window.openTab = function(evt, tabName) {
-  // Cacher tous les contenus
-  document.querySelectorAll(".tabcontent").forEach(tab => {
-    tab.classList.remove("active");
-  });
+}
 
-  // Désélectionner toutes les icônes
-  document.querySelectorAll(".tablinks").forEach(icon => {
-    icon.classList.remove("selected");
-  });
+window.searchUser = async function () {
+  const queryInput = document.getElementById("searchUserInput").value.trim().toLowerCase();
+  const resultsDiv = document.getElementById("searchResults");
+  if (!queryInput) {
+    resultsDiv.innerHTML = "<p>Veuillez entrer un nom ou un email.</p>";
+    return;
+  }
+  resultsDiv.innerHTML = "<p>Recherche en cours...</p>";
 
-  // Afficher le contenu sélectionné
-  document.getElementById(tabName).classList.add("active");
+  try {
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
 
-  // Mettre l'icône active en surbrillance
-  if (evt && evt.currentTarget) {
-    evt.currentTarget.classList.add("selected");
+    const matchedPosts = [];
+
+    snapshot.forEach(docSnap => {
+      const post = docSnap.data();
+      if (
+        (post.userName || "").toLowerCase().includes(queryInput) ||
+        (post.userEmail || "").toLowerCase().includes(queryInput)
+      ) {
+        matchedPosts.push({ id: docSnap.id, data: post });
+      }
+    });
+
+    if (matchedPosts.length === 0) {
+      resultsDiv.innerHTML = "<p>Aucun utilisateur trouvé.</p>";
+      return;
+    }
+
+    resultsDiv.innerHTML = "";
+    matchedPosts.forEach(({ id, data }) => {
+      const isLiked = likedPosts.has(id);
+      const div = document.createElement("div");
+      div.className = "post";
+
+      let html = `
+        <div class="post-header">
+          <img src="${escapeHtml(data.userPhoto || '')}" alt="Avatar" />
+          <strong>${escapeHtml(data.userName || "Anonyme")}</strong>
+        </div>
+        <div class="post-content">
+      `;
+      if (data.text) {
+        html += `<div class="text-bg" style="background:${data.bgColor || '#1877f2'}">${escapeHtml(data.text)}</div>`;
+      }
+      if (data.videoTitle) {
+        html += `<h4>${escapeHtml(data.videoTitle)}</h4>`;
+      }
+      if (data.videoUrl) {
+        html += `<video src="${data.videoUrl}" controls muted onplay="recordView('${id}')"></video>`;
+      }
+      html += `
+        </div>
+        <div class="post-actions">
+          <i class="fa fa-thumbs-up like${isLiked ? ' liked' : ''}" onclick="toggleLike('${id}')"></i>
+          <span id="likes-${id}">${data.likes || 0} j'aime</span>
+          <span>${data.views || 0} vues</span>
+        </div>
+      `;
+
+      div.innerHTML = html;
+      resultsDiv.appendChild(div);
+    });
+  } catch (e) {
+    console.error("Erreur recherche :", e);
+    resultsDiv.innerHTML = "<p>Erreur lors de la recherche.</p>";
   }
 };
+
+window.openTab = function (evt, tabName) {
+  document.querySelectorAll(".tabcontent").forEach(tab => tab.classList.remove("active"));
+  document.querySelectorAll(".tablinks").forEach(icon => icon.classList.remove("selected"));
+  document.getElementById(tabName).classList.add("active");
+  if (evt && evt.currentTarget) evt.currentTarget.classList.add("selected");
+};     
   </script>
-  </body>
+</body>
 </html>
