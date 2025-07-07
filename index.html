@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!DOCTYPE html><html lang="fr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -130,15 +129,12 @@
   <header>
     <i class="fas fa-home tablinks selected" onclick="openTab(event, 'home')"></i>
     <i class="fas fa-video tablinks" onclick="openTab(event, 'video')"></i>
+    <i class="fas fa-user-friends tablinks" onclick="openTab(event, 'feedme')"></i>
     <i class="fas fa-plus tablinks" onclick="openTab(event, 'post')"></i>
     <i class="fas fa-user tablinks" onclick="openTab(event, 'account')"></i>
-  </header>
-
-  <section id="home" class="tabcontent active">
+  </header>  <section id="home" class="tabcontent active">
     <div id="feed"></div>
-  </section>
-
-  <section id="video" class="tabcontent">
+  </section>  <section id="video" class="tabcontent">
     <h3>Booster une publication</h3>
     <select id="selectPost"></select>
     <select id="boostViews">
@@ -147,9 +143,7 @@
       <option value="5000">5000 vues</option>
     </select>
     <button onclick="boostPost()">Booster</button>
-  </section>
-
-  <section id="post" class="tabcontent">
+  </section>  <section id="post" class="tabcontent">
     <h3>Créer une publication</h3>
     <textarea id="postText" placeholder="Exprimez-vous..."></textarea>
     <input type="color" id="bgColor" value="#1877f2" />
@@ -158,315 +152,367 @@
     <input type="file" id="videoFile" accept="video/*" />
     <button onclick="publishPost()">Publier</button>
     <p id="status"></p>
-  </section>
-
-  <section id="account" class="tabcontent">
+  </section>  <section id="account" class="tabcontent">
     <h3>Connexion</h3>
-
     <button onclick="signInWithGoogle()"><i class="fab fa-google"></i> Connexion/inscription Google</button>
     <hr>
-       <button onclick="signOutUser()">Se déconnecter</button>
-
+    <button onclick="signOutUser()">Se déconnecter</button>
     <p id="authStatus"></p>
-  </section> 
-
+  </section>   <section id="feedme" class="tabcontent">
+    <h3>Mon fil</h3>
+    <div id="myFeed"></div>
+  </section>  
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, updateDoc, doc, increment, getDocs, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-    import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+import { 
+  getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, 
+  GoogleAuthProvider, signInWithPopup 
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+import { 
+  getFirestore, collection, addDoc, onSnapshot, query, orderBy, 
+  updateDoc, doc, increment, getDocs, where, serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
-      authDomain: "mboa-ec602.firebaseapp.com",
-      projectId: "mboa-ec602",
-      storageBucket: "mboa-ec602.appspot.com",
-      messagingSenderId: "498505132403",
-      appId: "1:498505132403:web:eb46547745f8d1a77b3d06"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
+  authDomain: "mboa-ec602.firebaseapp.com",
+  projectId: "mboa-ec602",
+  storageBucket: "mboa-ec602.appspot.com",
+  messagingSenderId: "498505132403",
+  appId: "1:498505132403:web:eb46547745f8d1a77b3d06"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-    let currentUser = null;
-    let likedPosts = new Set();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-    const provider = new GoogleAuthProvider();
+let currentUser = null;
+let likedPosts = new Set();
+const provider = new GoogleAuthProvider();
 
-    onAuthStateChanged(auth, (user) => {
-      currentUser = user;
-      if(user) {
-        document.getElementById("authStatus").innerText = `Connecté en tant que ${user.displayName || user.email}`;
-        loadLikedPosts();
-        loadBoostablePosts();
-      } else {
-        likedPosts.clear();
-        document.getElementById("selectPost").innerHTML = "";
-        document.getElementById("authStatus").innerText = "";
-      }
-      renderFeed();
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+
+  if(user) {
+    document.getElementById("authStatus").innerText = `Connecté en tant que ${user.displayName || user.email}`;
+    loadLikedPosts();
+    loadBoostablePosts();
+  } else {
+    likedPosts.clear();
+    document.getElementById("authStatus").innerText = "";
+    document.getElementById("selectPost").innerHTML = "";
+  }
+
+  renderFeed();
+  renderMyFeed();
+});
+
+window.signInWithGoogle = async function () {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    document.getElementById("authStatus").innerText = `Connecté en tant que ${user.displayName || user.email}`;
+  } catch (error) {
+    console.error("Erreur Google Auth:", error);
+    document.getElementById("authStatus").innerText = error.message;
+  }
+};
+
+window.signOutUser = async function () {
+  await signOut(auth);
+  document.getElementById("authStatus").innerText = "Déconnecté.";
+  likedPosts.clear();
+  document.getElementById("selectPost").innerHTML = "";
+  renderFeed();
+  renderMyFeed();
+};
+
+window.publishPost = async function () {
+  if (!currentUser) return alert("Connectez-vous pour publier.");
+
+  const text = document.getElementById("postText").value.trim();
+  const bgColor = document.getElementById("bgColor").value;
+  const video = document.getElementById("videoFile").files[0];
+  const videoTitle = document.getElementById("videoTitle").value.trim();
+
+  if (!text && !video) return alert("Ajoutez un texte ou une vidéo.");
+
+  document.getElementById("status").innerText = "Publication en cours...";
+
+  let videoUrl = null;
+
+  const publier = async () => {
+    await addDoc(collection(db, "posts"), {
+      userId: currentUser.uid,
+      userName: currentUser.displayName || currentUser.email,
+      text,
+      bgColor,
+      videoUrl,
+      videoTitle,
+      views: 0,
+      likes: 0,
+      createdAt: serverTimestamp(),
+      boosted: 0
     });
 
-    window.signInWithGoogle = async function () {
-      try {
-        const result = await signInWithPopup(auth, provider);
-        const user = result.user;
-        document.getElementById("authStatus").innerText = `Connecté en tant que ${user.displayName || user.email}`;
-      } catch (error) {
-        console.error("Erreur Google Auth:", error);
-        document.getElementById("authStatus").innerText = error.message;
-      }
-    };
+    document.getElementById("postText").value = "";
+    document.getElementById("videoFile").value = "";
+    document.getElementById("videoTitle").value = "";
+    document.getElementById("status").innerText = "Publication créée avec succès.";
+  };
 
-    window.signIn = async function () {
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      try {
-        await signInWithEmailAndPassword(auth, email, password);
-        document.getElementById("authStatus").innerText = `Connecté en tant que ${email}`;
-        loadBoostablePosts();
-        loadLikedPosts();
-      } catch (error) {
-        document.getElementById("authStatus").innerText = error.message;
-      }
-    };
+  if (video) {
+    const refV = ref(storage, `videos/${Date.now()}_${video.name}`);
+    const uploadTask = uploadBytesResumable(refV, video);
 
-    window.signOutUser = async function () {
-      await signOut(auth);
-      document.getElementById("authStatus").innerText = "Déconnecté.";
-      likedPosts.clear();
-      document.getElementById("selectPost").innerHTML = "";
-      renderFeed();
-    };
-
-    window.publishPost = async function () {
-      if (!currentUser) return alert("Connectez-vous pour publier.");
-
-      const text = document.getElementById("postText").value.trim();
-      const bgColor = document.getElementById("bgColor").value;
-      const video = document.getElementById("videoFile").files[0];
-      const videoTitle = document.getElementById("videoTitle").value.trim();
-
-      if (!text && !video) return alert("Ajoutez un texte ou une vidéo.");
-
-      document.getElementById("status").innerText = "Publication en cours...";
-
-      let videoUrl = null;
-
-      const publier = async () => {
-        await addDoc(collection(db, "posts"), {
-          userId: currentUser.uid,
-          userName: currentUser.displayName || currentUser.email,
-          text,
-          bgColor,
-          videoUrl,
-          videoTitle,
-          views: 0,
-          likes: 0,
-          createdAt: serverTimestamp(),
-          boosted: 0
-        });
-
-        // Reset inputs
-        document.getElementById("postText").value = "";
-        document.getElementById("videoFile").value = "";
-        document.getElementById("videoTitle").value = "";
-        document.getElementById("status").innerText = "Publication créée avec succès.";
-      };
-
-      if (video) {
-        const refV = ref(storage, `videos/${Date.now()}_${video.name}`);
-        const uploadTask = uploadBytesResumable(refV, video);
-
-        uploadTask.on(
-          "state_changed",
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            document.getElementById("status").innerText = `Téléchargement : ${Math.floor(progress)}%`;
-          },
-          (error) => {
-            console.error("Erreur upload :", error);
-            alert("Erreur pendant l'envoi de la vidéo.");
-            document.getElementById("status").innerText = "";
-          },
-          async () => {
-            videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            await publier();
-          }
-        );
-      } else {
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        document.getElementById("status").innerText = `Téléchargement : ${Math.floor(progress)}%`;
+      },
+      (error) => {
+        console.error("Erreur upload :", error);
+        alert("Erreur pendant l'envoi de la vidéo.");
+        document.getElementById("status").innerText = "";
+      },
+      async () => {
+        videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
         await publier();
       }
-    };
+    );
+  } else {
+    await publier();
+  }
+};
 
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    }
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
 
-    function renderFeed() {
-      const feed = document.getElementById("feed");
-      // On se désabonne puis s'abonne à la collection posts (éviter doublons)
-      if (window.unsubscribePosts) window.unsubscribePosts();
-      const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-      window.unsubscribePosts = onSnapshot(q, (snapshot) => {
-        feed.innerHTML = "";
-        snapshot.forEach(docSnap => {
-          const post = docSnap.data();
-          const postId = docSnap.id;
+function renderFeed() {
+  const feed = document.getElementById("feed");
+  if (window.unsubscribePosts) window.unsubscribePosts();
 
-          const isLiked = likedPosts.has(postId);
+  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+  window.unsubscribePosts = onSnapshot(q, (snapshot) => {
+    feed.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const post = docSnap.data();
+      const postId = docSnap.id;
+      const isLiked = likedPosts.has(postId);
 
-          const postDiv = document.createElement("div");
-          postDiv.className = "post";
+      const postDiv = document.createElement("div");
+      postDiv.className = "post";
 
-          let html = `
-            <div class="post-header">
-              <img src="https://via.placeholder.com/40" alt="Avatar" />
-              <strong>${escapeHtml(post.userName || "Anonyme")}</strong>
-            </div>
-            <div class="post-content">
-          `;
-          if(post.text) {
-            html += `<div class="text-bg" style="background:${post.bgColor || '#1877f2'}">${escapeHtml(post.text)}</div>`;
-          }
-          if(post.videoTitle) {
-            html += `<h4>${escapeHtml(post.videoTitle)}</h4>`;
-          }
-          if(post.videoUrl) {
-            html += `<video src="${post.videoUrl}" controls muted onplay="recordView('${postId}')"></video>`;
-          }
-          html += `</div>
-            <div class="post-actions">
-              <i class="fa fa-thumbs-up like${isLiked ? ' liked' : ''}" onclick="toggleLike('${postId}')"></i>
-              <span id="likes-${postId}">${post.likes || 0} j'aime</span>
-              <span>${post.views || 0} vues</span>
-          `;
-          html += `</div>`;
-
-          postDiv.innerHTML = html;
-          feed.appendChild(postDiv);
-        });
-      });
-    }
-
-    window.recordView = async function (postId) {
-      try {
-        const refPost = doc(db, "posts", postId);
-        await updateDoc(refPost, { views: increment(1) });
-      } catch(e) {
-        console.error("Erreur recordView:", e);
+      let html = `
+        <div class="post-header">
+          <img src="https://via.placeholder.com/40" alt="Avatar" />
+          <strong>${escapeHtml(post.userName || "Anonyme")}</strong>
+        </div>
+        <div class="post-content">
+      `;
+      if(post.text) {
+        html += `<div class="text-bg" style="background:${post.bgColor || '#1877f2'}">${escapeHtml(post.text)}</div>`;
       }
-    };
-
-    async function loadLikedPosts() {
-      if (!currentUser) return;
-      likedPosts.clear();
-      try {
-        const postsSnapshot = await getDocs(collection(db, "posts"));
-        for(const postDoc of postsSnapshot.docs) {
-          const likesSubcol = collection(db, `posts/${postDoc.id}/likes`);
-          const userLikeQuery = query(likesSubcol, where("user", "==", currentUser.uid));
-          const userLikesSnapshot = await getDocs(userLikeQuery);
-          if(!userLikesSnapshot.empty) {
-            likedPosts.add(postDoc.id);
-          }
-        }
-        renderFeed();
-      } catch (e) {
-        console.error("Erreur loadLikedPosts:", e);
+      if(post.videoTitle) {
+        html += `<h4>${escapeHtml(post.videoTitle)}</h4>`;
       }
-    }
-
-    window.toggleLike = async function (postId) {
-      if (!currentUser) return alert("Connectez-vous pour liker.");
-
-      try {
-        const likeRef = doc(db, "posts", postId);
-        const likesSubcol = collection(db, `posts/${postId}/likes`);
-        const userLikeQuery = query(likesSubcol, where("user", "==", currentUser.uid));
-        const userLikesSnapshot = await getDocs(userLikeQuery);
-
-        if (userLikesSnapshot.empty) {
-          await addDoc(likesSubcol, { user: currentUser.uid });
-          await updateDoc(likeRef, { likes: increment(1) });
-          likedPosts.add(postId);
-        } else {
-          for (const d of userLikesSnapshot.docs) {
-            await d.ref.delete();
-          }
-          await updateDoc(likeRef, { likes: increment(-1) });
-          likedPosts.delete(postId);
-        }
-        renderFeed();
-      } catch (error) {
-        console.error("Erreur toggleLike:", error);
+      if(post.videoUrl) {
+        html += `<video src="${post.videoUrl}" controls muted onplay="recordView('${postId}')"></video>`;
       }
-    };
+      html += `</div>
+        <div class="post-actions">
+          <i class="fa fa-thumbs-up like${isLiked ? ' liked' : ''}" onclick="toggleLike('${postId}')"></i>
+          <span id="likes-${postId}">${post.likes || 0} j'aime</span>
+          <span>${post.views || 0} vues</span>
+      `;
+      html += `</div>`;
 
-    window.boostPost = async function () {
-      if (!currentUser) return alert("Connectez-vous pour booster une publication.");
+      postDiv.innerHTML = html;
+      feed.appendChild(postDiv);
+    });
+  });
+}
 
-      const postId = document.getElementById("selectPost").value;
-      const viewsToAdd = parseInt(document.getElementById("boostViews").value);
-      if (!postId) return alert("Veuillez sélectionner une publication.");
+function renderMyFeed() {
+  const container = document.getElementById("myFeed");
+  if (!currentUser) {
+    container.innerHTML = "<p>Veuillez vous connecter pour voir vos publications.</p>";
+    return;
+  }
 
-      try {
-        const refPost = doc(db, "posts", postId);
-        await updateDoc(refPost, { views: increment(viewsToAdd), boosted: increment(viewsToAdd) });
-        alert("Publication boostée avec succès.");
-      } catch(e) {
-        alert("Erreur lors du boost : " + e.message);
+  const q = query(
+    collection(db, "posts"),
+    where("userId", "==", currentUser.uid),
+    orderBy("createdAt", "desc")
+  );
+
+  onSnapshot(q, (snapshot) => {
+    container.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const post = docSnap.data();
+      const postId = docSnap.id;
+      const isLiked = likedPosts.has(postId);
+
+      const div = document.createElement("div");
+      div.className = "post";
+
+      let html = `
+        <div class="post-header">
+          <img src="https://via.placeholder.com/40" alt="Avatar" />
+          <strong>${escapeHtml(post.userName || "Moi")}</strong>
+        </div>
+        <div class="post-content">
+      `;
+      if (post.text) {
+        html += `<div class="text-bg" style="background:${post.bgColor || '#1877f2'}">${escapeHtml(post.text)}</div>`;
       }
-    };
+      if (post.videoTitle) {
+        html += `<h4>${escapeHtml(post.videoTitle)}</h4>`;
+      }
+      if (post.videoUrl) {
+        html += `<video src="${post.videoUrl}" controls muted onplay="recordView('${postId}')"></video>`;
+      }
+      html += `</div>
+        <div class="post-actions">
+          <i class="fa fa-thumbs-up like${isLiked ? ' liked' : ''}" onclick="toggleLike('${postId}')"></i>
+          <span id="likes-${postId}">${post.likes || 0} j'aime</span>
+          <span>${post.views || 0} vues</span>
+        </div>
+      `;
 
-    async function loadBoostablePosts() {
-      if (!currentUser) return;
-      const now = new Date();
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const select = document.getElementById("selectPost");
-      select.innerHTML = "";
+      div.innerHTML = html;
+      container.appendChild(div);
+    });
+  });
+}
 
-      try {
-        // Firestore n'autorise pas where + orderBy sur différents champs sans index => ici on charge juste les posts de l'utilisateur, puis on filtre côté client
-        const postsSnapshot = await getDocs(query(
-          collection(db, "posts"),
-          where("userId", "==", currentUser.uid),
-          orderBy("createdAt", "desc")
-        ));
+window.recordView = async function (postId) {
+  try {
+    const refPost = doc(db, "posts", postId);
+    await updateDoc(refPost, { views: increment(1) });
+  } catch(e) {
+    console.error("Erreur recordView:", e);
+  }
+};
 
-        postsSnapshot.forEach(docSnap => {
-          const post = docSnap.data();
-          const created = post.createdAt?.toDate?.();
-
-          if (created && created >= sevenDaysAgo) {
-            const option = document.createElement("option");
-            option.value = docSnap.id;
-            if(post.text) option.textContent = post.text.length > 50 ? post.text.slice(0, 47) + "..." : post.text;
-            else option.textContent = post.videoTitle || "(vidéo)";
-            select.appendChild(option);
-          }
-        });
-      } catch (e) {
-        console.error("Erreur loadBoostablePosts:", e);
+async function loadLikedPosts() {
+  if (!currentUser) return;
+  likedPosts.clear();
+  try {
+    const postsSnapshot = await getDocs(collection(db, "posts"));
+    for(const postDoc of postsSnapshot.docs) {
+      const likesSubcol = collection(db, `posts/${postDoc.id}/likes`);
+      const userLikeQuery = query(likesSubcol, where("user", "==", currentUser.uid));
+      const userLikesSnapshot = await getDocs(userLikeQuery);
+      if(!userLikesSnapshot.empty) {
+        likedPosts.add(postDoc.id);
       }
     }
-
     renderFeed();
-    setInterval(loadBoostablePosts, 5000);
+    renderMyFeed();
+  } catch (e) {
+    console.error("Erreur loadLikedPosts:", e);
+  }
+}
 
-    window.openTab = function(evt, tabName) {
-      document.querySelectorAll(".tabcontent").forEach(tab => {
-        tab.classList.remove("active");
-      });
-      document.querySelectorAll(".tablinks").forEach(icon => {
-        icon.classList.remove("selected");
-      });
-      document.getElementById(tabName).classList.add("active");
-      evt.currentTarget.classList.add("selected");
-    };
+window.toggleLike = async function (postId) {
+  if (!currentUser) return alert("Connectez-vous pour liker.");
+
+  try {
+    const likeRef = doc(db, "posts", postId);
+    const likesSubcol = collection(db, `posts/${postId}/likes`);
+    const userLikeQuery = query(likesSubcol, where("user", "==", currentUser.uid));
+    const userLikesSnapshot = await getDocs(userLikeQuery);
+
+    if (userLikesSnapshot.empty) {
+      await addDoc(likesSubcol, { user: currentUser.uid });
+      await updateDoc(likeRef, { likes: increment(1) });
+      likedPosts.add(postId);
+    } else {
+      for (const d of userLikesSnapshot.docs) {
+        await d.ref.delete();
+      }
+      await updateDoc(likeRef, { likes: increment(-1) });
+      likedPosts.delete(postId);
+    }
+    renderFeed();
+    renderMyFeed();
+  } catch (error) {
+    console.error("Erreur toggleLike:", error);
+  }
+};
+
+window.boostPost = async function () {
+  if (!currentUser) return alert("Connectez-vous pour booster une publication.");
+
+  const postId = document.getElementById("selectPost").value;
+  const viewsToAdd = parseInt(document.getElementById("boostViews").value);
+  if (!postId) return alert("Veuillez sélectionner une publication.");
+
+  try {
+    const refPost = doc(db, "posts", postId);
+    await updateDoc(refPost, { views: increment(viewsToAdd), boosted: increment(viewsToAdd) });
+    alert("Publication boostée avec succès.");
+  } catch(e) {
+    alert("Erreur lors du boost : " + e.message);
+  }
+};
+
+async function loadBoostablePosts() {
+  if (!currentUser) return;
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const select = document.getElementById("selectPost");
+  select.innerHTML = "";
+
+  try {
+    const postsSnapshot = await getDocs(query(
+      collection(db, "posts"),
+      where("userId", "==", currentUser.uid),
+      orderBy("createdAt", "desc")
+    ));
+
+    postsSnapshot.forEach(docSnap => {
+      const post = docSnap.data();
+      const created = post.createdAt?.toDate?.();
+
+      if (created && created >= sevenDaysAgo) {
+        const option = document.createElement("option");
+        option.value = docSnap.id;
+        if(post.text) option.textContent = post.text.length > 50 ? post.text.slice(0, 47) + "..." : post.text;
+        else option.textContent = post.videoTitle || "(vidéo)";
+        select.appendChild(option);
+      }
+    });
+  } catch (e) {
+    console.error("Erreur loadBoostablePosts:", e);
+  }
+}    
+ window.openTab = function(evt, tabName) {
+  // Cacher tous les contenus
+  document.querySelectorAll(".tabcontent").forEach(tab => {
+    tab.classList.remove("active");
+  });
+
+  // Désélectionner toutes les icônes
+  document.querySelectorAll(".tablinks").forEach(icon => {
+    icon.classList.remove("selected");
+  });
+
+  // Afficher le contenu sélectionné
+  document.getElementById(tabName).classList.add("active");
+
+  // Mettre l'icône active en surbrillance
+  if (evt && evt.currentTarget) {
+    evt.currentTarget.classList.add("selected");
+  }
+};
   </script>
-</body>
+  </body>
 </html>
