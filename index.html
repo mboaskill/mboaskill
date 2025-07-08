@@ -129,14 +129,20 @@
 <body>
   <header>
     <i class="fas fa-home tablinks selected" onclick="openTab(event, 'home')"></i>
-    <i class="fas fa-video tablinks" onclick="openTab(event, 'video')"></i>
-    <i class="fas fa-user-friends tablinks" onclick="openTab(event, 'feedme')"></i>
-    <i class="fas fa-plus tablinks" onclick="openTab(event, 'post')"></i>
+    <i class="fas fa-film tablinks" onclick="openTab(event, 'video')"></i>
+    <i class="fas fa-video tablinks" onclick="openTab(event, 'videoFeed')"></i>
+     <i class="fas fa-plus tablinks" onclick="openTab(event, 'post')"></i>
     <i class="fas fa-search tablinks" onclick="openTab(event, 'search')"></i>
     <i class="fas fa-user tablinks" onclick="openTab(event, 'account')"></i>
   </header>
 
   <section id="home" class="tabcontent active">
+             <div class="post-header">
+          <img src="${escapeHtml(data.userPhoto || '')}" onclick="openTab(event, 'feedme')" />  <p id="authStatus"></p>
+           <i class="fas fa-plus tablinks" onclick="openTab(event, 'post')"></i>
+
+        </div>
+
     <div id="feed"></div>
   </section>
 
@@ -167,11 +173,19 @@
     <button onclick="signInWithGoogle()"><i class="fab fa-google"></i> Connexion/inscription Google</button>
     <hr>
     <button onclick="signOutUser()">Se déconnecter</button>
-    <p id="authStatus"></p>
+    <b id="authStatus"></b>
   </section>
 
   <section id="feedme" class="tabcontent">
-    <h3>Mon fil</h3>
+    <h3>Mes publications:</h3>
+                 <div class="post-header">
+                    <img src="${escapeHtml(post.userPhoto || '')}" />
+           <label for="profilePhotoInput" title="Changer la photo de profil">
+  <i class="fas fa-plus" style="cursor:pointer;"></i>
+</label>
+<input type="file" id="profilePhotoInput" accept="image/*" style="display:none" />
+
+        </div>
     <div id="myFeed"></div>
   </section>
 
@@ -181,7 +195,14 @@
     <button onclick="searchUser()">Rechercher</button>
     <div id="searchResults"></div>
   </section>
-
+<section id="userFeedSection" class="tabcontent">
+  <h3 id="userFeedTitle">Publications de l'utilisateur</h3>
+  <div id="userFeed"></div>
+</section>
+<section id="videoFeed" class="tabcontent">
+  <h3>Publications avec vidéos</h3>
+  <div id="videoFeedContent"></div>
+</section>
   <script type="module">
  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
 import {
@@ -216,8 +237,11 @@ let likedPosts = new Set();
 
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
+  if (user.photoURL) {
+  console.log("Photo actuelle :", user.photoURL);
+}
   if (user) {
-    document.getElementById("authStatus").innerText = `Connecté en tant que ${user.displayName || user.email}`;
+    document.getElementById("authStatus").innerText = ` ${user.displayName || user.email}`;
     await loadLikedPosts();
     await loadBoostablePosts();
   } else {
@@ -228,12 +252,45 @@ onAuthStateChanged(auth, async (user) => {
   renderFeed();
   renderMyFeed();
 });
+const profilePhotoInput = document.getElementById("profilePhotoInput");
 
+profilePhotoInput.addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!currentUser) {
+    alert("Connectez-vous d'abord.");
+    return;
+  }
+
+  const fileRef = ref(storage, `profile_photos/${currentUser.uid}_${Date.now()}`);
+  const uploadTask = uploadBytesResumable(fileRef, file);
+
+  uploadTask.on("state_changed", null, (error) => {
+    console.error("Erreur d'envoi de l'image :", error);
+    alert("Échec de l'envoi de la photo.");
+  }, async () => {
+    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+    try {
+      // Met à jour la photo dans le profil Firebase Auth
+      await currentUser.updateProfile({
+        photoURL: downloadURL
+      });
+
+      alert("Photo de profil mise à jour !");
+      location.reload(); // Recharge la page pour que la nouvelle photo s’affiche
+    } catch (error) {
+      console.error("Erreur de mise à jour du profil :", error);
+      alert("Erreur lors de la mise à jour de la photo.");
+    }
+  });
+});
 window.signInWithGoogle = async function () {
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-    document.getElementById("authStatus").innerText = `Connecté en tant que ${user.displayName || user.email}`;
+    document.getElementById("authStatus").innerText = ` ${user.displayName || user.email}`;
   } catch (error) {
     console.error("Erreur Google Auth:", error);
     document.getElementById("authStatus").innerText = error.message;
@@ -328,8 +385,10 @@ function renderFeed() {
 
       let html = `
         <div class="post-header">
-          <img src="${escapeHtml(post.userPhoto || '')}" alt="Avatar" />
-          <strong>${escapeHtml(post.userName || "Anonyme")}</strong>
+          <img src="${escapeHtml(post.userPhoto || '')}" />
+<strong class="user-link" onclick="showUserFeed('${post.userId}', '${escapeHtml(post.userName || "Anonyme")}')">
+  ${escapeHtml(post.userName || "Anonyme")}
+</strong>
         </div>
         <div class="post-content">
       `;
@@ -382,9 +441,10 @@ function renderMyFeed() {
 
       let html = `
         <div class="post-header">
-          <img src="${escapeHtml(post.userPhoto || '')}" alt="Avatar" />
-          <strong>${escapeHtml(post.userName || "Moi")}</strong>
-        </div>
+          <img src="${escapeHtml(post.userPhoto || '')}" />
+<strong class="user-link" onclick="showUserFeed('${post.userId}', '${escapeHtml(post.userName || "Anonyme")}')">
+  ${escapeHtml(post.userName || "Anonyme")}
+</strong>        </div>
         <div class="post-content">
       `;
       if (post.text) {
@@ -549,9 +609,10 @@ window.searchUser = async function () {
 
       let html = `
         <div class="post-header">
-          <img src="${escapeHtml(data.userPhoto || '')}" alt="Avatar" />
-          <strong>${escapeHtml(data.userName || "Anonyme")}</strong>
-        </div>
+          <img src="${escapeHtml(data.userPhoto || '')}" />
+<strong class="user-link" onclick="showUserFeed('${post.userId}')">
+  ${escapeHtml(post.userName || "Anonyme")}
+</strong>        </div>
         <div class="post-content">
       `;
       if (data.text) {
@@ -580,13 +641,163 @@ window.searchUser = async function () {
     resultsDiv.innerHTML = "<p>Erreur lors de la recherche.</p>";
   }
 };
+window.showUserFeed = function(userId, userName) {
+  document.getElementById("userFeed").innerHTML = "<p>Chargement...</p>";
+  document.getElementById("userFeedTitle").innerText = `Publications de ${userName}`;
+  openTab(null, 'userFeedSection');
 
+  const q = query(
+    collection(db, "posts"),
+    where("userId", "==", userId),
+    orderBy("createdAt", "desc")
+  );
+
+  onSnapshot(q, (snapshot) => {
+    const container = document.getElementById("userFeed");
+    container.innerHTML = "";
+    if (snapshot.empty) {
+      container.innerHTML = "<p>Aucune publication.</p>";
+      return;
+    }
+
+    snapshot.forEach(docSnap => {
+      const post = docSnap.data();
+      const postId = docSnap.id;
+      const isLiked = likedPosts.has(postId);
+
+      const div = document.createElement("div");
+      div.className = "post";
+
+      let html = `
+        <div class="post-header">
+          <img src="${escapeHtml(post.userPhoto || '')}" alt="Avatar" />
+          <strong class="user-link" onclick="showUserFeed('${post.userId}', '${escapeHtml(post.userName || "Utilisateur")}')">
+            ${escapeHtml(post.userName || "Utilisateur")}
+          </strong>
+        </div>
+        <div class="post-content">
+      `;
+      if (post.text) {
+        html += `<div class="text-bg" style="background:${post.bgColor || '#1877f2'}">${escapeHtml(post.text)}</div>`;
+      }
+      if (post.videoTitle) {
+        html += `<h4>${escapeHtml(post.videoTitle)}</h4>`;
+      }
+      if (post.videoUrl) {
+        html += `<video src="${post.videoUrl}" controls muted onplay="recordView('${postId}')"></video>`;
+      }
+      html += `
+        </div>
+        <div class="post-actions">
+          <i class="fa fa-thumbs-up like${isLiked ? ' liked' : ''}" onclick="toggleLike('${postId}')"></i>
+          <span id="likes-${postId}">${post.likes || 0} j'aime</span>
+          <span>${post.views || 0} vues</span>
+        </div>
+      `;
+
+      div.innerHTML = html;
+      container.appendChild(div);
+    });
+  });
+};
+function renderVideoFeed() {
+  const container = document.getElementById("videoFeedContent");
+  container.innerHTML = "<p>Chargement...</p>";
+
+  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+  getDocs(q).then(snapshot => {
+    container.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const post = docSnap.data();
+      const postId = docSnap.id;
+
+      if (!post.videoUrl) return; // On ignore les posts sans vidéo
+      const isLiked = likedPosts.has(postId);
+
+      const div = document.createElement("div");
+      div.className = "post";
+
+      let html = `
+        <div class="post-header">
+          <img src="${escapeHtml(post.userPhoto || '')}" />
+          <strong class="user-link" onclick="showUserFeed('${post.userId}', '${escapeHtml(post.userName || "Utilisateur")}')">
+            ${escapeHtml(post.userName || "Utilisateur")}
+          </strong>
+        </div>
+        <div class="post-content">
+          ${post.videoTitle ? `<h4>${escapeHtml(post.videoTitle)}</h4>` : ""}
+          <video src="${post.videoUrl}" controls muted onplay="recordView('${postId}')"></video>
+        </div>
+        <div class="post-actions">
+          <i class="fa fa-thumbs-up like${isLiked ? ' liked' : ''}" onclick="toggleLike('${postId}')"></i>
+          <span id="likes-${postId}">${post.likes || 0} j'aime</span>
+          <span>${post.views || 0} vues</span>
+        </div>
+      `;
+
+      div.innerHTML = html;
+      container.appendChild(div);
+    });
+
+    if (!container.innerHTML) container.innerHTML = "<p>Aucune vidéo trouvée.</p>";
+  }).catch(e => {
+    console.error("Erreur vidéo feed :", e);
+    container.innerHTML = "<p>Erreur lors du chargement des vidéos.</p>";
+  });
+}
 window.openTab = function (evt, tabName) {
+  // Masquer toutes les sections
   document.querySelectorAll(".tabcontent").forEach(tab => tab.classList.remove("active"));
-  document.querySelectorAll(".tablinks").forEach(icon => icon.classList.remove("selected"));
+  // Afficher la section sélectionnée
   document.getElementById(tabName).classList.add("active");
+  
+  // Mettre à jour les liens
+  document.querySelectorAll(".tablinks").forEach(icon => icon.classList.remove("selected"));
   if (evt && evt.currentTarget) evt.currentTarget.classList.add("selected");
-};     
-  </script>
+
+  // Mettre à jour l'historique de navigation
+  window.history.pushState({ tab: tabName }, tabName, "#" + tabName);
+};
+
+window.addEventListener("popstate", function(event) {
+  if (event.state && event.state.tab) {
+    // Masquer toutes les sections
+    document.querySelectorAll(".tabcontent").forEach(tab => tab.classList.remove("active"));
+    // Afficher la section sélectionnée
+    document.getElementById(event.state.tab).classList.add("active");
+
+    // Mettre à jour les liens
+    document.querySelectorAll(".tablinks").forEach(icon => icon.classList.remove("selected"));
+    const selectedLink = document.querySelector(`[onclick*="${event.state.tab}"]`);
+    if (selectedLink) selectedLink.classList.add("selected");
+  } else if (window.location.hash) {
+    const tabName = window.location.hash.substring(1);
+    // Masquer toutes les sections
+    document.querySelectorAll(".tabcontent").forEach(tab => tab.classList.remove("active"));
+    // Afficher la section sélectionnée
+    document.getElementById(tabName).classList.add("active");
+
+    // Mettre à jour les liens
+    document.querySelectorAll(".tablinks").forEach(icon => icon.classList.remove("selected"));
+    const selectedLink = document.querySelector(`[onclick*="${tabName}"]`);
+    if (selectedLink) selectedLink.classList.add("selected");
+  }
+});
+
+// Gérer le chargement initial de la page
+if (window.location.hash) {
+  const tabName = window.location.hash.substring(1);
+  // Masquer toutes les sections
+  document.querySelectorAll(".tabcontent").forEach(tab => tab.classList.remove("active"));
+  // Afficher la section sélectionnée
+  document.getElementById(tabName).classList.add("active");
+
+  // Mettre à jour les liens
+  document.querySelectorAll(".tablinks").forEach(icon => icon.classList.remove("selected"));
+  const selectedLink = document.querySelector(`[onclick*="${tabName}"]`);
+  if (selectedLink) selectedLink.classList.add("selected");
+}
+
+</script>
 </body>
 </html>
