@@ -138,7 +138,8 @@
 
   <section id="home" class="tabcontent active">
              <div class="post-header">
-          <img src="${escapeHtml(data.userPhoto || '')}" onclick="openTab(event, 'feedme')" />  <p id="authStatus"></p>
+                 <img id="homeProfilePhoto" src="https://via.placeholder.com/40" onclick="openTab(event, 'feedme')" />
+          <p id="authStatus"></p>
            <i class="fas fa-plus tablinks" onclick="openTab(event, 'post')"></i>
 
         </div>
@@ -179,7 +180,7 @@
   <section id="feedme" class="tabcontent">
     <h3>Mes publications:</h3>
                  <div class="post-header">
-                    <img src="${escapeHtml(post.userPhoto || '')}" />
+                    <img id="homeProfilePhoto" src="https://via.placeholder.com/40" onclick="openTab(event, 'feedme')" />
            <label for="profilePhotoInput" title="Changer la photo de profil">
   <i class="fas fa-plus" style="cursor:pointer;"></i>
 </label>
@@ -239,6 +240,12 @@ onAuthStateChanged(auth, async (user) => {
   currentUser = user;
   if (user.photoURL) {
   console.log("Photo actuelle :", user.photoURL);
+}
+if (user.photoURL) {
+  const photoElem = document.getElementById("homeProfilePhoto");
+  if (photoElem) {
+    photoElem.src = user.photoURL;
+  }
 }
   if (user) {
     document.getElementById("authStatus").innerText = ` ${user.displayName || user.email}`;
