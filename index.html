@@ -776,26 +776,31 @@ async function loadTotalViewsAndBalance() {
     ? "Les vues ont été réinitialisées."
     : `Nombre total de vues: ${newViews}`;
 
-  document.getElementById("currentBalance").innerText = `Solde actuel: ${totalCredit} FCFA`;
-  window.currentCreditBalance = totalCredit;
+document.getElementById("currentBalance").innerText = `Solde actuel: ${newBalance} FCFA`;
+window.currentCreditBalance = totalCredit;
 }
 // Retrait solde
-window.withdrawBalance = async function() {
+window.withdrawBalance = async function () {
   if (!currentUser) return alert("Connectez-vous.");
   const amountStr = document.getElementById("withdrawAmount").value;
   const amount = parseInt(amountStr);
-  if (isNaN(amount) || amount <= 0) return alert("Montant invalide.");
-  if (amount > window.userBalance) return alert("Montant supérieur au solde.");
+
+  if (isNaN(amount) || amount < 50) {
+    return alert("Montant minimum de retrait : 50 FCFA.");
+  }
+
+  if (amount > window.currentCreditBalance) {
+    return alert("Montant supérieur au solde.");
+  }
 
   const userDocRef = doc(db, "users", currentUser.uid);
-  const newBalance = window.userBalance - amount;
+  const newBalance = window.currentCreditBalance - amount;
 
-  await updateDoc(userDocRef, { balance: newBalance });
-  window.userBalance = newBalance;
+  await updateDoc(userDocRef, { totalCredit: newBalance });
+  window.currentCreditBalance = newBalance;
 
   document.getElementById("currentBalance").innerText = `Solde actuel: ${newBalance} FCFA`;
   document.getElementById("withdrawStatus").innerText = `Vous avez retiré ${amount} FCFA.`;
-
   document.getElementById("withdrawAmount").value = "";
 };
 window.searchUser = async function () {
