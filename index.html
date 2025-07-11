@@ -156,15 +156,17 @@
   </section>
 
   <section id="video" class="tabcontent">
-    <h3>Booster une publication</h3>
+    <div id="videoFeedContentBoost"></div>
+  </section>
+  <section id="vibo" class="tabcontent">
+      <h3>Booster une publication</h3>
     <div id="boostPanel" style="display:none;margin-bottom:10px">
       <span id="boostStatus" style="font-weight:bold"></span>
       <input type="number" id="boostViews" placeholder="Nombre de vues à acheter" min="1" />
       <button onclick="boostPost()">Booster</button>
     </div>
-    <div id="videoFeedContentBoost"></div>
+    
   </section>
-
   <!-- ================= SCRIPTS ======================== -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
@@ -543,7 +545,7 @@
       boostId = postId;
       qs('boostStatus').textContent = `1 publication sélectionnée : ${title}`;
       qs('boostPanel').style.display = 'block';
-      openTab({currentTarget: document.querySelector('.tablinks[onclick*="video"]')}, 'video');
+      openTab({currentTarget: document.querySelector('.tablinks[onclick*="vibo"]')}, 'vibo');
     }
 
     async function boostPost() {
@@ -685,6 +687,24 @@ window.withdrawBalance = () => {
   // Traitement du retrait (simulation)
   alert(`Demande de retrait de ${amount} FCFA envoyée !`);
   qs('withdrawAmount').value = '';
-};  </script>
+}; 
+window.boostPost = async () => {
+  if (!boostId) return alert("Aucune publication sélectionnée");
+  const boostViews = parseInt(qs('boostViews').value);
+  if (isNaN(boostViews) || boostViews <= 0) return alert("Entrez un nombre valide de vues");
+
+  try {
+    const postRef = doc(db, 'posts', boostId);
+    await updateDoc(postRef, {
+      boosted: increment(boostViews)
+    });
+    qs('boostStatus').textContent = 'Boost appliqué avec succès !';
+    qs('boostViews').value = '';
+    renderFeed();
+  } catch (err) {
+    alert("Erreur lors du boost : " + err.message);
+  }
+};
+</script>
 </body>
 </html>
