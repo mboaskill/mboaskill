@@ -4,248 +4,74 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mboa Skills</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #f0f2f5;
-    }
-    header {
-      background-color: #fff;
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      padding: 1rem;
-      border-bottom: 1px solid #ddd;
-      z-index: 9999;
-    }
-    header i {
-      font-size: 1.4rem;
-      color: #888;
-      cursor: pointer;
-    }
-    header i.selected {
-      color: #1877f2;
-    }
-    .tabcontent {
-      display: none;
-      padding: 6rem 1rem 1rem;
-      max-width: 600px;
-      margin: auto;
-    }
-    .tabcontent.active {
-      display: block;
-    }
-    input, textarea, button, select {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 14px;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #1877f2;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
-      border-radius: 6px;
-    }
-    button:hover {
-      background-color: #145ec1;
-    }
-    .post {
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-      padding: 1rem;
-      margin-bottom: 1rem;
-      width: 100%;
-      word-break: break-word;
-    }
-    .post-header {
-      display: flex;
-      align-items: center;
-      width: 100%;
-    }
-    .post-header img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      margin-right: 10px;
-      object-fit: cover;
-    }
-    .post-content {
-      margin-top: 10px;
-    }
-    .post video, .post .text-bg {
-      width: 100%;
-      border-radius: 10px;
-      margin-top: 10px;
-    }
-    .text-bg {
-      display: inline-block;
-      padding: 0.5rem 1rem;
-      background-color: #333;
-      color: white;
-      font-weight: bold;
-      text-align: center;
-      white-space: pre-wrap;
-      border-radius: 10px;
-      max-width: 90%;
-    }
-    .post-actions {
-      margin-top: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-    .post-actions i {
-      cursor: pointer;
-      font-size: 1.2rem;
-    }
-    .like.liked {
-      color: #1877f2;
-    }
-    .post-actions button.boost-btn {
-      background-color: #ffa500;
-      color: white;
-      padding: 5px 10px;
-      font-weight: bold;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-    }
-    textarea {
-      border-radius: 15px;
-      font-size: 15px;
-    }
-    .comments-section {
-      margin-top: 10px;
-      border-top: 1px solid #ccc;
-      padding-top: 10px;
-      max-height: 150px;
-      overflow-y: auto;
-    }
-    .comment {
-      background: #eee;
-      padding: 5px 10px;
-      border-radius: 8px;
-      margin-bottom: 6px;
-      font-size: 14px;
-    }
-    .comment strong {
-      color: #1877f2;
-    }
-    .comment-input {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .comment-input input {
-      flex-grow: 1;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
-    .comment-input button {
-      padding: 8px 16px;
-      background-color: #1877f2;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    #boostStatus {
-      font-weight: bold;
-      color: #1877f2;
-      margin-bottom: 10px;
-    }
-    #totalViewsSection p {
-      font-weight: bold;
-    }
+    /* === GLOBAL STYLES ================================= */
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f0f2f5}
+    header{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-around;align-items:center;padding:1rem;background:#fff;border-bottom:1px solid #ddd;z-index:9999}
+    header i{font-size:1.4rem;color:#888;cursor:pointer}
+    header i.selected{color:#1877f2}
+    .tabcontent{display:none;padding:6rem 1rem 1rem;max-width:600px;margin:auto}
+    .tabcontent.active{display:block}
+    input,textarea,button,select{display:block;width:100%;padding:10px;margin-bottom:10px;border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box}
+    button{background:#1877f2;color:#fff;font-weight:bold;border:none;border-radius:6px;cursor:pointer}
+    button:hover{background:#145ec1}
+    /* === POST CARD ===================================== */
+    .post{background:#fff;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,.1);padding:1rem;margin-bottom:1rem}
+    .post-header{display:flex;align-items:center}
+    .post-header img{width:40px;height:40px;border-radius:50%;margin-right:10px;object-fit:cover;cursor:pointer}
+    .post-header span.username{font-weight:bold;cursor:pointer;color:#1877f2;}
+    .post-content{margin-top:10px}
+    .post video,.post .text-bg{width:100%;border-radius:10px;margin-top:10px}
+    .text-bg{display:inline-block;padding:.5rem 1rem;font-weight:bold;color:#fff;text-align:center;white-space:pre-wrap;max-width:90%}
+    .post-actions{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .post-actions i{cursor:pointer;font-size:1.2rem}
+    .like.liked{color:#1877f2}
+    .boost-btn{background:#ffa500;color:#fff;padding:5px 10px;font-weight:bold;border-radius:6px;border:none;cursor:pointer}
+    .comments-section{margin-top:10px;border-top:1px solid #ccc;padding-top:10px;max-height:150px;overflow-y:auto}
+    .comment{background:#eee;padding:5px 10px;border-radius:8px;margin-bottom:6px;font-size:14px}
+    .comment strong{color:#1877f2}
+    .comment-input{display:flex;gap:10px;margin-top:10px}
+    .comment-input input{flex:1;padding:8px;border-radius:8px;border:1px solid #ccc;font-size:14px}
+    .comment-input button{padding:8px 16px;background:#1877f2;color:#fff;border:none;border-radius:8px;cursor:pointer}
+    #boostStatus{font-weight:bold;color:#1877f2;margin-bottom:10px}
+    #totalViewsSection p{font-weight:bold}
   </style>
 </head>
 <body>
+
+  <!-- ================= HEADER / NAV ================== -->
   <header>
-    <i class="fas fa-home tablinks selected" onclick="openTab(event, 'home')"></i>
-        <i class="fas fa-coins tablinks" onclick="openTab(event, 'totalViewsSection')"></i>
-    <i class="fas fa-video tablinks" onclick="openTab(event, 'videoFeed')"></i>
-    <i class="fas fa-plus tablinks" onclick="openTab(event, 'post')"></i>
-    <i class="fas fa-search tablinks" onclick="openTab(event, 'search')"></i>
-    <i class="fas fa-user tablinks" onclick="openTab(event, 'account')"></i>
+    <i class="fas fa-home tablinks selected" onclick="openTab(event,'home')"></i>
+    <i class="fas fa-coins tablinks" onclick="openTab(event,'totalViewsSection')"></i>
+    <i class="fas fa-video tablinks" onclick="openTab(event,'videoFeed')"></i>
+    <i class="fas fa-plus tablinks" onclick="openTab(event,'post')"></i>
+    <i class="fas fa-search tablinks" onclick="openTab(event,'search')"></i>
+    <i class="fas fa-user tablinks" onclick="openTab(event,'account')"></i>
   </header>
 
+  <!-- ================= TAB PAGES ====================== -->
   <section id="home" class="tabcontent active">
     <div class="post-header">
-      <img id="homeProfilePhoto" src="https://via.placeholder.com/40" onclick="openTab(event, 'feedme')" />
+      <img id="homeProfilePhoto" src="https://via.placeholder.com/40" onclick="openTab(event,'feedme')"/>
       <p id="authStatus"></p>
-      <i class="fas fa-plus tablinks" onclick="openTab(event, 'post')"></i>
     </div>
     <div id="feed"></div>
-  </section>
-
-  <section id="video" class="tabcontent">
-    <h3>Booster une publication</h3>
-    <p id="boostStatus">Aucune publication sélectionnée</p>
-    <select id="boostViews">
-      <option value="1000">1000 vues</option>
-      <option value="2000">2000 vues</option>
-      <option value="5000">5000 vues</option>
-    </select>
-    <button onclick="boostPost()">Booster</button>
   </section>
 
   <section id="post" class="tabcontent">
     <h3>Créer une publication</h3>
     <textarea id="postText" placeholder="Exprimez-vous..."></textarea>
     <input type="color" id="bgColor" value="#1877f2" />
-    <hr />
+    <hr/>
     <input type="text" id="videoTitle" placeholder="Titre de la vidéo" />
     <input type="file" id="videoFile" accept="video/*" />
     <button onclick="publishPost()">Publier</button>
     <p id="status"></p>
-  </section>
-
-  <section id="account" class="tabcontent">
-    <h3>Connexion</h3>
-    <button onclick="signInWithGoogle()"><i class="fab fa-google"></i> Connexion/inscription Google</button>
-    <hr />
-    <button onclick="signOutUser()">Se déconnecter</button>
-    <b id="authStatus"></b>
-  </section>
-
-  <section id="feedme" class="tabcontent">
-    <h3>Mes publications:</h3>
-    <div class="post-header">
-      <img id="feedmeProfilePhoto" src="https://via.placeholder.com/40" />
-      <label for="profilePhotoInput" title="Changer la photo de profil">
-        <i class="fas fa-plus" style="cursor:pointer;"></i>
-      </label>
-      <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" />
-    </div>
-    <div id="myFeed"></div>
-  </section>
-
-  <section id="search" class="tabcontent">
-    <h3>Rechercher un utilisateur</h3>
-    <input type="text" id="searchUserInput" placeholder="Nom ou email de l'utilisateur" />
-    <button onclick="searchUser()">Rechercher</button>
-    <div id="searchResults"></div>
-  </section>
-
-  <section id="userFeedSection" class="tabcontent">
-    <h3 id="userFeedTitle">Publications de l'utilisateur</h3>
-    <div id="userFeed"></div>
   </section>
 
   <section id="videoFeed" class="tabcontent">
@@ -253,616 +79,566 @@
     <div id="videoFeedContent"></div>
   </section>
 
-<section id="totalViewsSection" class="tabcontent">
-  <h3>Total des vues 7 derniers jours:</h3>
-  
-  <!-- Affichage du nombre de vues -->
-  <p id="totalViewsCount">Chargement...</p>
-  
-  <!-- Affichage du solde actuel -->
-  <p id="currentBalance">Solde actuel: 0 FCFA</p>
+  <section id="totalViewsSection" class="tabcontent">
+    <h3>Total des vues (7 derniers jours)</h3>
+    <p id="totalViewsCount">Chargement...</p>
+    <p id="currentBalance">Solde actuel: 0 FCFA</p>
+    <input type="number" id="withdrawAmount"
+           placeholder="Montant à retirer (min 50 FCFA)" min="50" />
+    <button onclick="withdrawBalance()">Retirer</button>
+    <p id="withdrawStatus"></p>
+  </section>
 
-  <!-- Champ pour saisir un montant à retirer -->
-  <input
-    type="number"
-    id="withdrawAmount"
-    placeholder="Montant à retirer (FCFA)"
-    min="1"
-  />
+  <section id="search" class="tabcontent">
+    <h3>Rechercher un utilisateur</h3>
+    <input type="text" id="searchUserInput"
+           placeholder="Nom ou e-mail de l'utilisateur" />
+    <button onclick="searchUser()">Rechercher</button>
+    <div id="searchResults"></div>
+  </section>
 
-  <!-- Bouton pour retirer -->
-  <button onclick="withdrawBalance()">Retirer</button>
+  <section id="account" class="tabcontent">
+    <h3>Connexion</h3>
+    <button onclick="signInWithGoogle()">
+      <i class="fab fa-google"></i> Google
+    </button>
+    <hr/>
+    <button onclick="signOutUser()">Se déconnecter</button>
+  </section>
 
-  <!-- Message de confirmation ou erreur -->
-  <p id="withdrawStatus"></p>
-</section>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-import {
-  getAuth, onAuthStateChanged, signInWithPopup, signOut,
-  GoogleAuthProvider, updateProfile
-} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
-import {
-  getFirestore, collection, addDoc, onSnapshot, query, orderBy,
-  updateDoc, doc, increment, getDocs, where, serverTimestamp, setDoc, getDoc
-} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-import {
-  getStorage, ref, uploadBytesResumable, getDownloadURL
-} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
+  <section id="feedme" class="tabcontent">
+    <h3>Mes publications</h3>
+    <div class="post-header">
+      <img id="feedmeProfilePhoto" src="https://via.placeholder.com/40" />
+      <label for="profilePhotoInput" title="Changer la photo">
+        <i class="fas fa-plus" style="cursor:pointer"></i>
+      </label>
+      <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" />
+    </div>
+    <div id="myFeed"></div>
+  </section>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
-  authDomain: "mboa-ec602.firebaseapp.com",
-  projectId: "mboa-ec602",
-  storageBucket: "mboa-ec602.appspot.com",
-  messagingSenderId: "498505132403",
-  appId: "1:498505132403:web:eb46547745f8d1a77b3d06"
-};
+  <section id="video" class="tabcontent">
+    <h3>Booster une publication</h3>
+    <div id="boostPanel" style="display:none;margin-bottom:10px">
+      <span id="boostStatus" style="font-weight:bold"></span>
+      <input type="number" id="boostViews" placeholder="Nombre de vues à acheter" min="1" />
+      <button onclick="boostPost()">Booster</button>
+    </div>
+    <div id="videoFeedContentBoost"></div>
+  </section>
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
-const provider = new GoogleAuthProvider();
+  <!-- ================= SCRIPTS ======================== -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+    import {
+      getAuth,onAuthStateChanged,signInWithPopup,signOut,
+      GoogleAuthProvider,updateProfile
+    } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+    import {
+      getFirestore,collection,addDoc,onSnapshot,query,orderBy,where,doc,
+      getDocs,getDoc,setDoc,updateDoc,increment,serverTimestamp,deleteDoc
+    } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+    import {
+      getStorage,ref,uploadBytesResumable,getDownloadURL
+    } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
 
-let currentUser = null;
-let likedPosts = new Set();
+    // --- CONFIGURATION ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
+      authDomain: "mboa-ec602.firebaseapp.com",
+      projectId: "mboa-ec602",
+      storageBucket: "mboa-ec602.appspot.com",
+      messagingSenderId: "498505132403",
+      appId: "1:498505132403:web:eb46547745f8d1a77b3d06"
+    };
 
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user;
-  if (user) {
-    document.getElementById("authStatus").innerText = ` ${user.displayName || user.email}`;
-    if(user.photoURL) {
-      document.getElementById("homeProfilePhoto").src = user.photoURL;
-      document.getElementById("feedmeProfilePhoto").src = user.photoURL;
-    } else {
-      document.getElementById("homeProfilePhoto").src = "https://via.placeholder.com/40";
-      document.getElementById("feedmeProfilePhoto").src = "https://via.placeholder.com/40";
-    }
-    await loadLikedPosts();
-    renderFeed();
-    renderMyFeed();
-    await loadTotalViewsAndBalance();
-  } else {
-    likedPosts.clear();
-    document.getElementById("authStatus").innerText = "";
-    document.getElementById("homeProfilePhoto").src = "https://via.placeholder.com/40";
-    document.getElementById("feedmeProfilePhoto").src = "https://via.placeholder.com/40";
-    document.getElementById("feed").innerHTML = "";
-    document.getElementById("myFeed").innerHTML = "<p>Veuillez vous connecter pour voir vos publications.</p>";
-    document.getElementById("totalViewsCount").innerText = "Connectez-vous pour voir vos statistiques.";
-    document.getElementById("currentBalance").innerText = "Solde actuel: 0 FCFA";
-    document.getElementById("withdrawStatus").innerText = "";
-    document.getElementById("boostStatus").innerText = "Aucune publication sélectionnée";
-    document.getElementById("selectedBoostPostId").value = "";
-  }
-});
+    const app      = initializeApp(firebaseConfig);
+    const auth     = getAuth(app);
+    const provider = new GoogleAuthProvider();
+    const db       = getFirestore(app);
+    const stg      = getStorage(app);
 
-// PROFIL PHOTO UPLOAD
-const profilePhotoInput = document.getElementById("profilePhotoInput");
-profilePhotoInput.addEventListener("change", async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
+    // --- STATE GLOBAL ---
+    let currentUser = null;
+    let likedPosts  = new Set();
+    let boostId     = '';
 
-  if (!currentUser) {
-    alert("Connectez-vous d'abord.");
-    return;
-  }
+    // --- UTILS ---
+    const qs  = id => document.getElementById(id);
+    const fmt = n  => n >= 1e6 ? (n/1e6).toFixed(1) + 'M'
+                     : n >= 1e3 ? (n/1e3).toFixed(1) + 'k'
+                     : n;
 
-  const fileRef = ref(storage, `profile_photos/${currentUser.uid}_${Date.now()}`);
-  const uploadTask = uploadBytesResumable(fileRef, file);
+    // --- NAVIGATION ONGLET ---
+    window.openTab = (evt, tabId) => {
+      [...document.getElementsByClassName('tabcontent')].forEach(t => {
+        t.classList.toggle('active', t.id === tabId);
+      });
+      [...document.getElementsByClassName('tablinks')].forEach(l => {
+        l.classList.toggle('selected', l === evt.currentTarget);
+      });
+      history.pushState({ tab: tabId }, '', `#${tabId}`);
+    };
+    window.onpopstate = e => {
+      const tab = e.state?.tab || 'home';
+      const icon = document.querySelector(`[onclick*="'${tab}'"]`) || document.querySelector('.tablinks');
+      if (icon) window.openTab({ currentTarget: icon }, tab);
+    };
 
-  uploadTask.on("state_changed", null, (error) => {
-    console.error("Erreur d'envoi de l'image :", error);
-    alert("Échec de l'envoi de la photo.");
-  }, async () => {
-    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+    // --- AUTHENTIFICATION ---
+    window.signInWithGoogle = () => signInWithPopup(auth, provider).catch(err => alert(err.message));
+    window.signOutUser = () => signOut(auth);
 
-    try {
-      await updateProfile(currentUser, { photoURL: downloadURL });
-      alert("Photo de profil mise à jour !");
-      location.reload();
-    } catch (error) {
-      console.error("Erreur de mise à jour du profil :", error);
-      alert("Erreur lors de la mise à jour de la photo.");
-    }
-  });
-});
+    onAuthStateChanged(auth, async user => {
+      currentUser = user;
+      const pp = user?.photoURL || 'https://via.placeholder.com/40';
+      qs('homeProfilePhoto').src   = pp;
+      qs('feedmeProfilePhoto').src = pp;
+      qs('authStatus').textContent = user ? ` ${user.displayName || user.email}` : '';
 
-// SIGN IN / OUT
-window.signInWithGoogle = async function () {
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-    document.getElementById("authStatus").innerText = ` ${user.displayName || user.email}`;
-  } catch (error) {
-    console.error("Erreur Google Auth:", error);
-    document.getElementById("authStatus").innerText = error.message;
-  }
-};
-
-window.signOutUser = async function () {
-  await signOut(auth);
-  likedPosts.clear();
-  document.getElementById("authStatus").innerText = "Déconnecté.";
-  document.getElementById("feed").innerHTML = "";
-  document.getElementById("myFeed").innerHTML = "<p>Veuillez vous connecter pour voir vos publications.</p>";
-  document.getElementById("boostStatus").innerText = "Aucune publication sélectionnée";
-  document.getElementById("selectedBoostPostId").value = "";
-  document.getElementById("totalViewsCount").innerText = "";
-  document.getElementById("currentBalance").innerText = "Solde actuel: 0 FCFA";
-  document.getElementById("withdrawStatus").innerText = "";
-};
-
-// PUBLICATION
-window.publishPost = async function () {
-  if (!currentUser) return alert("Connectez-vous pour publier.");
-  const text = document.getElementById("postText").value.trim();
-  const bgColor = document.getElementById("bgColor").value;
-  const video = document.getElementById("videoFile").files[0];
-  const videoTitle = document.getElementById("videoTitle").value.trim();
-  if (!text && !video) return alert("Ajoutez un texte ou une vidéo.");
-
-  document.getElementById("status").innerText = "Publication en cours...";
-
-  const postData = {
-    userEmail: currentUser.email,
-    userId: currentUser.uid,
-    userName: currentUser.displayName || currentUser.email,
-    userPhoto: currentUser.photoURL || "https://via.placeholder.com/40",
-    text,
-    bgColor,
-    videoUrl: null,
-    videoTitle,
-    views: 0,
-    likes: 0,
-    createdAt: serverTimestamp(),
-    boosted: 0
-  };
-
-  if (video) {
-    const refV = ref(storage, `videos/${Date.now()}_${video.name}`);
-    const uploadTask = uploadBytesResumable(refV, video);
-
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        document.getElementById("status").innerText = `Téléchargement : ${Math.floor(progress)}%`;
-      },
-      (error) => {
-        console.error("Erreur upload :", error);
-        alert("Erreur pendant l'envoi de la vidéo.");
-        document.getElementById("status").innerText = "";
-      },
-      async () => {
-        postData.videoUrl = await getDownloadURL(uploadTask.snapshot.ref);
-        await addDoc(collection(db, "posts"), postData);
-        document.getElementById("status").innerText = "Publication réussie.";
-        document.getElementById("postText").value = "";
-        document.getElementById("videoFile").value = "";
-        document.getElementById("videoTitle").value = "";
+      if (user) {
+        await loadLikedPosts();
+        renderFeed();
+        renderMyFeed();
+        renderVideoFeed();
+        renderBoostFeed();
+        await loadTotalViewsAndBalance();
+      } else {
+        likedPosts.clear();
+        ['feed','myFeed','videoFeedContent','videoFeedContentBoost'].forEach(id => qs(id).innerHTML = '');
+        qs('totalViewsCount').textContent = '';
+        qs('currentBalance').textContent  = 'Solde actuel: 0 FCFA';
       }
-    );
-  } else {
-    await addDoc(collection(db, "posts"), postData);
-    document.getElementById("status").innerText = "Publication réussie.";
-    document.getElementById("postText").value = "";
-  }
-};
-
-// UTILITAIRES
-function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-window.openTab = function (evt, tabName) {
-  const tabcontents = document.getElementsByClassName("tabcontent");
-  for (const tabcontent of tabcontents) {
-    tabcontent.classList.remove("active");
-  }
-  const tablinks = document.getElementsByClassName("tablinks");
-  for (const tablink of tablinks) {
-    tablink.classList.remove("selected");
-  }
-  document.getElementById(tabName).classList.add("active");
-  evt.currentTarget.classList.add("selected");
-};
-
-// Chargement des posts (fil général)
-async function renderFeed() {
-  const feed = document.getElementById("feed");
-  feed.innerHTML = "Chargement...";
-  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-  onSnapshot(q, (snapshot) => {
-    feed.innerHTML = "";
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      feed.appendChild(createPostElement(docSnap.id, data, false));
-    });
-  });
-}
-
-// Chargement des posts de l'utilisateur connecté (feedme)
-async function renderMyFeed() {
-  if (!currentUser) return;
-  const myFeed = document.getElementById("myFeed");
-  myFeed.innerHTML = "Chargement...";
-  const q = query(collection(db, "posts"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"));
-  onSnapshot(q, (snapshot) => {
-    myFeed.innerHTML = "";
-    snapshot.forEach(docSnap => {
-      const data = docSnap.data();
-      myFeed.appendChild(createPostElement(docSnap.id, data, true));
-    });
-  });
-}
-
-// Crée un élément post complet (avec like, boost, commentaire)
-function createPostElement(postId, data, isUserPost) {
-  const postDiv = document.createElement("div");
-  postDiv.className = "post";
-
-  // Header
-  const header = document.createElement("div");
-  header.className = "post-header";
-  const img = document.createElement("img");
-  img.src = data.userPhoto || "https://via.placeholder.com/40";
-  img.alt = data.userName || "Utilisateur";
-  header.appendChild(img);
-  const nameSpan = document.createElement("span");
-  nameSpan.textContent = data.userName || data.userEmail || "Anonyme";
-  nameSpan.style.fontWeight = "bold";
-  header.appendChild(nameSpan);
-
-  postDiv.appendChild(header);
-
-  // Contenu texte ou vidéo
-  const content = document.createElement("div");
-  content.className = "post-content";
-  if (data.videoUrl) {
-    const video = document.createElement("video");
-    video.src = data.videoUrl;
-    video.controls = true;
-    content.appendChild(video);
-
-    if (data.videoTitle) {
-      const title = document.createElement("div");
-      title.textContent = data.videoTitle;
-      title.style.fontWeight = "bold";
-      content.appendChild(title);
-    }
-  } else if (data.text) {
-    const textBg = document.createElement("div");
-    textBg.className = "text-bg";
-    textBg.style.backgroundColor = data.bgColor || "#1877f2";
-    textBg.textContent = data.text;
-    content.appendChild(textBg);
-  }
-  postDiv.appendChild(content);
-
-  // Actions : likes, vues, boost, commentaires
-  const actions = document.createElement("div");
-  actions.className = "post-actions";
-
-  // Likes
-  const likeIcon = document.createElement("i");
-  likeIcon.className = "fa-regular fa-thumbs-up like";
-  if (likedPosts.has(postId)) likeIcon.classList.add("liked");
-  likeIcon.title = "Aimer";
-  likeIcon.onclick = () => toggleLike(postId, likeIcon);
-  actions.appendChild(likeIcon);
-
-  // Nombre de likes
-  const likesCount = document.createElement("span");
-  likesCount.textContent = data.likes || 0;
-  likesCount.style.marginRight = "10px";
-  actions.appendChild(likesCount);
-
-  // Nombre de vues
-  const viewsSpan = document.createElement("span");
-  viewsSpan.textContent = `👁️ ${data.views || 0}`;
-  viewsSpan.style.marginRight = "10px";
-  actions.appendChild(viewsSpan);
-
-  // Bouton Booster uniquement si c’est dans feedme (les posts de l’utilisateur)
-  if (isUserPost) {
-    const boostBtn = document.createElement("button");
-    boostBtn.textContent = "Booster";
-    boostBtn.className = "boost-btn";
-    boostBtn.onclick = () => selectPostToBoost(postId);
-    actions.appendChild(boostBtn);
-  }
-
-  // Commentaire - icône
-  const commentIcon = document.createElement("i");
-  commentIcon.className = "fa-regular fa-comment";
-  commentIcon.title = "Commentaires";
-  actions.appendChild(commentIcon);
-
-  postDiv.appendChild(actions);
-
-  // Section commentaires (cachée par défaut)
-  const commentsSection = document.createElement("div");
-  commentsSection.className = "comments-section";
-  commentsSection.style.display = "none";
-  postDiv.appendChild(commentsSection);
-
-  // Input commentaire
-  const commentInputDiv = document.createElement("div");
-  commentInputDiv.className = "comment-input";
-  commentInputDiv.style.display = "none";
-
-  const commentInput = document.createElement("input");
-  commentInput.type = "text";
-  commentInput.placeholder = "Écrire un commentaire...";
-  commentInputDiv.appendChild(commentInput);
-
-  const commentSendBtn = document.createElement("button");
-  commentSendBtn.textContent = "Envoyer";
-  commentSendBtn.onclick = () => sendComment(postId, commentInput.value, commentInput, commentsSection);
-  commentInputDiv.appendChild(commentSendBtn);
-
-  postDiv.appendChild(commentInputDiv);
-
-  // Toggle commentaires au clic icône
-  commentIcon.onclick = () => {
-    if (commentsSection.style.display === "none") {
-      commentsSection.style.display = "block";
-      commentInputDiv.style.display = "flex";
-      loadComments(postId, commentsSection);
-    } else {
-      commentsSection.style.display = "none";
-      commentInputDiv.style.display = "none";
-    }
-  };
-
-  return postDiv;
-}
-
-// Gestion likes
-async function toggleLike(postId, iconEl) {
-  if (!currentUser) return alert("Connectez-vous pour aimer.");
-  const postRef = doc(db, "posts", postId);
-  if (likedPosts.has(postId)) {
-    // Annuler like
-    await updateDoc(postRef, { likes: increment(-1) });
-    likedPosts.delete(postId);
-    iconEl.classList.remove("liked");
-  } else {
-    await updateDoc(postRef, { likes: increment(1) });
-    likedPosts.add(postId);
-    iconEl.classList.add("liked");
-  }
-}
-
-// Charger les posts likés par l'utilisateur (pour l'UI)
-async function loadLikedPosts() {
-  if (!currentUser) return;
-  likedPosts.clear();
-  const q = query(collection(db, "likes"), where("userId", "==", currentUser.uid));
-  // Simplification : on ne gère pas table likes séparée ici, juste likedPosts vide.
-  // Tu peux étendre avec une collection likes si besoin.
-}
-
-// Gestion commentaires
-async function loadComments(postId, container) {
-  container.innerHTML = "Chargement des commentaires...";
-  const commentsCol = collection(db, "posts", postId, "comments");
-  const q = query(commentsCol, orderBy("createdAt", "asc"));
-  onSnapshot(q, (snapshot) => {
-    container.innerHTML = "";
-    if (snapshot.empty) {
-      container.innerHTML = "<p>Aucun commentaire.</p>";
-      return;
-    }
-    snapshot.forEach(docSnap => {
-      const c = docSnap.data();
-      const cDiv = document.createElement("div");
-      cDiv.className = "comment";
-      cDiv.innerHTML = `<strong>${escapeHtml(c.userName)}</strong>: ${escapeHtml(c.text)}`;
-      container.appendChild(cDiv);
-    });
-  });
-}
-
-async function sendComment(postId, text, inputEl, container) {
-  if (!currentUser) return alert("Connectez-vous pour commenter.");
-  if (!text.trim()) return alert("Commentaire vide.");
-  const commentsCol = collection(db, "posts", postId, "comments");
-  await addDoc(commentsCol, {
-    userId: currentUser.uid,
-    userName: currentUser.displayName || currentUser.email,
-    text: text.trim(),
-    createdAt: serverTimestamp()
-  });
-  inputEl.value = "";
-  loadComments(postId, container);
-}
-
-// Gestion boost
-let selectedBoostPostId = null;
-
-window.selectPostToBoost = function(postId) {
-  selectedBoostPostId = postId;
-  document.getElementById("boostStatus").innerText = "1 sélectionné";
-  openTab({currentTarget: document.querySelector("header .fa-film")}, "video");
-};
-
-window.boostPost = async function() {
-  if (!currentUser) return alert("Connectez-vous pour booster.");
-  if (!selectedBoostPostId) return alert("Aucune publication sélectionnée.");
-  const boostViews = parseInt(document.getElementById("boostViews").value);
-  const postRef = doc(db, "posts", selectedBoostPostId);
-
-  // Ajouter les vues choisies à la publication
-  await updateDoc(postRef, {
-    views: increment(boostViews),
-    boosted: increment(boostViews)
-  });
-
-  alert(`Publication boostée avec ${boostViews} vues.`);
-  selectedBoostPostId = null;
-  document.getElementById("boostStatus").innerText = "Aucune publication sélectionnée";
-  openTab({currentTarget: document.querySelector("header .fa-home")}, "home");
-
-  // Après boost, recharger stats vues
-  await loadTotalViewsAndBalance();
-};
-
-// Calcul total vues et solde
-async function loadTotalViewsAndBalance() {
-  if (!currentUser) return;
-
-  const userDocRef = doc(db, "users", currentUser.uid);
-  const userDocSnap = await getDoc(userDocRef);
-
-  let lastReset = null;
-  let totalCredit = 0;
-
-  if (userDocSnap.exists()) {
-    const userData = userDocSnap.data();
-    lastReset = userData.lastReset?.toDate?.() || null;
-    totalCredit = userData.totalCredit || 0;
-  }
-
-  const now = new Date();
-  let shouldReset = false;
-
-  if (!lastReset || (now - lastReset) > 7 * 24 * 60 * 60 * 1000) {
-    shouldReset = true;
-  }
-
-  // Récupérer les posts de l’utilisateur
-  const q = query(collection(db, "posts"), where("userId", "==", currentUser.uid));
-  const snapshot = await getDocs(q);
-
-  let newViews = 0;
-
-  const batch = [];
-
-  snapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    const views = data.views || 0;
-    newViews += views;
-
-    if (shouldReset) {
-      const postRef = doc(db, "posts", docSnap.id);
-      batch.push(updateDoc(postRef, { views: 0 }));
-    }
-  });
-
-  // Si on réinitialise, on met à jour le solde
-  if (shouldReset) {
-    const gainedCredit = Math.floor(newViews / 1000) * 50;
-    totalCredit += gainedCredit;
-
-    // Sauvegarder dans Firestore
-    await setDoc(userDocRef, {
-      totalCredit,
-      lastReset: now
     });
 
-    // Appliquer les resets de vues
-    for (let update of batch) await update;
+    // --- UPLOAD PHOTO PROFIL ---
+    qs('profilePhotoInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file || !currentUser) return alert('Connectez-vous d\'abord');
+      const r = ref(stg, `profile_photos/${currentUser.uid}_${Date.now()}`);
+      uploadBytesResumable(r, file).on(
+        'state_changed',
+        null,
+        err => alert(err.message),
+        async snap => {
+          const url = await getDownloadURL(snap.ref);
+          await updateProfile(currentUser, { photoURL: url });
+          location.reload();
+        });
+    });
 
-    document.getElementById("withdrawStatus").innerText = `+${gainedCredit} FCFA ajoutés au solde.`;
-  }
+    // --- PUBLICATION POST ---
+    window.publishPost = async () => {
+      if (!currentUser) return alert('Connectez-vous');
+      const text     = qs('postText').value.trim();
+      const bg       = qs('bgColor').value;
+      const vidFile  = qs('videoFile').files[0];
+      const vidTitle = qs('videoTitle').value.trim();
+      if (!text && !vidFile) return alert('Ajoutez un texte ou une vidéo');
 
-  // Affichage
-  document.getElementById("totalViewsCount").innerText = shouldReset
-    ? "Les vues ont été réinitialisées."
-    : `Nombre total de vues: ${newViews}`;
+      qs('status').textContent = 'Publication…';
 
-document.getElementById("currentBalance").innerText = `Solde actuel: ${newBalance} FCFA`;
-window.currentCreditBalance = totalCredit;
-}
-// Retrait solde
-window.withdrawBalance = async function () {
-  if (!currentUser) return alert("Connectez-vous.");
-  const amountStr = document.getElementById("withdrawAmount").value;
-  const amount = parseInt(amountStr);
+      const data = {
+        userEmail : currentUser.email,
+        userId    : currentUser.uid,
+        userName  : currentUser.displayName || currentUser.email,
+        userPhoto : currentUser.photoURL || 'https://via.placeholder.com/40',
+        text      : text,
+        bgColor   : bg,
+        videoUrl  : null,
+        videoTitle: vidTitle,
+        views     : 0,
+        likes     : 0,
+        createdAt : serverTimestamp(),
+        boosted   : 0
+      };
 
-  if (isNaN(amount) || amount < 50) {
-    return alert("Montant minimum de retrait : 50 FCFA.");
-  }
+      const resetForm = () => {
+        ['postText','videoTitle'].forEach(id => qs(id).value = '');
+        qs('videoFile').value = '';
+        qs('status').textContent = 'Ok';
+      };
 
-  if (amount > window.currentCreditBalance) {
-    return alert("Montant supérieur au solde.");
-  }
+      if (vidFile) {
+        const r = ref(stg, `videos/${Date.now()}_${vidFile.name}`);
+        uploadBytesResumable(r, vidFile).on(
+          'state_changed',
+          snap => qs('status').textContent = `${Math.floor(snap.bytesTransferred/snap.totalBytes*100)}%`,
+          err => alert(err.message),
+          async s => {
+            data.videoUrl = await getDownloadURL(s.ref);
+            await addDoc(collection(db,'posts'), data);
+            resetForm();
+          });
+      } else {
+        await addDoc(collection(db,'posts'), data);
+        resetForm();
+      }
+    };
 
-  const userDocRef = doc(db, "users", currentUser.uid);
-  const newBalance = window.currentCreditBalance - amount;
+    // --- RENDER FEEDS ---
+    function renderFeed() {
+      const cont = qs('feed');
+      cont.textContent = 'Chargement…';
 
-  await updateDoc(userDocRef, { totalCredit: newBalance });
-  window.currentCreditBalance = newBalance;
+      const postsRef = collection(db, 'posts');
 
-  document.getElementById("currentBalance").innerText = `Solde actuel: ${newBalance} FCFA`;
-  document.getElementById("withdrawStatus").innerText = `Vous avez retiré ${amount} FCFA.`;
-  document.getElementById("withdrawAmount").value = "";
-};
-window.searchUser = async function () {
-  const input = document.getElementById("searchUserInput").value.trim().toLowerCase();
-  const resultsDiv = document.getElementById("searchResults");
-  resultsDiv.innerHTML = "Recherche...";
+      const qPosts = query(
+        postsRef,
+        orderBy('boosted', 'desc'),
+        orderBy('createdAt', 'desc')
+      );
 
-  const usersQuery = query(collection(db, "posts"), orderBy("userName"));
-  const snapshot = await getDocs(usersQuery);
-
-  const uniqueUsers = new Map();
-  snapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    const name = (data.userName || "").toLowerCase();
-    const email = (data.userEmail || "").toLowerCase();
-
-    if ((name.includes(input) || email.includes(input)) && !uniqueUsers.has(data.userId)) {
-      uniqueUsers.set(data.userId, data);
+      onSnapshot(qPosts, snap => {
+        cont.innerHTML = '';
+        snap.forEach(d => cont.appendChild(card(d.id, d.data(), false)));
+      });
     }
-  });
 
-  if (uniqueUsers.size === 0) {
-    resultsDiv.innerHTML = "<p>Aucun utilisateur trouvé.</p>";
-    return;
-  }
+    function renderMyFeed() {
+      if (!currentUser) return;
+      const c = qs('myFeed');
+      c.textContent = 'Chargement…';
+      onSnapshot(query(collection(db,'posts'),
+               where('userId','==',currentUser.uid),
+               orderBy('createdAt','desc')), snap => {
+        c.innerHTML = '';
+        snap.forEach(d => c.appendChild(card(d.id, d.data(), true)));
+      });
+    }
 
-  resultsDiv.innerHTML = "";
-  uniqueUsers.forEach((data, userId) => {
-    const div = document.createElement("div");
-    div.style.border = "1px solid #ccc";
-    div.style.padding = "10px";
-    div.style.marginBottom = "10px";
-    div.style.borderRadius = "10px";
-    div.style.cursor = "pointer";
-    div.innerHTML = `
-      <img src="${data.userPhoto}" alt="Photo" style="width:30px; height:30px; border-radius:50%; vertical-align:middle; margin-right:10px;" />
-      <strong>${data.userName}</strong> <br/>
-      <small>${data.userEmail}</small>
-    `;
-    div.onclick = () => showUserFeed(userId, data.userName);
-    resultsDiv.appendChild(div);
-  });
-};
+    function renderVideoFeed() {
+      const c = qs('videoFeedContent');
+      c.textContent = 'Chargement…';
+      onSnapshot(query(collection(db,'posts'),
+               where('videoUrl','!=',null),
+               orderBy('createdAt','desc')), snap => {
+        c.innerHTML = '';
+        snap.forEach(d => c.appendChild(card(d.id, d.data(), false)));
+      });
+    }
 
-window.showUserFeed = async function (userId, userName) {
-  openTab({ currentTarget: document.querySelector('.fa-search') }, 'userFeedSection');
-  document.getElementById("userFeedTitle").innerText = `Publications de ${userName}`;
-  const userFeed = document.getElementById("userFeed");
-  userFeed.innerHTML = "Chargement...";
+    function renderBoostFeed() {
+      if (!currentUser) return;
+      const c = qs('videoFeedContentBoost');
+      c.textContent = 'Chargement…';
+      onSnapshot(query(collection(db,'posts'),
+               where('userId','==',currentUser.uid),
+               where('videoUrl','!=',null),
+               orderBy('createdAt','desc')), snap => {
+        c.innerHTML = '';
+        snap.forEach(d => {
+          const el = card(d.id, d.data(), true);
+          c.appendChild(el);
+        });
+      });
+    }
 
-  const q = query(collection(db, "posts"), where("userId", "==", userId), orderBy("createdAt", "desc"));
-  const snapshot = await getDocs(q);
-  userFeed.innerHTML = "";
-  snapshot.forEach(docSnap => {
-    userFeed.appendChild(createPostElement(docSnap.id, docSnap.data(), false));
-  });
-};
-// Initial call
-renderFeed();
-renderMyFeed();
-loadTotalViewsAndBalance();
+    // --- CREATION CARTE POST ---
+    function card(id, d, isMine) {
+      const wrap = document.createElement('div');
+      wrap.className = 'post';
+      wrap.innerHTML = `
+        <div class="post-header">
+          <img src="${d.userPhoto}" alt="pp" />
+          <span class="username" data-uid="${d.userId}">${d.userName || d.userEmail}</span>
+          ${d.boosted > 0 ? '<span style="margin-left:auto;color:#ffa500;font-size:12px;font-weight:bold">Sponsorisé</span>' : ''}
+        </div>`;
 
-</script>
+      const cont = document.createElement('div');
+      cont.className = 'post-content';
+
+      if (d.videoUrl) {
+        cont.innerHTML = `
+          <video src="${d.videoUrl}" controls></video>
+          ${d.videoTitle ? `<div style="font-weight:bold">${d.videoTitle}</div>` : ''}`;
+      } else if (d.text) {
+        cont.innerHTML = `<div class="text-bg" style="background:${d.bgColor}">${d.text}</div>`;
+      }
+
+      wrap.appendChild(cont);
+
+      // Post actions: Likes, Views, Comments, Boost
+      const act = document.createElement('div');
+      act.className = 'post-actions';
+
+      // Like button and count
+      const like = document.createElement('i');
+      like.className = 'fa-regular fa-thumbs-up like';
+      if (likedPosts.has(id)) like.classList.add('liked');
+      const lCnt = document.createElement('span');
+      lCnt.textContent = fmt(d.likes || 0);
+      like.onclick = () => toggleLike(id, like, lCnt);
+      act.append(like, lCnt);
+
+      // Views count
+      const vCnt = document.createElement('span');
+      vCnt.textContent = `👁️ ${fmt(d.views || 0)}`;
+      act.appendChild(vCnt);
+
+  // Comments icon and count
+      const comI = document.createElement('i');
+      comI.className = 'fa-regular fa-comment';
+      const comCnt = document.createElement('span');
+      comCnt.textContent = '...'; // On chargera le nombre réel async
+
+      act.append(comI, comCnt);
+
+      // Booster bouton si c'est ton post
+      if (isMine) {
+        const boostBtn = document.createElement('button');
+        boostBtn.className = 'boost-btn';
+        boostBtn.textContent = 'Booster';
+        boostBtn.onclick = () => selectBoostPost(id, d.text || d.videoTitle || 'Sans titre');
+        act.appendChild(boostBtn);
+      }
+
+      wrap.appendChild(act);
+
+      // Section commentaires
+      const comSection = document.createElement('div');
+      comSection.className = 'comments-section';
+      comSection.style.display = 'none';
+
+      const comList = document.createElement('div');
+      comSection.appendChild(comList);
+
+      // Input commentaire
+      if (currentUser) {
+        const comInputDiv = document.createElement('div');
+        comInputDiv.className = 'comment-input';
+        const comInput = document.createElement('input');
+        comInput.type = 'text';
+        comInput.placeholder = 'Ajouter un commentaire...';
+        const comBtn = document.createElement('button');
+        comBtn.textContent = 'Envoyer';
+        comBtn.onclick = () => {
+          const txt = comInput.value.trim();
+          if (!txt) return alert('Le commentaire est vide');
+          addComment(id, txt);
+          comInput.value = '';
+        };
+        comInputDiv.append(comInput, comBtn);
+        comSection.appendChild(comInputDiv);
+      }
+
+      wrap.appendChild(comSection);
+
+      // Affichage / Masquage commentaires au clic sur icône commentaire
+      comI.onclick = () => {
+        if (comSection.style.display === 'none') {
+          comSection.style.display = 'block';
+          loadComments(id, comList, comCnt);
+        } else {
+          comSection.style.display = 'none';
+        }
+      };
+
+      // Clic sur nom utilisateur ouvre feedme de cet utilisateur
+      wrap.querySelector('.username').onclick = e => {
+        const uid = e.target.dataset.uid;
+        if (!uid) return;
+        openUserFeed(uid);
+      };
+
+      return wrap;
+    }
+
+    // --- GESTION LIKE ---
+    async function toggleLike(postId, iconEl, countEl) {
+      if (!currentUser) return alert('Connectez-vous pour liker');
+      const postRef = doc(db, 'posts', postId);
+      if (likedPosts.has(postId)) {
+        likedPosts.delete(postId);
+        iconEl.classList.remove('liked');
+        await updateDoc(postRef, { likes: increment(-1) });
+      } else {
+        likedPosts.add(postId);
+        iconEl.classList.add('liked');
+        await updateDoc(postRef, { likes: increment(1) });
+      }
+      // Mise à jour affichage compteur
+      const docSnap = await getDoc(postRef);
+      countEl.textContent = fmt(docSnap.data().likes || 0);
+    }
+
+    async function loadLikedPosts() {
+      if (!currentUser) return;
+      likedPosts.clear();
+      // On récupère les posts likés par cet utilisateur
+      // Option 1: stocker les likes par utilisateur dans Firestore (à implémenter selon DB)
+      // Ici on simule en recherchant si user a liké (supposons pas de data supplémentaire)
+      // À améliorer selon ta base
+    }
+
+    // --- GESTION COMMENTAIRES ---
+    async function loadComments(postId, container, countEl) {
+      const q = query(collection(db, 'posts', postId, 'comments'), orderBy('createdAt'));
+      const snap = await getDocs(q);
+      container.innerHTML = '';
+      countEl.textContent = snap.size;
+      snap.forEach(d => {
+        const c = d.data();
+        const div = document.createElement('div');
+        div.className = 'comment';
+        div.innerHTML = `<strong>${c.userName || 'Anonyme'}</strong> : ${c.text}`;
+        container.appendChild(div);
+      });
+    }
+
+    async function addComment(postId, text) {
+      if (!currentUser) return alert('Connectez-vous pour commenter');
+      const comment = {
+        userId: currentUser.uid,
+        userName: currentUser.displayName || currentUser.email,
+        text,
+        createdAt: serverTimestamp()
+      };
+      await addDoc(collection(db, 'posts', postId, 'comments'), comment);
+      renderFeed(); // rafraîchir si besoin
+      renderMyFeed();
+      renderVideoFeed();
+    }
+
+    // --- BOOST ---
+    function selectBoostPost(postId, title) {
+      boostId = postId;
+      qs('boostStatus').textContent = `1 publication sélectionnée : ${title}`;
+      qs('boostPanel').style.display = 'block';
+      openTab({currentTarget: document.querySelector('.tablinks[onclick*="video"]')}, 'video');
+    }
+
+    async function boostPost() {
+      if (!currentUser) return alert('Connectez-vous');
+      if (!boostId) return alert('Aucune publication sélectionnée');
+      let viewsToAdd = parseInt(qs('boostViews').value);
+      if (!viewsToAdd || viewsToAdd < 1) return alert('Nombre de vues invalide');
+
+      const postRef = doc(db, 'posts', boostId);
+      await updateDoc(postRef, { boosted: increment(viewsToAdd) });
+
+      qs('boostStatus').textContent = 'Boost effectué !';
+      qs('boostViews').value = '';
+      boostId = '';
+      renderBoostFeed();
+      renderVideoFeed();
+      renderFeed();
+    }
+
+    // --- FEED UTILISATEUR PAR UID ---
+    async function openUserFeed(uid) {
+      const tab = qs('feedme');
+      tab.classList.add('active');
+      [...document.getElementsByClassName('tabcontent')].forEach(t => {
+        if (t !== tab) t.classList.remove('active');
+      });
+      [...document.getElementsByClassName('tablinks')].forEach(l => l.classList.remove('selected'));
+      const homeIcon = document.querySelector('.tablinks[onclick*="feedme"]');
+      if (homeIcon) homeIcon.classList.add('selected');
+
+      const feedContainer = qs('myFeed');
+      feedContainer.innerHTML = 'Chargement...';
+
+      // Récupérer les posts de l'utilisateur cible
+      const q = query(collection(db, 'posts'), where('userId', '==', uid), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      feedContainer.innerHTML = '';
+      snap.forEach(d => feedContainer.appendChild(card(d.id, d.data(), uid === currentUser?.uid)));
+
+      // Mettre à jour photo profil feedme
+      if (snap.size > 0) {
+        const p = snap.docs[0].data();
+        qs('feedmeProfilePhoto').src = p.userPhoto || 'https://via.placeholder.com/40';
+      } else {
+        qs('feedmeProfilePhoto').src = 'https://via.placeholder.com/40';
+      }
+    }
+
+    // --- RECHERCHE UTILISATEUR ---
+    window.searchUser = async () => {
+      const qstr = qs('searchUserInput').value.trim().toLowerCase();
+      if (!qstr) return alert('Entrez un nom ou e-mail');
+
+      const usersRef = collection(db, 'users');
+      // Suppose une collection users à créer qui contient {uid, name, email, photoURL}
+      // Sinon chercher dans posts et extraire user distincts (moins efficace)
+      // Pour l’exemple, on cherche dans posts et on fait unique :
+      const postsSnap = await getDocs(collection(db, 'posts'));
+      const usersMap = new Map();
+
+      postsSnap.forEach(doc => {
+        const d = doc.data();
+        const key = d.userId;
+        if (!usersMap.has(key) && (d.userName?.toLowerCase().includes(qstr) || d.userEmail?.toLowerCase().includes(qstr))) {
+          usersMap.set(key, {uid: d.userId, name: d.userName, email: d.userEmail, photo: d.userPhoto});
+        }
+      });
+
+      const resDiv = qs('searchResults');
+      resDiv.innerHTML = '';
+      if (usersMap.size === 0) {
+        resDiv.textContent = 'Aucun utilisateur trouvé';
+        return;
+      }
+      usersMap.forEach(u => {
+        const div = document.createElement('div');
+        div.style.cursor = 'pointer';
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.marginBottom = '8px';
+
+        const img = document.createElement('img');
+        img.src = u.photo || 'https://via.placeholder.com/40';
+        img.style.width = '40px';
+        img.style.height = '40px';
+        img.style.borderRadius = '50%';
+        img.style.marginRight = '10px';
+
+        const span = document.createElement('span');
+        span.textContent = u.name || u.email;
+        span.style.color = '#1877f2';
+        span.style.fontWeight = 'bold';
+
+        div.append(img, span);
+        div.onclick = () => openUserFeed(u.uid);
+        resDiv.appendChild(div);
+      });
+    };
+
+    // --- VUES ET SOLDE ---
+    async function loadTotalViewsAndBalance() {
+      if (!currentUser) return;
+      const uid = currentUser.uid;
+
+      // Récupérer total vues dans les 7 derniers jours
+      const postsRef = collection(db, 'posts');
+      const q = query(postsRef, where('userId', '==', uid));
+      const snap = await getDocs(q);
+      let totalViews = 0;
+      snap.forEach(doc => {
+        const d = doc.data();
+        totalViews += d.views || 0;
+      });
+
+      const totalViewsCount = qs('totalViewsCount');
+      totalViewsCount.textContent = `Total vues : ${totalViews}`;
+
+      // Calcul solde : 1000 vues = 50 FCFA
+      const balance = Math.floor((totalViews / 1000) * 50);
+      qs('currentBalance').textContent = `Solde actuel : ${balance} FCFA`;
+      window.currentBalance = balance; // global pour retrait
+    }
+
+    window.withdrawBalance = () => {
+      const amount = parseInt(qs('withdrawAmount').value);
+      if (!amount || amount < 50) return alert('Montant minimum 50 FCFA');
+      if (amount > window.currentBalance) return alert('Montant supérieur au solde');
+      alert(`Demande de retrait de ${amount} FCFA envoyée !`);
+      // TODO: Enregistrer la demande ou déduire le solde côté serveur
+      qs('withdrawAmount').value = '';
+    };
+
+  </script>
 </body>
 </html>
