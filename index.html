@@ -630,15 +630,24 @@
       window.currentBalance = balance; // global pour retrait
     }
 
-    window.withdrawBalance = () => {
-      const amount = parseInt(qs('withdrawAmount').value);
-      if (!amount || amount < 50) return alert('Montant minimum 50 FCFA');
-      if (amount > window.currentBalance) return alert('Montant supérieur au solde');
-      alert(`Demande de retrait de ${amount} FCFA envoyée !`);
-      // TODO: Enregistrer la demande ou déduire le solde côté serveur
-      qs('withdrawAmount').value = '';
-    };
+window.withdrawBalance = () => {
+  const amount = parseInt(qs('withdrawAmount').value);
 
-  </script>
+  // Montant minimum 50 FCFA
+  if (!amount || amount < 5000) {
+    alert('Montant minimum 50 FCFA');
+    return;
+  }
+
+  // Vérifie le solde disponible
+  if (amount > window.currentBalance) {
+    alert('Montant minimum est 5000f');   // ← CE MESSAGE s’affiche si le solde est insuffisant
+    return;
+  }
+
+  // Traitement du retrait (simulation)
+  alert(`Demande de retrait de ${amount} FCFA envoyée !`);
+  qs('withdrawAmount').value = '';
+};  </script>
 </body>
 </html>
