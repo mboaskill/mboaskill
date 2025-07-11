@@ -33,7 +33,7 @@
     .like.liked{color:#1877f2}
     .boost-btn{background:#ffa500;color:#fff;padding:5px 10px;font-weight:bold;border-radius:6px;border:none;cursor:pointer}
 .comments-section {
-  margin-top: 10px;
+  margin-top: 30px;
   border-top: 1px solid #ccc;
   padding-top: 10px;
   max-height: 150px;
@@ -42,16 +42,11 @@
 }
 
 .comment {
-  background: #eee;
-  padding: 5px 10px;
-  border-radius: 8px;
-  margin-bottom: 6px;
-  font-size: 14px;
-  direction: ltr; /* Assure que le texte reste dans l’ordre */
-  word-break: break-word; /* Évite les débordements */
-}
-
-.comment strong {
+  direction: ltr; /* Affiche de gauche à droite */
+  unicode-bidi: plaintext; /* Corrige le traitement des caractères LTR */
+  text-align: left;
+  word-break: break-word;
+}.comment strong {
   color: #1877f2;
 }
 
@@ -63,10 +58,13 @@
 
 .comment-input input {
   flex: 1;
+  width: 200px;
+    height: 80px;
   padding: 12px;
   border-radius: 5px;
-  border: 1px solid #ccc;
+  border: 5px solid #ccc;
   font-size: 14px;
+  resize: vertical;
 }
 
 .comment-input button {
@@ -674,7 +672,7 @@ window.withdrawBalance = () => {
 
   // Montant minimum 50 FCFA
   if (!amount || amount < 5000) {
-    alert('Montant minimum 50 FCFA');
+    alert('Montant minimum 5000 FCFA');
     return;
   }
 
