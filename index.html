@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" dir="ltr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -32,13 +32,52 @@
     .post-actions i{cursor:pointer;font-size:1.2rem}
     .like.liked{color:#1877f2}
     .boost-btn{background:#ffa500;color:#fff;padding:5px 10px;font-weight:bold;border-radius:6px;border:none;cursor:pointer}
-    .comments-section{margin-top:10px;border-top:1px solid #ccc;padding-top:10px;max-height:150px;overflow-y:auto}
-    .comment{background:#eee;padding:5px 10px;border-radius:8px;margin-bottom:6px;font-size:14px}
-    .comment strong{color:#1877f2}
-    .comment-input{display:flex;gap:10px;margin-top:10px}
-    .comment-input input{flex:1;padding:8px;border-radius:8px;border:1px solid #ccc;font-size:14px}
-    .comment-input button{padding:8px 16px;background:#1877f2;color:#fff;border:none;border-radius:8px;cursor:pointer}
-    #boostStatus{font-weight:bold;color:#1877f2;margin-bottom:10px}
+.comments-section {
+  margin-top: 10px;
+  border-top: 1px solid #ccc;
+  padding-top: 10px;
+  max-height: 150px;
+  overflow-y: auto;
+  direction: ltr; /* Forcer la direction normale du texte de gauche à droite */
+}
+
+.comment {
+  background: #eee;
+  padding: 5px 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 14px;
+  direction: ltr; /* Assure que le texte reste dans l’ordre */
+  word-break: break-word; /* Évite les débordements */
+}
+
+.comment strong {
+  color: #1877f2;
+}
+
+.comment-input {
+  display: flex;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.comment-input input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.comment-input button {
+  padding: 5px 9px;
+  background: #1877f2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}   
+#boostStatus{font-weight:bold;color:#1877f2;margin-bottom:10px}
     #totalViewsSection p{font-weight:bold}
   </style>
 </head>
