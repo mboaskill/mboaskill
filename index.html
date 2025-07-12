@@ -77,6 +77,49 @@
 }   
 #boostStatus{font-weight:bold;color:#1877f2;margin-bottom:10px}
     #totalViewsSection p{font-weight:bold}
+#emailLoginBox,
+#emailSignupBox {
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(0,0,0,.1);
+  margin-bottom: 15px;
+}
+
+#emailLoginBox input,
+#emailSignupBox input {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#emailLoginBox button,
+#emailSignupBox button {
+  background-color: #1877f2;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#emailLoginBox button:hover,
+#emailSignupBox button:hover {
+  background-color: #145ec1;
+}
+
+#accountStatus {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #1877f2;
+} 
   </style>
 </head>
 <body>
@@ -96,6 +139,7 @@
     <div class="post-header">
       <img id="homeProfilePhoto" src="https://via.placeholder.com/40" onclick="openTab(event,'feedme')"/>
       <p id="authStatus"></p>
+        <p id="accountStatus"></p>
     </div>
     <div id="feed"></div>
   </section>
@@ -153,6 +197,7 @@
     <h3>Mes publications</h3>
     <div class="post-header">
       <img id="feedmeProfilePhoto" src="https://via.placeholder.com/40" />
+        <p id="accountStatus"></p>
       <label for="profilePhotoInput" title="Changer la photo">
         <i class="fas fa-plus" style="cursor:pointer"></i>
       </label>
@@ -180,11 +225,27 @@
   </section>
 <section id="conect" class="tabcontent">
      <h3>Connectez-vous</h3>
-     
+      <div id="emailLoginBox">
+    <input type="email" id="loginEmail" placeholder="Email" />
+    <input type="password" id="loginPassword" placeholder="Mot de passe" />
+    <button onclick="loginWithEmail()">Se connecter</button>
+  </div>
+
+  <hr/>
+ 
     </section>
 <section id="inscrip" class="tabcontent">
           <h2>Inscription</h2>
-          
+       <div id="emailSignupBox">
+    <input type="text"  id="signupName"  placeholder="Nom complet" />
+    <input type="email" id="signupEmail" placeholder="Email" />
+    <input type="password" id="signupPassword" placeholder="Mot de passe (≥ 6 car.)" />
+    <input type="number" id="signupAge" placeholder="Âge (min 18)" min="18" />
+    <button onclick="signupWithEmail()">S’inscrire</button>
+  </div>
+
+  <hr/>
+     
       </section>
   <!-- ================= SCRIPTS ======================== -->
   <script type="module">
@@ -250,11 +311,13 @@
 
     onAuthStateChanged(auth, async user => {
       currentUser = user;
-      const pp = user?.photoURL || 'https://via.placeholder.com/40';
+      const pp = user?.photoURL || 'https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/1000x999/';
       qs('homeProfilePhoto').src   = pp;
       qs('feedmeProfilePhoto').src = pp;
       qs('authStatus').textContent = user ? ` ${user.displayName || user.email}` : '';
-
+qs('accountStatus').textContent = user
+  ? `Connecté  ${user.displayName || user.email}`
+  : '';
       if (user) {
         await loadLikedPosts();
         renderFeed();
@@ -727,6 +790,43 @@ window.boostPost = async () => {
     alert("Erreur lors du boost : " + err.message);
   }
 };  
+/* ===== INSCRIPTION ===== */
+window.signupWithEmail = async () => {
+  const name  = qs('signupName').value.trim();
+  const email = qs('signupEmail').value.trim();
+  const pass  = qs('signupPassword').value;
+  const age   = parseInt(qs('signupAge').value, 10);
+
+  if (!name || !email || !pass || isNaN(age))
+    return alert('Veuillez remplir tous les champs !');
+  if (age < 18)
+    return alert('Vous devez avoir au minimum 18 ans.');
+  if (pass.length < 6)
+    return alert('Le mot de passe doit contenir au moins 6 caractères.');
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(cred.user, { displayName: name });
+    location.reload(); // rafraîchir l’UI connectée
+  } catch (err) {
+    alert(err.message);
+  }
+};
+
+/* ===== CONNEXION ===== */
+window.loginWithEmail = async () => {
+  const email = qs('loginEmail').value.trim();
+  const pass  = qs('loginPassword').value;
+
+  if (!email || !pass) return alert('Entrez votre e-mail et mot de passe.');
+
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    location.reload();
+  } catch (err) {
+    alert(err.message);
+  }
+};
 let argent = 0;
     const montantInput = document.getElementById('montant');
     const deposerButton = document.getElementById('deposer');
