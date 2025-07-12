@@ -83,7 +83,7 @@
 
   <!-- ================= HEADER / NAV ================== -->
   <header>
-    <i class="fas fa-home tablinks selected" onclick="openTab(event,'home')"></i>
+    <i class="fas fa-home tablinks selected" onclick="openTab(event,'home')" href="#"></i>
     <i class="fas fa-coins tablinks" onclick="openTab(event,'totalViewsSection')"></i>
     <i class="fas fa-video tablinks" onclick="openTab(event,'videoFeed')"></i>
     <i class="fas fa-plus tablinks" onclick="openTab(event,'post')"></i>
@@ -135,12 +135,18 @@
   </section>
 
   <section id="account" class="tabcontent">
-    <h3>Connexion</h3>
+       <div class="post-header">
+    <button onclick="openTab(event,'conect')">Connexion</button>
+    <button onclick="openTab(event,'inscrip')">Inscription</button>
+    </div>
+    <hr>
     <button onclick="signInWithGoogle()">
-      <i class="fab fa-google"></i> Google
+      <i class="fab fa-google"></i> Connexion par Google
     </button>
     <hr/>
-    <button onclick="signOutUser()">Se déconnecter</button>
+    <button onclick="signOutUser()" style="background-color:red">Se déconnecter</button>
+    <br><br/>
+    <u><a href="https://www.facebook.com/profile.php?id=61577616822265">contact support</a><i class="fab fa-facebook" style="color:#1877f2"></i></u>
   </section>
 
   <section id="feedme" class="tabcontent">
@@ -160,13 +166,26 @@
   </section>
   <section id="vibo" class="tabcontent">
       <h3>Booster une publication</h3>
+      <div class="post-header">
+    <input type="number" id="montant" placeholder="Entrez le montant">
+  <button id="deposer">Deposer</button>
+  </div>
+  <p>Argent: <span id="argent">0</span>XAF</p>
+ 
     <div id="boostPanel" style="display:none;margin-bottom:10px">
       <span id="boostStatus" style="font-weight:bold"></span>
       <input type="number" id="boostViews" placeholder="Nombre de vues à acheter" min="1" />
       <button onclick="boostPost()">Booster</button>
     </div>
-    
   </section>
+<section id="conect" class="tabcontent">
+     <h3>Connectez-vous</h3>
+     
+    </section>
+<section id="inscrip" class="tabcontent">
+          <h2>Inscription</h2>
+          
+      </section>
   <!-- ================= SCRIPTS ======================== -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
@@ -412,10 +431,11 @@
       act.append(like, lCnt);
 
       // Views count
-      const vCnt = document.createElement('span');
-      vCnt.textContent = `👁️ ${fmt(d.views || 0)}`;
-      act.appendChild(vCnt);
-
+// Dans card()
+const vCnt = document.createElement('span');
+const totalVues = (d.views || 0) + (d.boosted || 0);
+vCnt.textContent = `👁️ ${fmt(totalVues)}`;
+act.appendChild(vCnt);
   // Comments icon and count
       const comI = document.createElement('i');
       comI.className = 'fa-regular fa-comment';
@@ -646,28 +666,28 @@
     };
 
     // --- VUES ET SOLDE ---
-    async function loadTotalViewsAndBalance() {
-      if (!currentUser) return;
-      const uid = currentUser.uid;
+async function loadTotalViewsAndBalance() {
+  if (!currentUser) return;
+  const weekAgo = Date.now() - 7*24*60*60*1000;
+  const qPosts = query(
+    collection(db,'posts'),
+    where('userId','==',currentUser.uid),
+    where('createdAt','>=', new Date(weekAgo))
+  );
+  const snap = await getDocs(qPosts);
 
-      // Récupérer total vues dans les 7 derniers jours
-      const postsRef = collection(db, 'posts');
-      const q = query(postsRef, where('userId', '==', uid));
-      const snap = await getDocs(q);
-      let totalViews = 0;
-      snap.forEach(doc => {
-        const d = doc.data();
-        totalViews += d.views || 0;
-      });
+  let total = 0;
+  snap.forEach(d => {
+    const data = d.data();
+    total += (data.views   || 0);
+    total += (data.boosted || 0);  // ➕ on compte aussi les vues achetées
+  });
 
-      const totalViewsCount = qs('totalViewsCount');
-      totalViewsCount.textContent = `Total vues : ${totalViews}`;
-
-      // Calcul solde : 1000 vues = 50 FCFA
-      const balance = Math.floor((totalViews / 1000) * 50);
-      qs('currentBalance').textContent = `Solde actuel : ${balance} FCFA`;
-      window.currentBalance = balance; // global pour retrait
-    }
+  qs('totalViewsCount').textContent = fmt(total);
+  // Calcul du solde : 1000 vues = 50 FCFA
+  const balance = Math.floor(total / 1000) * 50;
+  qs('currentBalance').textContent = `Solde actuel: ${balance} FCFA`;
+}
 
 window.withdrawBalance = () => {
   const amount = parseInt(qs('withdrawAmount').value);
@@ -696,15 +716,33 @@ window.boostPost = async () => {
   try {
     const postRef = doc(db, 'posts', boostId);
     await updateDoc(postRef, {
-      boosted: increment(boostViews)
+      boosted: increment(boostViews),   // pour savoir qu’elle a été sponsorisée
+      views:   increment(boostViews)    // ⚠️ ajoute aussi dans le compteur de vues
     });
     qs('boostStatus').textContent = 'Boost appliqué avec succès !';
     qs('boostViews').value = '';
     renderFeed();
+    await loadTotalViewsAndBalance();   // rafraîchir le solde
   } catch (err) {
     alert("Erreur lors du boost : " + err.message);
   }
-};
+};  
+let argent = 0;
+    const montantInput = document.getElementById('montant');
+    const deposerButton = document.getElementById('deposer');
+    const argentSpan = document.getElementById('argent');
+
+    deposerButton.addEventListener('click', () => {
+      const montant = parseFloat(montantInput.value);
+      if (!isNaN(montant) && montant >= 1900) {
+        argent += montant;
+        argentSpan.textContent = argent.toFixed(1);
+        montantInput.value = '';
+      } else {
+        alert('montant minimum 1900 FCFA');
+      }
+    });
+
 </script>
 </body>
 </html>
