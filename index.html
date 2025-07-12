@@ -119,7 +119,10 @@
   margin-top: 10px;
   font-weight: bold;
   color: #1877f2;
-} 
+}
+#userFeedContent .post {
+  {background:#fff;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,.1);padding:1rem;margin-bottom:1rem}
+}
   </style>
 </head>
 <body>
@@ -247,6 +250,11 @@
   <hr/>
      
       </section>
+      <!-- ==== FEED D'UN AUTRE UTILISATEUR ==== -->
+<section id="userFeed" class="tabcontent">
+  <h3 id="userFeedTitle">Publications de …</h3>
+  <div id="userFeedContent"></div>
+</section>
   <!-- ================= SCRIPTS ======================== -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
@@ -826,6 +834,57 @@ window.loginWithEmail = async () => {
   } catch (err) {
     alert(err.message);
   }
+};
+window.openUserFeed = async (uid) => {
+  // 1) Ouvrir l’onglet "userFeed"
+  const iconHome = document.querySelector('.tablinks[onclick*="home"]');
+  openTab({ currentTarget: iconHome }, 'userFeed');
+
+  // 2) Charger les publications de cet utilisateur
+  const cont  = qs('userFeedContent');
+  const title = qs('userFeedTitle');
+  cont.textContent = 'Chargement…';
+
+  // Récupérer nom & photo de l’auteur
+  let authorName = 'Utilisateur';
+  let authorPhoto = 'https://via.placeholder.com/40';
+  if (uid) {
+    // On essaie de détecter son tout dernier post pour récupérer name+photo
+    const qLast = query(
+      collection(db, 'posts'),
+      where('userId', '==', uid),
+      orderBy('createdAt', 'desc'),
+      limit(1)
+    );
+    const lastSnap = await getDocs(qLast);
+    if (!lastSnap.empty) {
+      const d = lastSnap.docs[0].data();
+      authorName  = d.userName  || authorName;
+      authorPhoto = d.userPhoto || authorPhoto;
+    }
+  }
+
+  title.innerHTML = `
+    <img src="${authorPhoto}" style="width:40px;height:40px;border-radius:50%;vertical-align:middle;margin-right:8px">
+    Publications de <strong>${authorName}</strong>
+  `;
+
+  // Flux en temps réel
+  onSnapshot(
+    query(
+      collection(db, 'posts'),
+      where('userId', '==', uid),
+      orderBy('createdAt', 'desc')
+    ),
+    snap => {
+      cont.innerHTML = '';
+      if (snap.empty) {
+        cont.textContent = 'Aucune publication.';
+      } else {
+        snap.forEach(d => cont.appendChild(card(d.id, d.data(), false)));
+      }
+    }
+  );
 };
 let argent = 0;
     const montantInput = document.getElementById('montant');
