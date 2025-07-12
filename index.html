@@ -1,14 +1,10 @@
-<!DOCTYPE html>
-<html lang="fr" dir="ltr">
+<!DOCTYPE html><html lang="fr" dir="ltr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mboa Skills</title>
-
   <!-- Font Awesome -->
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
     /* === GLOBAL STYLES ================================= */
     body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f0f2f5}
@@ -32,876 +28,248 @@
     .post-actions i{cursor:pointer;font-size:1.2rem}
     .like.liked{color:#1877f2}
     .boost-btn{background:#ffa500;color:#fff;padding:5px 10px;font-weight:bold;border-radius:6px;border:none;cursor:pointer}
-.comments-section {
-  margin-top: 30px;
-  border-top: 1px solid #ccc;
-  padding-top: 10px;
-  max-height: 150px;
-  overflow-y: auto;
-  direction: ltr; /* Forcer la direction normale du texte de gauche à droite */
-}
+    /* === COMMENTS ===================================== */
+    .comments-section{margin-top:30px;border-top:1px solid #ccc;padding-top:10px;max-height:150px;overflow-y:auto;direction:ltr}
+    .comment{direction:ltr;unicode-bidi:plaintext;text-align:left;word-break:break-word}
+    .comment strong{color:#1877f2}
+    .comment-input{display:flex;gap:14px;margin-top:14px}
+    .comment-input input{flex:1; width:80px;height:30px;padding:12px;border-radius:5px;border:1px solid #ccc;font-size:14px;resize:vertical}
+    .comment-input button{padding:5px 9px;background:#1877f2;color:#fff;border:none;border-radius:8px;cursor:pointer}/* === ACCOUNT FORMS ================================= */
+#emailLoginBox,#emailSignupBox{background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,.1);margin-bottom:15px}
+#emailLoginBox input,#emailSignupBox input{margin-bottom:10px;padding:10px;border-radius:6px;border:1px solid #ccc;font-size:14px;width:100%;box-sizing:border-box}
+#emailLoginBox button,#emailSignupBox button{background:#1877f2;color:#fff;border:none;padding:10px;font-weight:bold;border-radius:6px;cursor:pointer;width:100%;box-sizing:border-box}
+#emailLoginBox button:hover,#emailSignupBox button:hover{background:#145ec1}
+#accountStatus{margin-top:10px;font-weight:bold;color:#1877f2}
 
-.comment {
-  direction: ltr; /* Affiche de gauche à droite */
-  unicode-bidi: plaintext; /* Corrige le traitement des caractères LTR */
-  text-align: left;
-  word-break: break-word;
-}.comment strong {
-  color: #1877f2;
-}
+/* === USER FEED ==================================== */
+#userFeedContent .post{/* inherits .post styles */}
 
-.comment-input {
-  display: flex;
-  gap: 14px;
-  margin-top: 14px;
-}
-
-.comment-input input {
-  flex: 1;
-  width: 200px;
-    height: 80px;
-  padding: 12px;
-  border-radius: 5px;
-  border: 5px solid #ccc;
-  font-size: 14px;
-  resize: vertical;
-}
-
-.comment-input button {
-  padding: 5px 9px;
-  background: #1877f2;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}   
-#boostStatus{font-weight:bold;color:#1877f2;margin-bottom:10px}
-    #totalViewsSection p{font-weight:bold}
-#emailLoginBox,
-#emailSignupBox {
-  background: #fff;
-  padding: 15px;
-  border-radius: 10px;
-  box-shadow: 0 0 5px rgba(0,0,0,.1);
-  margin-bottom: 15px;
-}
-
-#emailLoginBox input,
-#emailSignupBox input {
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-#emailLoginBox button,
-#emailSignupBox button {
-  background-color: #1877f2;
-  color: #fff;
-  border: none;
-  padding: 10px;
-  font-weight: bold;
-  border-radius: 6px;
-  cursor: pointer;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-#emailLoginBox button:hover,
-#emailSignupBox button:hover {
-  background-color: #145ec1;
-}
-
-#accountStatus {
-  margin-top: 10px;
-  font-weight: bold;
-  color: #1877f2;
-}
-#userFeedContent .post {
-  {background:#fff;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,.1);padding:1rem;margin-bottom:1rem}
-}
   </style>
 </head>
 <body>
-
-  <!-- ================= HEADER / NAV ================== -->
-  <header>
-    <i class="fas fa-home tablinks selected" onclick="openTab(event,'home')" href="#"></i>
-    <i class="fas fa-coins tablinks" onclick="openTab(event,'totalViewsSection')"></i>
-    <i class="fas fa-video tablinks" onclick="openTab(event,'videoFeed')"></i>
-    <i class="fas fa-plus tablinks" onclick="openTab(event,'post')"></i>
-    <i class="fas fa-search tablinks" onclick="openTab(event,'search')"></i>
-    <i class="fas fa-user tablinks" onclick="openTab(event,'account')"></i>
-  </header>
-
-  <!-- ================= TAB PAGES ====================== -->
-  <section id="home" class="tabcontent active">
-    <div class="post-header">
-      <img id="homeProfilePhoto" src="https://via.placeholder.com/40" onclick="openTab(event,'feedme')"/>
-      <p id="authStatus"></p>
-        <p id="accountStatus"></p>
-    </div>
-    <div id="feed"></div>
-  </section>
-
-  <section id="post" class="tabcontent">
-    <h3>Créer une publication</h3>
-    <textarea id="postText" placeholder="Exprimez-vous..."></textarea>
-    <input type="color" id="bgColor" value="#1877f2" />
-    <hr/>
-    <input type="text" id="videoTitle" placeholder="Titre de la vidéo" />
-    <input type="file" id="videoFile" accept="video/*" />
-    <button onclick="publishPost()">Publier</button>
-    <p id="status"></p>
-  </section>
-
-  <section id="videoFeed" class="tabcontent">
-    <h3>Publications avec vidéos</h3>
-    <div id="videoFeedContent"></div>
-  </section>
-
-  <section id="totalViewsSection" class="tabcontent">
-    <h3>Total des vues (7 derniers jours)</h3>
-    <p id="totalViewsCount">Chargement...</p>
-    <p id="currentBalance">Solde actuel: 0 FCFA</p>
-    <input type="number" id="withdrawAmount"
-           placeholder="Montant à retirer (min 50 FCFA)" min="50" />
-    <button onclick="withdrawBalance()">Retirer</button>
-    <p id="withdrawStatus"></p>
-  </section>
-
-  <section id="search" class="tabcontent">
-    <h3>Rechercher un utilisateur</h3>
-    <input type="text" id="searchUserInput"
-           placeholder="Nom ou e-mail de l'utilisateur" />
-    <button onclick="searchUser()">Rechercher</button>
-    <div id="searchResults"></div>
-  </section>
-
-  <section id="account" class="tabcontent">
-       <div class="post-header">
+<header>
+  <i class="fas fa-home tablinks selected" onclick="openTab(event,'home')"></i>
+  <i class="fas fa-coins tablinks" onclick="openTab(event,'totalViewsSection')"></i>
+  <i class="fas fa-video tablinks" onclick="openTab(event,'videoFeed')"></i>
+  <i class="fas fa-plus tablinks" onclick="openTab(event,'post')"></i>
+  <i class="fas fa-search tablinks" onclick="openTab(event,'search')"></i>
+  <i class="fas fa-user tablinks" onclick="openTab(event,'account')"></i>
+</header><!-- ============ HOME ============ --><section id="home" class="tabcontent active">
+  <div class="post-header">
+    <img id="homeProfilePhoto" src="https://via.placeholder.com/40" onclick="openTab(event,'feedme')"/>
+    <p id="authStatus"></p>
+    <p id="accountStatus"></p>
+  </div>
+  <div id="feed"></div>
+</section><!-- ============ POST ============ --><section id="post" class="tabcontent">
+  <h3>Créer une publication</h3>
+  <textarea id="postText" placeholder="Exprimez-vous..."></textarea>
+  <input type="color" id="bgColor" value="#1877f2" />
+  <hr/>
+  <input type="text" id="videoTitle" placeholder="Titre de la vidéo" />
+  <input type="file" id="videoFile" accept="video/*" />
+  <button onclick="publishPost()">Publier</button>
+  <p id="status"></p>
+</section><!-- ============ VIDEO FEED ============ --><section id="videoFeed" class="tabcontent">
+  <h3>Publications avec vidéos</h3>
+  <div id="videoFeedContent"></div>
+</section><!-- ============ TOTAL VIEWS ============ --><section id="totalViewsSection" class="tabcontent">
+  <h3>Total des vues (7 derniers jours)</h3>
+  <p id="totalViewsCount">Chargement...</p>
+  <p id="currentBalance">Solde actuel: 0 FCFA</p>
+  <input type="number" id="withdrawAmount" placeholder="Montant à retirer (min 50 FCFA)" min="50" />
+  <button onclick="withdrawBalance()">Retirer</button>
+  <p id="withdrawStatus"></p>
+</section><!-- ============ SEARCH ============ --><section id="search" class="tabcontent">
+  <h3>Rechercher un utilisateur</h3>
+  <input type="text" id="searchUserInput" placeholder="Nom ou e-mail de l'utilisateur" />
+  <button onclick="searchUser()">Rechercher</button>
+  <div id="searchResults"></div>
+</section><!-- ============ ACCOUNT ============ --><section id="account" class="tabcontent">
+  <div class="post-header">
     <button onclick="openTab(event,'conect')">Connexion</button>
     <button onclick="openTab(event,'inscrip')">Inscription</button>
-    </div>
-    <hr>
-    <button onclick="signInWithGoogle()">
-      <i class="fab fa-google"></i> Connexion par Google
-    </button>
-    <hr/>
-    <button onclick="signOutUser()" style="background-color:red">Se déconnecter</button>
-    <br><br/>
-    <u><a href="https://www.facebook.com/profile.php?id=61577616822265">contact support</a><i class="fab fa-facebook" style="color:#1877f2"></i></u>
-  </section>
-
-  <section id="feedme" class="tabcontent">
-    <h3>Mes publications</h3>
-    <div class="post-header">
-      <img id="feedmeProfilePhoto" src="https://via.placeholder.com/40" />
-        <p id="accountStatus"></p>
-      <label for="profilePhotoInput" title="Changer la photo">
-        <i class="fas fa-plus" style="cursor:pointer"></i>
-      </label>
-      <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" />
-    </div>
-    <div id="myFeed"></div>
-  </section>
-
-  <section id="video" class="tabcontent">
-    <div id="videoFeedContentBoost"></div>
-  </section>
-  <section id="vibo" class="tabcontent">
-      <h3>Booster une publication</h3>
-      <div class="post-header">
-    <input type="number" id="montant" placeholder="Entrez le montant">
-  <button id="deposer">Deposer</button>
   </div>
-  <p>Argent: <span id="argent">0</span>XAF</p>
- 
-    <div id="boostPanel" style="display:none;margin-bottom:10px">
-      <span id="boostStatus" style="font-weight:bold"></span>
-      <input type="number" id="boostViews" placeholder="Nombre de vues à acheter" min="1" />
-      <button onclick="boostPost()">Booster</button>
-    </div>
-  </section>
-<section id="conect" class="tabcontent">
-     <h3>Connectez-vous</h3>
-      <div id="emailLoginBox">
+  <hr>
+  <button onclick="signInWithGoogle()"><i class="fab fa-google"></i> Connexion par Google</button>
+  <hr/>
+  <button onclick="signOutUser()" style="background-color:red">Se déconnecter</button>
+  <br/><br/>
+  <u><a href="https://www.facebook.com/profile.php?id=61577616822265">contact support</a> <i class="fab fa-facebook" style="color:#1877f2"></i></u>
+</section><!-- ============ FEEDME (MY FEED) ============ --><section id="feedme" class="tabcontent">
+  <h3>Mes publications</h3>
+  <div class="post-header">
+    <img id="feedmeProfilePhoto" src="https://via.placeholder.com/40" />
+    <p id="accountStatusFeed"></p>
+    <label for="profilePhotoInput" title="Changer la photo"><i class="fas fa-plus" style="cursor:pointer"></i></label>
+    <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" />
+  </div>
+  <div id="myFeed"></div>
+</section><!-- ============ BOOST VIDEO LIST ============ --><section id="video" class="tabcontent"><div id="videoFeedContentBoost"></div></section><!-- ============ BOOST PANEL ============ --><section id="vibo" class="tabcontent">
+  <h3>Booster une publication</h3>
+  <div class="post-header">
+    <input type="number" id="montant" placeholder="Entrez le montant" />
+    <button id="deposer">Déposer</button>
+  </div>
+  <p>Argent: <span id="argent">0</span> XAF</p>
+  <div id="boostPanel" style="display:none;margin-bottom:10px">
+    <span id="boostStatus" style="font-weight:bold"></span>
+    <input type="number" id="boostViews" placeholder="Nombre de vues à acheter" min="1" />
+    <button onclick="boostPost()">Booster</button>
+  </div>
+</section><!-- ============ LOGIN FORM ============ --><section id="conect" class="tabcontent">
+  <h3>Connectez-vous</h3>
+  <div id="emailLoginBox">
     <input type="email" id="loginEmail" placeholder="Email" />
     <input type="password" id="loginPassword" placeholder="Mot de passe" />
     <button onclick="loginWithEmail()">Se connecter</button>
   </div>
-
-  <hr/>
- 
-    </section>
-<section id="inscrip" class="tabcontent">
-          <h2>Inscription</h2>
-       <div id="emailSignupBox">
+</section><!-- ============ SIGNUP FORM ============ --><section id="inscrip" class="tabcontent">
+  <h3>Inscription</h3>
+  <div id="emailSignupBox">
     <input type="text"  id="signupName"  placeholder="Nom complet" />
     <input type="email" id="signupEmail" placeholder="Email" />
     <input type="password" id="signupPassword" placeholder="Mot de passe (≥ 6 car.)" />
     <input type="number" id="signupAge" placeholder="Âge (min 18)" min="18" />
     <button onclick="signupWithEmail()">S’inscrire</button>
   </div>
-
-  <hr/>
-     
-      </section>
-      <!-- ==== FEED D'UN AUTRE UTILISATEUR ==== -->
-<section id="userFeed" class="tabcontent">
+</section><!-- ============ OTHER USER FEED ============ --><section id="userFeed" class="tabcontent">
   <h3 id="userFeedTitle">Publications de …</h3>
   <div id="userFeedContent"></div>
-</section>
-  <!-- ================= SCRIPTS ======================== -->
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-    import {
-      getAuth,onAuthStateChanged,signInWithPopup,signOut,
-      GoogleAuthProvider,updateProfile
-    } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-    import {
-      getFirestore,collection,addDoc,onSnapshot,query,orderBy,where,doc,
-      getDocs,getDoc,setDoc,updateDoc,increment,serverTimestamp,deleteDoc
-    } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
-    import {
-      getStorage,ref,uploadBytesResumable,getDownloadURL
-    } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
-
-    // --- CONFIGURATION ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
-      authDomain: "mboa-ec602.firebaseapp.com",
-      projectId: "mboa-ec602",
-      storageBucket: "mboa-ec602.appspot.com",
-      messagingSenderId: "498505132403",
-      appId: "1:498505132403:web:eb46547745f8d1a77b3d06"
-    };
-
-    const app      = initializeApp(firebaseConfig);
-    const auth     = getAuth(app);
-    const provider = new GoogleAuthProvider();
-    const db       = getFirestore(app);
-    const stg      = getStorage(app);
-
-    // --- STATE GLOBAL ---
-    let currentUser = null;
-    let likedPosts  = new Set();
-    let boostId     = '';
-
-    // --- UTILS ---
-    const qs  = id => document.getElementById(id);
-    const fmt = n  => n >= 1e6 ? (n/1e6).toFixed(1) + 'M'
-                     : n >= 1e3 ? (n/1e3).toFixed(1) + 'k'
-                     : n;
-
-    // --- NAVIGATION ONGLET ---
-    window.openTab = (evt, tabId) => {
-      [...document.getElementsByClassName('tabcontent')].forEach(t => {
-        t.classList.toggle('active', t.id === tabId);
-      });
-      [...document.getElementsByClassName('tablinks')].forEach(l => {
-        l.classList.toggle('selected', l === evt.currentTarget);
-      });
-      history.pushState({ tab: tabId }, '', `#${tabId}`);
-    };
-    window.onpopstate = e => {
-      const tab = e.state?.tab || 'home';
-      const icon = document.querySelector(`[onclick*="'${tab}'"]`) || document.querySelector('.tablinks');
-      if (icon) window.openTab({ currentTarget: icon }, tab);
-    };
-
-    // --- AUTHENTIFICATION ---
-    window.signInWithGoogle = () => signInWithPopup(auth, provider).catch(err => alert(err.message));
-    window.signOutUser = () => signOut(auth);
-
-    onAuthStateChanged(auth, async user => {
-      currentUser = user;
-      const pp = user?.photoURL || 'https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/1000x999/';
-      qs('homeProfilePhoto').src   = pp;
-      qs('feedmeProfilePhoto').src = pp;
-      qs('authStatus').textContent = user ? ` ${user.displayName || user.email}` : '';
-qs('accountStatus').textContent = user
-  ? `Connecté  ${user.displayName || user.email}`
-  : '';
-      if (user) {
-        await loadLikedPosts();
-        renderFeed();
-        renderMyFeed();
-        renderVideoFeed();
-        renderBoostFeed();
-        await loadTotalViewsAndBalance();
-      } else {
-        likedPosts.clear();
-        ['feed','myFeed','videoFeedContent','videoFeedContentBoost'].forEach(id => qs(id).innerHTML = '');
-        qs('totalViewsCount').textContent = '';
-        qs('currentBalance').textContent  = 'Solde actuel: 0 FCFA';
-      }
-    });
-
-    // --- UPLOAD PHOTO PROFIL ---
-    qs('profilePhotoInput').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (!file || !currentUser) return alert('Connectez-vous d\'abord');
-      const r = ref(stg, `profile_photos/${currentUser.uid}_${Date.now()}`);
-      uploadBytesResumable(r, file).on(
-        'state_changed',
-        null,
-        err => alert(err.message),
-        async snap => {
-          const url = await getDownloadURL(snap.ref);
-          await updateProfile(currentUser, { photoURL: url });
-          location.reload();
-        });
-    });
-
-    // --- PUBLICATION POST ---
-    window.publishPost = async () => {
-      if (!currentUser) return alert('Connectez-vous');
-      const text     = qs('postText').value.trim();
-      const bg       = qs('bgColor').value;
-      const vidFile  = qs('videoFile').files[0];
-      const vidTitle = qs('videoTitle').value.trim();
-      if (!text && !vidFile) return alert('Ajoutez un texte ou une vidéo');
-
-      qs('status').textContent = 'Publication…';
-
-      const data = {
-        userEmail : currentUser.email,
-        userId    : currentUser.uid,
-        userName  : currentUser.displayName || currentUser.email,
-        userPhoto : currentUser.photoURL || 'https://via.placeholder.com/40',
-        text      : text,
-        bgColor   : bg,
-        videoUrl  : null,
-        videoTitle: vidTitle,
-        views     : 0,
-        likes     : 0,
-        createdAt : serverTimestamp(),
-        boosted   : 0
-      };
-
-      const resetForm = () => {
-        ['postText','videoTitle'].forEach(id => qs(id).value = '');
-        qs('videoFile').value = '';
-        qs('status').textContent = 'Ok';
-      };
-
-      if (vidFile) {
-        const r = ref(stg, `videos/${Date.now()}_${vidFile.name}`);
-        uploadBytesResumable(r, vidFile).on(
-          'state_changed',
-          snap => qs('status').textContent = `${Math.floor(snap.bytesTransferred/snap.totalBytes*100)}%`,
-          err => alert(err.message),
-          async s => {
-            data.videoUrl = await getDownloadURL(s.ref);
-            await addDoc(collection(db,'posts'), data);
-            resetForm();
-          });
-      } else {
-        await addDoc(collection(db,'posts'), data);
-        resetForm();
-      }
-    };
-
-    // --- RENDER FEEDS ---
-    function renderFeed() {
-      const cont = qs('feed');
-      cont.textContent = 'Chargement…';
-
-      const postsRef = collection(db, 'posts');
-
-      const qPosts = query(
-        postsRef,
-        orderBy('boosted', 'desc'),
-        orderBy('createdAt', 'desc')
-      );
-
-      onSnapshot(qPosts, snap => {
-        cont.innerHTML = '';
-        snap.forEach(d => cont.appendChild(card(d.id, d.data(), false)));
-      });
-    }
-
-    function renderMyFeed() {
-      if (!currentUser) return;
-      const c = qs('myFeed');
-      c.textContent = 'Chargement…';
-      onSnapshot(query(collection(db,'posts'),
-               where('userId','==',currentUser.uid),
-               orderBy('createdAt','desc')), snap => {
-        c.innerHTML = '';
-        snap.forEach(d => c.appendChild(card(d.id, d.data(), true)));
-      });
-    }
-
-    function renderVideoFeed() {
-      const c = qs('videoFeedContent');
-      c.textContent = 'Chargement…';
-      onSnapshot(query(collection(db,'posts'),
-               where('videoUrl','!=',null),
-               orderBy('createdAt','desc')), snap => {
-        c.innerHTML = '';
-        snap.forEach(d => c.appendChild(card(d.id, d.data(), false)));
-      });
-    }
-
-    function renderBoostFeed() {
-      if (!currentUser) return;
-      const c = qs('videoFeedContentBoost');
-      c.textContent = 'Chargement…';
-      onSnapshot(query(collection(db,'posts'),
-               where('userId','==',currentUser.uid),
-               where('videoUrl','!=',null),
-               orderBy('createdAt','desc')), snap => {
-        c.innerHTML = '';
-        snap.forEach(d => {
-          const el = card(d.id, d.data(), true);
-          c.appendChild(el);
-        });
-      });
-    }
-
-    // --- CREATION CARTE POST ---
-    function card(id, d, isMine) {
-      const wrap = document.createElement('div');
-      wrap.className = 'post';
-      wrap.innerHTML = `
-        <div class="post-header">
-          <img src="${d.userPhoto}" alt="pp" />
-          <span class="username" data-uid="${d.userId}">${d.userName || d.userEmail}</span>
-          ${d.boosted > 0 ? '<span style="margin-left:auto;color:#ffa500;font-size:12px;font-weight:bold">Sponsorisé</span>' : ''}
-        </div>`;
-
-      const cont = document.createElement('div');
-      cont.className = 'post-content';
-
-      if (d.videoUrl) {
-        cont.innerHTML = `
-          <video src="${d.videoUrl}" controls></video>
-          ${d.videoTitle ? `<div style="font-weight:bold">${d.videoTitle}</div>` : ''}`;
-      } else if (d.text) {
-        cont.innerHTML = `<div class="text-bg" style="background:${d.bgColor}">${d.text}</div>`;
-      }
-
-      wrap.appendChild(cont);
-
-      // Post actions: Likes, Views, Comments, Boost
-      const act = document.createElement('div');
-      act.className = 'post-actions';
-
-      // Like button and count
-      const like = document.createElement('i');
-      like.className = 'fa-regular fa-thumbs-up like';
-      if (likedPosts.has(id)) like.classList.add('liked');
-      const lCnt = document.createElement('span');
-      lCnt.textContent = fmt(d.likes || 0);
-      like.onclick = () => toggleLike(id, like, lCnt);
-      act.append(like, lCnt);
-
-      // Views count
-// Dans card()
-const vCnt = document.createElement('span');
-const totalVues = (d.views || 0) + (d.boosted || 0);
-vCnt.textContent = `👁️ ${fmt(totalVues)}`;
-act.appendChild(vCnt);
-  // Comments icon and count
-      const comI = document.createElement('i');
-      comI.className = 'fa-regular fa-comment';
-      const comCnt = document.createElement('span');
-      comCnt.textContent = '...'; // On chargera le nombre réel async
-
-      act.append(comI, comCnt);
-
-      // Booster bouton si c'est ton post
-      if (isMine) {
-        const boostBtn = document.createElement('button');
-        boostBtn.className = 'boost-btn';
-        boostBtn.textContent = 'Booster';
-        boostBtn.onclick = () => selectBoostPost(id, d.text || d.videoTitle || 'Sans titre');
-        act.appendChild(boostBtn);
-      }
-
-      wrap.appendChild(act);
-
-      // Section commentaires
-      const comSection = document.createElement('div');
-      comSection.className = 'comments-section';
-      comSection.style.display = 'none';
-
-      const comList = document.createElement('div');
-      comSection.appendChild(comList);
-
-      // Input commentaire
-      if (currentUser) {
-        const comInputDiv = document.createElement('div');
-        comInputDiv.className = 'comment-input';
-        const comInput = document.createElement('input');
-        comInput.type = 'text';
-        comInput.placeholder = 'Ajouter un commentaire...';
-        const comBtn = document.createElement('button');
-        comBtn.textContent = 'Envoyer';
-        comBtn.onclick = () => {
-          const txt = comInput.value.trim();
-          if (!txt) return alert('Le commentaire est vide');
-          addComment(id, txt);
-          comInput.value = '';
-        };
-        comInputDiv.append(comInput, comBtn);
-        comSection.appendChild(comInputDiv);
-      }
-
-      wrap.appendChild(comSection);
-
-      // Affichage / Masquage commentaires au clic sur icône commentaire
-      comI.onclick = () => {
-        if (comSection.style.display === 'none') {
-          comSection.style.display = 'block';
-          loadComments(id, comList, comCnt);
-        } else {
-          comSection.style.display = 'none';
-        }
-      };
-
-      // Clic sur nom utilisateur ouvre feedme de cet utilisateur
-      wrap.querySelector('.username').onclick = e => {
-        const uid = e.target.dataset.uid;
-        if (!uid) return;
-        openUserFeed(uid);
-      };
-
-      return wrap;
-    }
-
-    // --- GESTION LIKE ---
-    async function toggleLike(postId, iconEl, countEl) {
-      if (!currentUser) return alert('Connectez-vous pour liker');
-      const postRef = doc(db, 'posts', postId);
-      if (likedPosts.has(postId)) {
-        likedPosts.delete(postId);
-        iconEl.classList.remove('liked');
-        await updateDoc(postRef, { likes: increment(-1) });
-      } else {
-        likedPosts.add(postId);
-        iconEl.classList.add('liked');
-        await updateDoc(postRef, { likes: increment(1) });
-      }
-      // Mise à jour affichage compteur
-      const docSnap = await getDoc(postRef);
-      countEl.textContent = fmt(docSnap.data().likes || 0);
-    }
-
-    async function loadLikedPosts() {
-      if (!currentUser) return;
-      likedPosts.clear();
-      // On récupère les posts likés par cet utilisateur
-      // Option 1: stocker les likes par utilisateur dans Firestore (à implémenter selon DB)
-      // Ici on simule en recherchant si user a liké (supposons pas de data supplémentaire)
-      // À améliorer selon ta base
-    }
-
-    // --- GESTION COMMENTAIRES ---
-    async function loadComments(postId, container, countEl) {
-      const q = query(collection(db, 'posts', postId, 'comments'), orderBy('createdAt'));
-      const snap = await getDocs(q);
-      container.innerHTML = '';
-      countEl.textContent = snap.size;
-      snap.forEach(d => {
-        const c = d.data();
-        const div = document.createElement('div');
-        div.className = 'comment';
-        div.innerHTML = `<strong>${c.userName || 'Anonyme'}</strong> : ${c.text}`;
-        container.appendChild(div);
-      });
-    }
-
-    async function addComment(postId, text) {
-      if (!currentUser) return alert('Connectez-vous pour commenter');
-      const comment = {
-        userId: currentUser.uid,
-        userName: currentUser.displayName || currentUser.email,
-        text,
-        createdAt: serverTimestamp()
-      };
-      await addDoc(collection(db, 'posts', postId, 'comments'), comment);
-      renderFeed(); // rafraîchir si besoin
-      renderMyFeed();
-      renderVideoFeed();
-    }
-
-    // --- BOOST ---
-    function selectBoostPost(postId, title) {
-      boostId = postId;
-      qs('boostStatus').textContent = `1 publication sélectionnée : ${title}`;
-      qs('boostPanel').style.display = 'block';
-      openTab({currentTarget: document.querySelector('.tablinks[onclick*="vibo"]')}, 'vibo');
-    }
-
-    async function boostPost() {
-      if (!currentUser) return alert('Connectez-vous');
-      if (!boostId) return alert('Aucune publication sélectionnée');
-      let viewsToAdd = parseInt(qs('boostViews').value);
-      if (!viewsToAdd || viewsToAdd < 1) return alert('Nombre de vues invalide');
-
-      const postRef = doc(db, 'posts', boostId);
-      await updateDoc(postRef, { boosted: increment(viewsToAdd) });
-
-      qs('boostStatus').textContent = 'Boost effectué !';
-      qs('boostViews').value = '';
-      boostId = '';
-      renderBoostFeed();
-      renderVideoFeed();
-      renderFeed();
-    }
-
-    // --- FEED UTILISATEUR PAR UID ---
-    async function openUserFeed(uid) {
-      const tab = qs('feedme');
-      tab.classList.add('active');
-      [...document.getElementsByClassName('tabcontent')].forEach(t => {
-        if (t !== tab) t.classList.remove('active');
-      });
-      [...document.getElementsByClassName('tablinks')].forEach(l => l.classList.remove('selected'));
-      const homeIcon = document.querySelector('.tablinks[onclick*="feedme"]');
-      if (homeIcon) homeIcon.classList.add('selected');
-
-      const feedContainer = qs('myFeed');
-      feedContainer.innerHTML = 'Chargement...';
-
-      // Récupérer les posts de l'utilisateur cible
-      const q = query(collection(db, 'posts'), where('userId', '==', uid), orderBy('createdAt', 'desc'));
-      const snap = await getDocs(q);
-      feedContainer.innerHTML = '';
-      snap.forEach(d => feedContainer.appendChild(card(d.id, d.data(), uid === currentUser?.uid)));
-
-      // Mettre à jour photo profil feedme
-      if (snap.size > 0) {
-        const p = snap.docs[0].data();
-        qs('feedmeProfilePhoto').src = p.userPhoto || 'https://via.placeholder.com/40';
-      } else {
-        qs('feedmeProfilePhoto').src = 'https://via.placeholder.com/40';
-      }
-    }
-
-    // --- RECHERCHE UTILISATEUR ---
-    window.searchUser = async () => {
-      const qstr = qs('searchUserInput').value.trim().toLowerCase();
-      if (!qstr) return alert('Entrez un nom ou e-mail');
-
-      const usersRef = collection(db, 'users');
-      // Suppose une collection users à créer qui contient {uid, name, email, photoURL}
-      // Sinon chercher dans posts et extraire user distincts (moins efficace)
-      // Pour l’exemple, on cherche dans posts et on fait unique :
-      const postsSnap = await getDocs(collection(db, 'posts'));
-      const usersMap = new Map();
-
-      postsSnap.forEach(doc => {
-        const d = doc.data();
-        const key = d.userId;
-        if (!usersMap.has(key) && (d.userName?.toLowerCase().includes(qstr) || d.userEmail?.toLowerCase().includes(qstr))) {
-          usersMap.set(key, {uid: d.userId, name: d.userName, email: d.userEmail, photo: d.userPhoto});
-        }
-      });
-
-      const resDiv = qs('searchResults');
-      resDiv.innerHTML = '';
-      if (usersMap.size === 0) {
-        resDiv.textContent = 'Aucun utilisateur trouvé';
-        return;
-      }
-      usersMap.forEach(u => {
-        const div = document.createElement('div');
-        div.style.cursor = 'pointer';
-        div.style.display = 'flex';
-        div.style.alignItems = 'center';
-        div.style.marginBottom = '8px';
-
-        const img = document.createElement('img');
-        img.src = u.photo || 'https://via.placeholder.com/40';
-        img.style.width = '40px';
-        img.style.height = '40px';
-        img.style.borderRadius = '50%';
-        img.style.marginRight = '10px';
-
-        const span = document.createElement('span');
-        span.textContent = u.name || u.email;
-        span.style.color = '#1877f2';
-        span.style.fontWeight = 'bold';
-
-        div.append(img, span);
-        div.onclick = () => openUserFeed(u.uid);
-        resDiv.appendChild(div);
-      });
-    };
-
-    // --- VUES ET SOLDE ---
-async function loadTotalViewsAndBalance() {
-  if (!currentUser) return;
-  const weekAgo = Date.now() - 7*24*60*60*1000;
-  const qPosts = query(
-    collection(db,'posts'),
-    where('userId','==',currentUser.uid),
-    where('createdAt','>=', new Date(weekAgo))
-  );
-  const snap = await getDocs(qPosts);
-
-  let total = 0;
-  snap.forEach(d => {
-    const data = d.data();
-    total += (data.views   || 0);
-    total += (data.boosted || 0);  // ➕ on compte aussi les vues achetées
-  });
-
-  qs('totalViewsCount').textContent = fmt(total);
-  // Calcul du solde : 1000 vues = 50 FCFA
-  const balance = Math.floor(total / 1000) * 50;
-  qs('currentBalance').textContent = `Solde actuel: ${balance} FCFA`;
-}
-
-window.withdrawBalance = () => {
-  const amount = parseInt(qs('withdrawAmount').value);
-
-  // Montant minimum 50 FCFA
-  if (!amount || amount < 5000) {
-    alert('Montant minimum 5000 FCFA');
-    return;
-  }
-
-  // Vérifie le solde disponible
-  if (amount > window.currentBalance) {
-    alert('Montant minimum est 5000f');   // ← CE MESSAGE s’affiche si le solde est insuffisant
-    return;
-  }
-
-  // Traitement du retrait (simulation)
-  alert(`Demande de retrait de ${amount} FCFA envoyée !`);
-  qs('withdrawAmount').value = '';
-}; 
-window.boostPost = async () => {
-  if (!boostId) return alert("Aucune publication sélectionnée");
-  const boostViews = parseInt(qs('boostViews').value);
-  if (isNaN(boostViews) || boostViews <= 0) return alert("Entrez un nombre valide de vues");
-
-  try {
-    const postRef = doc(db, 'posts', boostId);
-    await updateDoc(postRef, {
-      boosted: increment(boostViews),   // pour savoir qu’elle a été sponsorisée
-      views:   increment(boostViews)    // ⚠️ ajoute aussi dans le compteur de vues
-    });
-    qs('boostStatus').textContent = 'Boost appliqué avec succès !';
-    qs('boostViews').value = '';
+</section><script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+import {getAuth,onAuthStateChanged,signInWithPopup,signOut,GoogleAuthProvider,updateProfile,createUserWithEmailAndPassword,signInWithEmailAndPassword} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+import {getFirestore,collection,addDoc,onSnapshot,query,orderBy,where,doc,getDocs,getDoc,setDoc,updateDoc,increment,serverTimestamp,deleteDoc,limit} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+import {getStorage,ref,uploadBytesResumable,getDownloadURL} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
+
+/* === FIREBASE CONFIG ================================= */
+const firebaseConfig={apiKey:"AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",authDomain:"mboa-ec602.firebaseapp.com",projectId:"mboa-ec602",storageBucket:"mboa-ec602.appspot.com",messagingSenderId:"498505132403",appId:"1:498505132403:web:eb46547745f8d1a77b3d06"};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const provider=new GoogleAuthProvider();
+const db=getFirestore(app);
+const stg=getStorage(app);
+
+/* === GLOBAL STATE ==================================== */
+let currentUser=null;
+let likedPosts=new Set();
+let boostId='';
+let currentBalance=0;
+
+const qs=id=>document.getElementById(id);
+const fmt=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':n;
+
+/* === TABS ============================================ */
+window.openTab=(evt,tabId)=>{
+  [...document.querySelectorAll('.tabcontent')].forEach(t=>t.classList.toggle('active',t.id===tabId));
+  [...document.querySelectorAll('.tablinks')].forEach(l=>l.classList.toggle('selected',l===evt.currentTarget));
+  history.pushState({tab:tabId},'',`#${tabId}`);
+};
+window.onpopstate=e=>{
+  const tab=e.state?.tab||'home';
+  const icon=document.querySelector(`.tablinks[onclick*="'${tab}'"]`)||document.querySelector('.tablinks');
+  if(icon)openTab({currentTarget:icon},tab);
+};
+
+/* === AUTH ============================================ */
+window.signInWithGoogle=()=>signInWithPopup(auth,provider).catch(err=>alert(err.message));
+window.signOutUser=()=>signOut(auth);
+
+onAuthStateChanged(auth,async user=>{
+  currentUser=user;
+  const pp=user?.photoURL||'https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/100x100/';
+  qs('homeProfilePhoto').src=pp;
+  qs('feedmeProfilePhoto').src=pp;
+  qs('authStatus').textContent=user?` ${user.displayName||user.email}`:'';
+  qs('accountStatus').textContent=user?`Connecté ${user.displayName||user.email}`:'';
+  qs('accountStatusFeed').textContent=qs('accountStatus').textContent;
+  if(user){
+    await loadLikedPosts();
     renderFeed();
-    await loadTotalViewsAndBalance();   // rafraîchir le solde
-  } catch (err) {
-    alert("Erreur lors du boost : " + err.message);
+    renderMyFeed();
+    renderVideoFeed();
+    renderBoostFeed();
+    await loadTotalViewsAndBalance();
+  }else{
+    likedPosts.clear();
+    ['feed','myFeed','videoFeedContent','videoFeedContentBoost','userFeedContent'].forEach(id=>qs(id).innerHTML='');
+    qs('totalViewsCount').textContent='';
+    qs('currentBalance').textContent='Solde actuel: 0 FCFA';
   }
-};  
-/* ===== INSCRIPTION ===== */
-window.signupWithEmail = async () => {
-  const name  = qs('signupName').value.trim();
-  const email = qs('signupEmail').value.trim();
-  const pass  = qs('signupPassword').value;
-  const age   = parseInt(qs('signupAge').value, 10);
+});
 
-  if (!name || !email || !pass || isNaN(age))
-    return alert('Veuillez remplir tous les champs !');
-  if (age < 18)
-    return alert('Vous devez avoir au minimum 18 ans.');
-  if (pass.length < 6)
-    return alert('Le mot de passe doit contenir au moins 6 caractères.');
-
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    await updateProfile(cred.user, { displayName: name });
-    location.reload(); // rafraîchir l’UI connectée
-  } catch (err) {
-    alert(err.message);
-  }
-};
-
-/* ===== CONNEXION ===== */
-window.loginWithEmail = async () => {
-  const email = qs('loginEmail').value.trim();
-  const pass  = qs('loginPassword').value;
-
-  if (!email || !pass) return alert('Entrez votre e-mail et mot de passe.');
-
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
+/* === PROFILE PHOTO UPLOAD ============================ */
+qs('profilePhotoInput').addEventListener('change',e=>{
+  const file=e.target.files[0];
+  if(!file||!currentUser)return alert('Connectez-vous d\'abord');
+  const r=ref(stg,`profile_photos/${currentUser.uid}_${Date.now()}`);
+  uploadBytesResumable(r,file).on('state_changed',null,err=>alert(err.message),async snap=>{
+    const url=await getDownloadURL(snap.ref);
+    await updateProfile(currentUser,{photoURL:url});
     location.reload();
-  } catch (err) {
-    alert(err.message);
-  }
+  });
+});
+
+/* === PUBLISH POST ==================================== */
+window.publishPost=async()=>{
+  if(!currentUser)return alert('Connectez-vous');
+  const text=qs('postText').value.trim();
+  const bg=qs('bgColor').value;
+  const vidFile=qs('videoFile').files[0];
+  const vidTitle=qs('videoTitle').value.trim();
+  if(!text&&!vidFile)return alert('Ajoutez un texte ou une vidéo');
+  qs('status').textContent='Publication…';
+  const data={userEmail:currentUser.email,userId:currentUser.uid,userName:currentUser.displayName||currentUser.email,userPhoto:currentUser.photoURL||'https://via.placeholder.com/40',text,bgColor:bg,videoUrl:null,videoTitle:vidTitle,views:0,likes:0,createdAt:serverTimestamp(),boosted:0};
+  const resetForm=()=>{['postText','videoTitle'].forEach(id=>qs(id).value='');qs('videoFile').value='';qs('status').textContent='Ok';};
+  if(vidFile){
+    const r=ref(stg,`videos/${Date.now()}_${vidFile.name}`);
+    uploadBytesResumable(r,vidFile).on('state_changed',snap=>qs('status').textContent=`${Math.floor(snap.bytesTransferred/snap.totalBytes*100)}%`,err=>alert(err.message),async s=>{data.videoUrl=await getDownloadURL(s.ref);await addDoc(collection(db,'posts'),data);resetForm();});
+  }else{await addDoc(collection(db,'posts'),data);resetForm();}
 };
-window.openUserFeed = async (uid) => {
-  // 1) Ouvrir l’onglet "userFeed"
-  const iconHome = document.querySelector('.tablinks[onclick*="home"]');
-  openTab({ currentTarget: iconHome }, 'userFeed');
 
-  // 2) Charger les publications de cet utilisateur
-  const cont  = qs('userFeedContent');
-  const title = qs('userFeedTitle');
-  cont.textContent = 'Chargement…';
+/* === FEEDS =========================================== */
+function renderFeed(){const c=qs('feed');c.textContent='Chargement…';const qPosts=query(collection(db,'posts'),orderBy('boosted','desc'),orderBy('createdAt','desc'));onSnapshot(qPosts,snap=>{c.innerHTML='';snap.forEach(d=>c.appendChild(card(d.id,d.data(),false)));});}
+function renderMyFeed(){if(!currentUser)return;const c=qs('myFeed');c.textContent='Chargement…';onSnapshot(query(collection(db,'posts'),where('userId','==',currentUser.uid),orderBy('createdAt','desc')),snap=>{c.innerHTML='';snap.forEach(d=>c.appendChild(card(d.id,d.data(),true)));});}
+function renderVideoFeed(){const c=qs('videoFeedContent');c.textContent='Chargement…';onSnapshot(query(collection(db,'posts'),where('videoUrl','!=',null),orderBy('createdAt','desc')),snap=>{c.innerHTML='';snap.forEach(d=>c.appendChild(card(d.id,d.data(),false)));});}
+function renderBoostFeed(){if(!currentUser)return;const c=qs('videoFeedContentBoost');c.textContent='Chargement…';onSnapshot(query(collection(db,'posts'),where('userId','==',currentUser.uid),where('videoUrl','!=',null),orderBy('createdAt','desc')),snap=>{c.innerHTML='';snap.forEach(d=>c.appendChild(card(d.id,d.data(),true)));});}
 
-  // Récupérer nom & photo de l’auteur
-  let authorName = 'Utilisateur';
-  let authorPhoto = 'https://via.placeholder.com/40';
-  if (uid) {
-    // On essaie de détecter son tout dernier post pour récupérer name+photo
-    const qLast = query(
-      collection(db, 'posts'),
-      where('userId', '==', uid),
-      orderBy('createdAt', 'desc'),
-      limit(1)
-    );
-    const lastSnap = await getDocs(qLast);
-    if (!lastSnap.empty) {
-      const d = lastSnap.docs[0].data();
-      authorName  = d.userName  || authorName;
-      authorPhoto = d.userPhoto || authorPhoto;
-    }
-  }
+/* === CARD BUILDER ==================================== */
+function card(id,d,isMine){const wrap=document.createElement('div');wrap.className='post';wrap.innerHTML=`<div class="post-header"><img src="${d.userPhoto}" alt="pp"/><span class="username" data-uid="${d.userId}">${d.userName||d.userEmail}</span>${d.boosted>0?'<span style="margin-left:auto;color:#ffa500;font-size:12px;font-weight:bold">Sponsorisé</span>':''}</div>`;const cont=document.createElement('div');cont.className='post-content';if(d.videoUrl){cont.innerHTML=`<video src="${d.videoUrl}" controls></video>${d.videoTitle?`<div style="font-weight:bold">${d.videoTitle}</div>`:''}`;}else if(d.text){cont.innerHTML=`<div class="text-bg" style="background:${d.bgColor}">${d.text}</div>`;}wrap.appendChild(cont);
+const act=document.createElement('div');act.className='post-actions';const like=document.createElement('i');like.className='fa-regular fa-thumbs-up like';if(likedPosts.has(id))like.classList.add('liked');const lCnt=document.createElement('span');lCnt.textContent=fmt(d.likes||0);like.onclick=()=>toggleLike(id,like,lCnt);act.append(like,lCnt);
+const vCnt=document.createElement('span');const totalVues=(d.views||0)+(d.boosted||0);vCnt.textContent=`👁️ ${fmt(totalVues)}`;act.appendChild(vCnt);
+const comI=document.createElement('i');comI.className='fa-regular fa-comment';const comCnt=document.createElement('span');comCnt.textContent=' … ';act.append(comI,comCnt);
+if(isMine){const bBtn=document.createElement('button');bBtn.className='boost-btn';bBtn.textContent='Booster';bBtn.onclick=()=>selectBoostPost(id,d.text||d.videoTitle||'Sans titre');act.appendChild(bBtn);}wrap.appendChild(act);
+const comSection=document.createElement('div');comSection.className='comments-section';comSection.style.display='none';const comList=document.createElement('div');comSection.appendChild(comList);if(currentUser){const div=document.createElement('div');div.className='comment-input';const inp=document.createElement('input');inp.placeholder='Ajouter un commentaire...';const btn=document.createElement('button');btn.textContent='Envoyer';btn.onclick=()=>{const txt=inp.value.trim();if(!txt)return alert('Le commentaire est vide');addComment(id,txt);inp.value='';};div.append(inp,btn);comSection.appendChild(div);}wrap.appendChild(comSection);
+comI.onclick=()=>{if(comSection.style.display==='none'){comSection.style.display='block';loadComments(id,comList,comCnt);}else{comSection.style.display='none';}};
+wrap.querySelector('.username').onclick=e=>{openUserFeed(e.target.dataset.uid);} ;return wrap;}
 
-  title.innerHTML = `
-    <img src="${authorPhoto}" style="width:40px;height:40px;border-radius:50%;vertical-align:middle;margin-right:8px">
-    Publications de <strong>${authorName}</strong>
-  `;
+/* === LIKE ============================================ */
+async function toggleLike(postId,iconEl,countEl){if(!currentUser)return alert('Connectez-vous pour liker');const postRef=doc(db,'posts',postId);if(likedPosts.has(postId)){likedPosts.delete(postId);iconEl.classList.remove('liked');await updateDoc(postRef,{likes:increment(-1)});}else{likedPosts.add(postId);iconEl.classList.add('liked');await updateDoc(postRef,{likes:increment(1)});}const dsnap=await getDoc(postRef);countEl.textContent=fmt(dsnap.data().likes||0);}async function loadLikedPosts(){likedPosts.clear();}
 
-  // Flux en temps réel
-  onSnapshot(
-    query(
-      collection(db, 'posts'),
-      where('userId', '==', uid),
-      orderBy('createdAt', 'desc')
-    ),
-    snap => {
-      cont.innerHTML = '';
-      if (snap.empty) {
-        cont.textContent = 'Aucune publication.';
-      } else {
-        snap.forEach(d => cont.appendChild(card(d.id, d.data(), false)));
-      }
-    }
-  );
+/* === COMMENTS ======================================== */
+async function loadComments(postId,container,countEl){const q=query(collection(db,'posts',postId,'comments'),orderBy('createdAt'));const snap=await getDocs(q);container.innerHTML='';countEl.textContent=snap.size;snap.forEach(doc=>{const c=doc.data();const div=document.createElement('div');div.className='comment';div.innerHTML=`<strong>${c.userName}</strong> : ${c.text}`;container.appendChild(div);});}
+async function addComment(postId,text){if(!currentUser)return alert('Connectez-vous pour commenter');await addDoc(collection(db,'posts',postId,'comments'),{userId:currentUser.uid,userName:currentUser.displayName||currentUser.email,text,createdAt:serverTimestamp()});}
+
+/* === BOOST =========================================== */
+function selectBoostPost(pid,title){boostId=pid;qs('boostStatus').textContent=`1 publication sélectionnée : ${title}`;qs('boostPanel').style.display='block';openTab({currentTarget:document.querySelector('.tablinks[onclick*="vibo"]')},'vibo');}
+window.boostPost=async()=>{if(!boostId)return alert('Aucune publication sélectionnée');const v=parseInt(qs('boostViews').value);if(isNaN(v)||v<=0)return alert('Entrez un nombre valide de vues');const refP=doc(db,'posts',boostId);await updateDoc(refP,{boosted:increment(v),views:increment(v)});qs('boostStatus').textContent='Boost appliqué avec succès !';qs('boostViews').value='';boostId='';renderFeed();renderMyFeed();await loadTotalViewsAndBalance();};
+
+/* === USER FEED ======================================= */
+window.openUserFeed=async uid=>{openTab({currentTarget:document.querySelector('.tablinks[onclick*="home"]')},'userFeed');const cont=qs('userFeedContent');const title=qs('userFeedTitle');cont.textContent='Chargement…';let authorName='Utilisateur';let authorPhoto='https://via.placeholder.com/40';const lastSnap=await getDocs(query(collection(db,'posts'),where('userId','==',uid),orderBy('createdAt','desc'),limit(1)));if(!lastSnap.empty){const d=lastSnap.docs[0].data();authorName=d.userName||authorName;authorPhoto=d.userPhoto||authorPhoto;}title.innerHTML=`<img src="${authorPhoto}" style="width:40px;height:40px;border-radius:50%;vertical-align:middle;margin-right:8px">Publications de <strong>${authorName}</strong>`;onSnapshot(query(collection(db,'posts'),where('userId','==',uid),orderBy('createdAt','desc')),snap=>{cont.innerHTML='';if(snap.empty){cont.textContent='Aucune publication.';}else{snap.forEach(d=>cont.appendChild(card(d.id,d.data(),false)));}});
 };
-let argent = 0;
-    const montantInput = document.getElementById('montant');
-    const deposerButton = document.getElementById('deposer');
-    const argentSpan = document.getElementById('argent');
 
-    deposerButton.addEventListener('click', () => {
-      const montant = parseFloat(montantInput.value);
-      if (!isNaN(montant) && montant >= 1900) {
-        argent += montant;
-        argentSpan.textContent = argent.toFixed(1);
-        montantInput.value = '';
-      } else {
-        alert('montant minimum 1900 FCFA');
-      }
-    });
+/* === SEARCH ========================================== */
+window.searchUser=async()=>{const qstr=qs('searchUserInput').value.trim().toLowerCase();if(!qstr)return alert('Entrez un nom ou e-mail');const postsSnap=await getDocs(collection(db,'posts'));const map=new Map();postsSnap.forEach(doc=>{const d=doc.data();if((d.userName||'').toLowerCase().includes(qstr)||(d.userEmail||'').toLowerCase().includes(qstr)){map.set(d.userId,{uid:d.userId,name:d.userName,email:d.userEmail,photo:d.userPhoto});}});const res=qs('searchResults');res.innerHTML='';if(map.size===0){res.textContent='Aucun utilisateur trouvé';return;}map.forEach(u=>{const d=document.createElement('div');d.style.cursor='pointer';d.style.display='flex';d.style.alignItems='center';d.style.marginBottom='8px';const img=document.createElement('img');img.src=u.photo||'https://via.placeholder.com/40';img.style.width='40px';img.style.height='40px';img.style.borderRadius='50%';img.style.marginRight='10px';const sp=document.createElement('span');sp.textContent=u.name||u.email;sp.style.color='#1877f2';sp.style.fontWeight='bold';d.append(img,sp);d.onclick=()=>openUserFeed(u.uid);res.appendChild(d);});};
 
-</script>
-</body>
+/* === VIEWS & BALANCE ================================= */
+async function loadTotalViewsAndBalance(){if(!currentUser)return;const weekAgo=Date.now()-7*24*60*60*1000;const snap=await getDocs(query(collection(db,'posts'),where('userId','==',currentUser.uid),where('createdAt','>=',new Date(weekAgo))));let total=0;snap.forEach(d=>{const data=d.data();total+=(data.views||0)+(data.boosted||0);} );qs('totalViewsCount').textContent=fmt(total);currentBalance=Math.floor(total/1000)*50;qs('currentBalance').textContent=`Solde actuel: ${currentBalance} FCFA`;}
+window.withdrawBalance=()=>{const amount=parseInt(qs('withdrawAmount').value);if(isNaN(amount)||amount<50)return alert('Montant minimum 50 FCFA');if(amount>currentBalance)return alert('Solde insuffisant');alert(`Demande de retrait de ${amount} FCFA envoyée !`);qs('withdrawAmount').value='';};
+
+/* === BOOST WALLET (demo) ============================= */
+let argent=0;qs('deposer').addEventListener('click',()=>{const m=parseFloat(qs('montant').value);if(!isNaN(m)&&m>=1900){argent+=m;qs('argent').textContent=argent.toFixed(1);qs('montant').value='';}else{alert('Montant minimum 1900 FCFA');}});
+
+/* === EMAIL SIGNUP & LOGIN ============================ */
+window.signupWithEmail=async()=>{const name=qs('signupName').value.trim();const email=qs('signupEmail').value.trim();const pass=qs('signupPassword').value;const age=parseInt(qs('signupAge').value,10);if(!name||!email||!pass||isNaN(age))return alert('Veuillez remplir tous les champs !');if(age<18)return alert('Vous devez avoir au minimum 18 ans.');if(pass.length<6)return alert('Le mot de passe doit contenir au moins 6 caractères.');try{const cred=await createUserWithEmailAndPassword(auth,email,pass);await updateProfile(cred.user,{displayName:name});location.reload();}catch(err){alert(err.message);}};
+window.loginWithEmail=async()=>{const email=qs('loginEmail').value.trim();const pass=qs('loginPassword').value;if(!email||!pass)return alert('Entrez votre e-mail et mot de passe.');try{await signInWithEmailAndPassword(auth,email,pass);location.reload();}catch(err){alert(err.message);}};
+</script></body>
 </html>
