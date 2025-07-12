@@ -183,6 +183,9 @@ onAuthStateChanged(auth,async user=>{
   qs('authStatus').textContent=user?` ${user.displayName||user.email}`:'';
   qs('accountStatus').textContent=user?`Connecté ${user.displayName||user.email}`:'';
   qs('accountStatusFeed').textContent=qs('accountStatus').textContent;
+if (user) {
+  await loadWallet();   // juste après renderFeed() par ex.
+}
   if(user){
     await loadLikedPosts();
     renderFeed();
@@ -252,8 +255,69 @@ async function addComment(postId,text){if(!currentUser)return alert('Connectez-v
 
 /* === BOOST =========================================== */
 function selectBoostPost(pid,title){boostId=pid;qs('boostStatus').textContent=`1 publication sélectionnée : ${title}`;qs('boostPanel').style.display='block';openTab({currentTarget:document.querySelector('.tablinks[onclick*="vibo"]')},'vibo');}
-window.boostPost=async()=>{if(!boostId)return alert('Aucune publication sélectionnée');const v=parseInt(qs('boostViews').value);if(isNaN(v)||v<=0)return alert('Entrez un nombre valide de vues');const refP=doc(db,'posts',boostId);await updateDoc(refP,{boosted:increment(v),views:increment(v)});qs('boostStatus').textContent='Boost appliqué avec succès !';qs('boostViews').value='';boostId='';renderFeed();renderMyFeed();await loadTotalViewsAndBalance();};
+/* ===== PORTEFEUILLE (wallet) ========================== */
 
+/** Retourne (et met à jour l’UI) le solde de l’utilisateur */
+async function loadWallet() {
+  if (!currentUser) return;
+  const ref = doc(db, 'wallets', currentUser.uid);
+  const snap = await getDoc(ref);
+  const bal = snap.exists() ? snap.data().balance : 0;
+  qs('argent').textContent = bal.toFixed(0);
+  return bal;
+}
+
+/** Dépose un montant ≥ 1900 XAF */
+async function deposit(amount) {
+  if (!currentUser) return alert('Connectez-vous');
+  if (amount < 1900) return alert('Montant minimum 1 900 FCFA');
+  const ref = doc(db, 'wallets', currentUser.uid);
+  await setDoc(ref, { balance: increment(amount) }, { merge: true });
+  await loadWallet();                 // refresh UI
+}
+
+/** Tente de débiter le portefeuille, renvoie true si OK */
+async function debit(cost) {
+  const ref   = doc(db, 'wallets', currentUser.uid);
+  const trans = await runTransaction(db, async (t) => {
+    const snap = await t.get(ref);
+    const bal  = snap.exists() ? snap.data().balance : 0;
+    if (bal < cost) return false;     // insuffisant
+    t.update(ref, { balance: bal - cost });
+    return true;
+  });
+  if (!trans) alert('Solde insuffisant');
+  await loadWallet();
+  return trans;
+}
+window.boostPost = async () => {
+  if (!boostId) return alert('Choisissez une publication');
+  const vues = parseInt(qs('boostViews').value);
+  if (isNaN(vues) || vues < 1000) return alert('Min 1 000 vues');
+  
+  const cout = Math.ceil(vues / 1000) * 950;   // 950 XAF / 1k
+
+  // 1) vérifier / débiter
+  if (!(await debit(cout))) return;            // stop si solde insuffisant
+
+  // 2) appliquer le boost
+  try {
+    const refP = doc(db, 'posts', boostId);
+    await updateDoc(refP, {
+      boosted: increment(vues),
+      views:   increment(vues)
+    });
+    qs('boostStatus').textContent = `Boost OK (−${cout} XAF)`;
+    qs('boostViews').value = '';
+    boostId = '';
+    renderFeed(); renderMyFeed();
+    await loadTotalViewsAndBalance();
+  } catch (err) {
+    alert('Erreur boost : ' + err.message);
+    // remboursement si échec
+    await deposit(cout);
+  }
+};
 /* === USER FEED ======================================= */
 window.openUserFeed=async uid=>{openTab({currentTarget:document.querySelector('.tablinks[onclick*="home"]')},'userFeed');const cont=qs('userFeedContent');const title=qs('userFeedTitle');cont.textContent='Chargement…';let authorName='Utilisateur';let authorPhoto='https://via.placeholder.com/40';const lastSnap=await getDocs(query(collection(db,'posts'),where('userId','==',uid),orderBy('createdAt','desc'),limit(1)));if(!lastSnap.empty){const d=lastSnap.docs[0].data();authorName=d.userName||authorName;authorPhoto=d.userPhoto||authorPhoto;}title.innerHTML=`<img src="${authorPhoto}" style="width:40px;height:40px;border-radius:50%;vertical-align:middle;margin-right:8px">Publications de <strong>${authorName}</strong>`;onSnapshot(query(collection(db,'posts'),where('userId','==',uid),orderBy('createdAt','desc')),snap=>{cont.innerHTML='';if(snap.empty){cont.textContent='Aucune publication.';}else{snap.forEach(d=>cont.appendChild(card(d.id,d.data(),false)));}});
 };
@@ -266,8 +330,11 @@ async function loadTotalViewsAndBalance(){if(!currentUser)return;const weekAgo=D
 window.withdrawBalance=()=>{const amount=parseInt(qs('withdrawAmount').value);if(isNaN(amount)||amount<50)return alert('Montant minimum 50 FCFA');if(amount>currentBalance)return alert('Solde insuffisant');alert(`Demande de retrait de ${amount} FCFA envoyée !`);qs('withdrawAmount').value='';};
 
 /* === BOOST WALLET (demo) ============================= */
-let argent=0;qs('deposer').addEventListener('click',()=>{const m=parseFloat(qs('montant').value);if(!isNaN(m)&&m>=1900){argent+=m;qs('argent').textContent=argent.toFixed(1);qs('montant').value='';}else{alert('Montant minimum 1900 FCFA');}});
-
+qs('deposer').addEventListener('click', () => {
+  const m = parseFloat(qs('montant').value);
+  if (!isNaN(m)) deposit(m);
+  qs('montant').value = '';
+});
 /* === EMAIL SIGNUP & LOGIN ============================ */
 window.signupWithEmail=async()=>{const name=qs('signupName').value.trim();const email=qs('signupEmail').value.trim();const pass=qs('signupPassword').value;const age=parseInt(qs('signupAge').value,10);if(!name||!email||!pass||isNaN(age))return alert('Veuillez remplir tous les champs !');if(age<18)return alert('Vous devez avoir au minimum 18 ans.');if(pass.length<6)return alert('Le mot de passe doit contenir au moins 6 caractères.');try{const cred=await createUserWithEmailAndPassword(auth,email,pass);await updateProfile(cred.user,{displayName:name});location.reload();}catch(err){alert(err.message);}};
 window.loginWithEmail=async()=>{const email=qs('loginEmail').value.trim();const pass=qs('loginPassword').value;if(!email||!pass)return alert('Entrez votre e-mail et mot de passe.');try{await signInWithEmailAndPassword(auth,email,pass);location.reload();}catch(err){alert(err.message);}};
