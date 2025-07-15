@@ -587,27 +587,18 @@ async function loadWallet() {
 async function deposit(amount) {
   if (!currentUser) return alert('Connectez-vous');
   if (amount < 1900) return alert('Montant minimum 1 900 FCFA');
-  const ref = doc(db, 'wallets', currentUser.uid);
-  await setDoc(ref, { balance: increment(amount) }, { merge: true });
-  await loadWallet();
-}
-async function debit(cost) {
-  if (!currentUser) return false;
+
   const ref = doc(db, 'wallets', currentUser.uid);
 
-  /* transaction atomique */
-  const ok = await runTransaction(db, async (t) => {
+  await runTransaction(db, async (t) => {
     const snap = await t.get(ref);
-    const bal  = snap.exists() ? snap.data().balance : 0;
-    if (bal < cost) return false;
-    t.update(ref, { balance: bal - cost });
-    return true;
-  });
-  if (!ok) alert('Solde insuffisant');
-  await loadWallet();
-  return ok;
-}
+    const bal = snap.exists() ? snap.data().balance : 0;
 
+    t.set(ref, { balance: bal + amount }, { merge: true });
+  });
+
+  await loadWallet();
+}
 window.boostPost = async () => {
   if (!boostId) return alert('Choisissez une publication');
   const vues = parseInt(qs('boostViews').value);
@@ -806,6 +797,7 @@ window.loginWithEmail = async () => {
     location.reload();
   } catch (err) { alert(err.message); }
 };
+
 </script>
 </body>
 </html>
