@@ -204,26 +204,30 @@
   <h3 id="userFeedTitle">Publications de …</h3>
   <div id="userFeedContent"></div>
 </section>
-
 <script type="module">
-import { initializeApp }   from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+/* ------------------------------------------------------------------
+   1. IMPORTS FIREBASE
+------------------------------------------------------------------ */
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
 import {
   getAuth, onAuthStateChanged, signInWithPopup, signOut, GoogleAuthProvider,
   updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword
-}                         from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
 import {
   getFirestore,
   collection, addDoc, onSnapshot, query, orderBy, where,
   doc, getDocs, getDoc, setDoc, updateDoc,
   increment, serverTimestamp,
   deleteDoc, limit,
-  runTransaction            /* <-- import ajouté */
-}                         from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+  runTransaction
+} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 import {
   getStorage, ref, uploadBytesResumable, getDownloadURL
-}                         from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
+} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
 
-/* === FIREBASE CONFIG ================================= */
+/* ------------------------------------------------------------------
+   2. CONFIGURATION FIREBASE + VARIABLES GLOBALES
+------------------------------------------------------------------ */
 const firebaseConfig = {
   apiKey:            "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
   authDomain:        "mboa-ec602.firebaseapp.com",
@@ -232,57 +236,75 @@ const firebaseConfig = {
   messagingSenderId: "498505132403",
   appId:             "1:498505132403:web:eb46547745f8d1a77b3d06"
 };
-const app   = initializeApp(firebaseConfig);
-const auth  = getAuth(app);
-const db    = getFirestore(app);
-const stg   = getStorage(app);
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const stg  = getStorage(app);
 const provider = new GoogleAuthProvider();
 
-/* === GLOBAL STATE ==================================== */
-let currentUser   = null;
-let likedPosts    = new Set();
-let boostId       = '';
+let currentUser    = null;
+let likedPosts     = new Set();
+let boostId        = '';
 let currentBalance = 0;
 
 const qs  = id => document.getElementById(id);
 const fmt = n => n>=1e6 ? (n/1e6).toFixed(1)+'M' : n>=1e3 ? (n/1e3).toFixed(1)+'k' : n;
 
-/* === TABS ============================================ */
-window.openTab = (evt, tabId) => {
+/* ------------------------------------------------------------------
+   3. EVENT LISTENERS DÉPENDANT DU DOM
+------------------------------------------------------------------ */
+document.addEventListener('DOMContentLoaded', () => {
+  /* Listener sur le bouton Déposer */
+  qs('deposer')?.addEventListener('click', () => {
+    const montant = parseFloat(qs('montant').value);
+    if (isNaN(montant)) return alert('Entrez un montant');
+    deposit(montant);
+    qs('montant').value = '';
+  });
+});
+
+/* ------------------------------------------------------------------
+   4. NAVIGATION PAR ONGLET
+------------------------------------------------------------------ */
+window.openTab = (evt, id) => {
   [...document.querySelectorAll('.tabcontent')]
-    .forEach(t => t.classList.toggle('active', t.id === tabId));
+    .forEach(t => t.classList.toggle('active', t.id === id));
   [...document.querySelectorAll('.tablinks')]
     .forEach(l => l.classList.toggle('selected', l === evt.currentTarget));
-  history.pushState({tab: tabId}, '', `#${tabId}`);
+  history.pushState({tab:id},'',`#${id}`);
 };
-window.onpopstate = e => {
-  const tab  = e.state?.tab || 'home';
-  const icon = document.querySelector(`.tablinks[onclick*="'${tab}'"]`)
-              || document.querySelector('.tablinks');
-  if (icon) openTab({currentTarget: icon}, tab);
+window.onpopstate = e=>{
+  const tab=e.state?.tab||'home';
+  const icon=document.querySelector(`.tablinks[onclick*="'${tab}'"]`)
+             || document.querySelector('.tablinks');
+  if(icon)openTab({currentTarget:icon},tab);
 };
 
-/* === AUTH ============================================ */
-window.signInWithGoogle = () => signInWithPopup(auth, provider).catch(err => alert(err.message));
+/* ------------------------------------------------------------------
+   5. AUTHENTIFICATION
+------------------------------------------------------------------ */
+window.signInWithGoogle = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
 window.signOutUser      = () => signOut(auth);
 
 onAuthStateChanged(auth, async user => {
   currentUser = user;
-  const pp = user?.photoURL || 'https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/100x100/';
-  qs('homeProfilePhoto').src   = pp;
-  qs('feedmeProfilePhoto').src = pp;
-  qs('authStatus').textContent     = user ? ` ${user.displayName || user.email}` : '';
-  qs('accountStatus').textContent  = user ? `• ${user.displayName || user.email}` : '';
+
+  const photo  = user?.photoURL || 'https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/100x100/';
+  qs('homeProfilePhoto').src   = photo;
+  qs('feedmeProfilePhoto').src = photo;
+
+  qs('authStatus').textContent        = user ? ` ${user.displayName || user.email}` : '';
+  qs('accountStatus').textContent     = user ? `• ${user.displayName || user.email}` : '';
   qs('accountStatusFeed').textContent = qs('accountStatus').textContent;
 
   if (user) {
-    await loadWallet();               // solde
-    await loadLikedPosts();           // likes
+    await loadWallet();
+    await loadLikedPosts();
     renderFeed();
     renderMyFeed();
     renderVideoFeed();
     renderBoostFeed();
-    await loadTotalViewsAndBalance(); // vues & crédit
+    await loadTotalViewsAndBalance();
   } else {
     likedPosts.clear();
     ['feed','myFeed','videoFeedContent','videoFeedContentBoost','userFeedContent']
@@ -292,10 +314,12 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-/* === PROFILE PHOTO UPLOAD ============================ */
+/* ------------------------------------------------------------------
+   6. PHOTO DE PROFIL
+------------------------------------------------------------------ */
 qs('profilePhotoInput').addEventListener('change', e => {
   const file = e.target.files[0];
-  if (!file || !currentUser) return alert('Connectez-vous d\'abord');
+  if (!file || !currentUser) return alert('Connectez-vous');
 
   const r = ref(stg, `profile_photos/${currentUser.uid}_${Date.now()}`);
   uploadBytesResumable(r, file).on(
@@ -310,110 +334,112 @@ qs('profilePhotoInput').addEventListener('change', e => {
   );
 });
 
-/* === PUBLISH POST ==================================== */
+/* ------------------------------------------------------------------
+   7. WALLET : DÉPÔT + CHARGEMENT
+------------------------------------------------------------------ */
+async function loadWallet() {
+  if (!currentUser) return;
+  const snap = await getDoc(doc(db, 'wallets', currentUser.uid));
+  const bal  = snap.exists() ? snap.data().balance : 0;
+  qs('argent').textContent = bal.toFixed(0);
+  return bal;
+}
+
+async function deposit(amount) {
+  if (!currentUser) return alert('Connectez-vous');
+  if (amount < 1900)   return alert('Montant minimum 1 900 FCFA');
+
+  const ref = doc(db, 'wallets', currentUser.uid);
+  await runTransaction(db, async t => {
+    const snap = await t.get(ref);
+    const bal  = snap.exists() ? snap.data().balance : 0;
+    t.set(ref, { balance: bal + amount }, { merge: true });
+  });
+
+  await loadWallet();                               // refresh UI
+}
+
+/* ------------------------------------------------------------------
+   8. PUBLISH POST (texte ou vidéo)
+------------------------------------------------------------------ */
 window.publishPost = async () => {
   if (!currentUser) return alert('Connectez-vous');
-
   const text     = qs('postText').value.trim();
-  const bg       = qs('bgColor').value;
+  const bgColor  = qs('bgColor').value;
   const vidFile  = qs('videoFile').files[0];
   const vidTitle = qs('videoTitle').value.trim();
 
   if (!text && !vidFile) return alert('Ajoutez un texte ou une vidéo');
-
   qs('status').textContent = 'Publication…';
 
   const data = {
-    userEmail : currentUser.email,
-    userId    : currentUser.uid,
-    userName  : currentUser.displayName || currentUser.email,
-    userPhoto : currentUser.photoURL || 'https://via.placeholder.com/40',
-    text, bgColor: bg,
-    videoUrl  : null,
+    userId   : currentUser.uid,
+    userEmail: currentUser.email,
+    userName : currentUser.displayName || currentUser.email,
+    userPhoto: currentUser.photoURL   || 'https://via.placeholder.com/40',
+    text,
+    bgColor,
+    videoUrl : null,
     videoTitle: vidTitle,
-    views     : 0,
-    likes     : 0,
-    createdAt : serverTimestamp(),
-    boosted   : 0
+    views   : 0,
+    likes   : 0,
+    createdAt: serverTimestamp(),
+    boosted : 0
   };
-  const resetForm = () => {
+  const reset = () => {
     ['postText','videoTitle'].forEach(id => qs(id).value = '');
     qs('videoFile').value = '';
-    qs('status').textContent = 'Publié avec succès';
+    qs('status').textContent = 'Publié !';
   };
 
   if (vidFile) {
     const r = ref(stg, `videos/${Date.now()}_${vidFile.name}`);
     uploadBytesResumable(r, vidFile).on(
       'state_changed',
-      snap => qs('status').textContent = `${Math.floor(snap.bytesTransferred/snap.totalBytes*100)}%`,
-      err  => alert(err.message),
+      s => qs('status').textContent = `${Math.floor(s.bytesTransferred/s.totalBytes*100)}%`,
+      err => alert(err.message),
       async s => {
         data.videoUrl = await getDownloadURL(s.ref);
         await addDoc(collection(db, 'posts'), data);
-        resetForm();
+        reset();
       }
     );
   } else {
     await addDoc(collection(db, 'posts'), data);
-    resetForm();
+    reset();
   }
 };
 
-/* === FEEDS =========================================== */
+/* ------------------------------------------------------------------
+   9. FEEDS (HOME / MY / VIDEO / BOOST)
+------------------------------------------------------------------ */
 function renderFeed() {
   const c = qs('feed');
   c.textContent = 'Chargement…';
-
-  try {
-    const qPosts = query(
-      collection(db, 'posts'),
-      orderBy('boosted', 'desc'),
-      orderBy('createdAt', 'desc')
-    );
-
-    onSnapshot(qPosts, snap => {
-      c.innerHTML = '';
-      snap.forEach(d => c.appendChild(card(d.id, d.data(), false)));
-    }, err => {
-      c.textContent = 'Erreur : ' + err.message;
-      console.error(err);
-    });
-
-  } catch (err) {
-    c.textContent = 'Erreur : ' + err.message;
-    console.error(err);
-  }
+  onSnapshot(
+    query(collection(db,'posts'), orderBy('boosted','desc'), orderBy('createdAt','desc')),
+    snap => { c.innerHTML=''; snap.forEach(d => c.appendChild(card(d.id,d.data(),false))); },
+    err  => { c.textContent = 'Erreur : '+err.message; console.error(err); }
+  );
 }
 function renderMyFeed() {
   if (!currentUser) return;
-  const c = qs('myFeed');
-  c.textContent = 'Chargement…';
+  const c = qs('myFeed'); c.textContent='Chargement…';
   onSnapshot(
-    query(
-      collection(db,'posts'),
-      where('userId','==',currentUser.uid),
-      orderBy('createdAt','desc')
-    ),
-    snap => { c.innerHTML=''; snap.forEach(d=>c.appendChild(card(d.id,d.data(),true))); }
+    query(collection(db,'posts'), where('userId','==',currentUser.uid), orderBy('createdAt','desc')),
+    snap => { c.innerHTML=''; snap.forEach(d => c.appendChild(card(d.id,d.data(),true))); }
   );
 }
 function renderVideoFeed() {
-  const c = qs('videoFeedContent');
-  c.textContent = 'Chargement…';
+  const c = qs('videoFeedContent'); c.textContent='Chargement…';
   onSnapshot(
-    query(
-      collection(db,'posts'),
-      where('videoUrl','!=',null),
-      orderBy('createdAt','desc')
-    ),
-    snap => { c.innerHTML=''; snap.forEach(d=>c.appendChild(card(d.id,d.data(),false))); }
+    query(collection(db,'posts'), where('videoUrl','!=',null), orderBy('createdAt','desc')),
+    snap => { c.innerHTML=''; snap.forEach(d => c.appendChild(card(d.id,d.data(),false))); }
   );
 }
 function renderBoostFeed() {
   if (!currentUser) return;
-  const c = qs('videoFeedContentBoost');
-  c.textContent = 'Chargement…';
+  const c = qs('videoFeedContentBoost'); c.textContent='Chargement…';
   onSnapshot(
     query(
       collection(db,'posts'),
@@ -421,383 +447,205 @@ function renderBoostFeed() {
       where('videoUrl','!=',null),
       orderBy('createdAt','desc')
     ),
-    snap => { c.innerHTML=''; snap.forEach(d=>c.appendChild(card(d.id,d.data(),true))); }
+    snap => { c.innerHTML=''; snap.forEach(d => c.appendChild(card(d.id,d.data(),true))); }
   );
 }
 
-/* === CARD BUILDER ==================================== */
-function card(id, d, isMine) {
-  const wrap = document.createElement('div');
-  wrap.className = 'post';
-
+/* ------------------------------------------------------------------
+ 10. CARD BUILDER + LIKE + COMMENTS
+------------------------------------------------------------------ */
+function card(id,d,isMine){
+  const w=document.createElement('div');w.className='post';
   /* header */
-  wrap.innerHTML = `
-    <div class="post-header">
-      <img src="${d.userPhoto}" alt="pp"/>
-      <span class="username" data-uid="${d.userId}">${d.userName || d.userEmail}</span>
-      ${ d.boosted>0 ? '<span style="margin-left:auto;color:#ffa500;font-size:12px;font-weight:bold">Sponsorisé</span>' : '' }
-    </div>
-  `;
-
+  w.innerHTML=`<div class="post-header">
+      <img src="${d.userPhoto}" alt="pp">
+      <span class="username" data-uid="${d.userId}">${d.userName||d.userEmail}</span>
+      ${d.boosted>0?'<span style="margin-left:auto;color:#ffa500;font-size:12px;font-weight:bold">Sponsorisé</span>':''}
+    </div>`;
   /* content */
-  const cont = document.createElement('div'); cont.className = 'post-content';
-  if (d.videoUrl) {
-    cont.innerHTML = `
-      <video src="${d.videoUrl}" controls></video>
-      ${ d.videoTitle ? `<div style="font-weight:bold">${d.videoTitle}</div>` : '' }
-    `;
-  } else if (d.text) {
-    cont.innerHTML = `<div class="text-bg" style="background:${d.bgColor}">${d.text}</div>`;
+  const cont=document.createElement('div');cont.className='post-content';
+  if(d.videoUrl){
+    cont.innerHTML=`<video src="${d.videoUrl}" controls></video>${d.videoTitle?`<div style="font-weight:bold">${d.videoTitle}</div>`:''}`;
+  }else if(d.text){
+    cont.innerHTML=`<div class="text-bg" style="background:${d.bgColor}">${d.text}</div>`;
   }
-  wrap.appendChild(cont);
-
+  w.appendChild(cont);
   /* actions */
-  const act  = document.createElement('div'); act.className = 'post-actions';
-
-  // like
-  const like = document.createElement('i');
-  like.className = 'fa-regular fa-thumbs-up like';
-  if (likedPosts.has(id)) like.classList.add('liked');
-  const lCnt = document.createElement('span');
-  lCnt.textContent = fmt(d.likes || 0);
-  like.onclick = () => toggleLike(id, like, lCnt);
-  act.append(like, lCnt);
-
-  // vues
-  const vCnt = document.createElement('span');
-  const totalVues = (d.views || 0) + (d.boosted || 0);
-  vCnt.textContent = `👁️ ${fmt(totalVues)}`;
+  const act=document.createElement('div');act.className='post-actions';
+  const like=document.createElement('i');like.className='fa-regular fa-thumbs-up like';
+  if(likedPosts.has(id))like.classList.add('liked');
+  const lCnt=document.createElement('span');lCnt.textContent=fmt(d.likes||0);
+  like.onclick=()=>toggleLike(id,like,lCnt);
+  act.append(like,lCnt);
+  const vCnt=document.createElement('span');vCnt.textContent=`👁️ ${fmt((d.views||0)+(d.boosted||0))}`;
   act.appendChild(vCnt);
-
-  // commentaires
-  const comI   = document.createElement('i');   comI.className = 'fa-regular fa-comment';
-  const comCnt = document.createElement('span'); comCnt.textContent = ' … ';
-  act.append(comI, comCnt);
-
-  // boost (si c'est mon post)
-  if (isMine) {
-    const bBtn = document.createElement('button');
-    bBtn.className = 'boost-btn';
-    bBtn.textContent = 'Booster';
-    bBtn.onclick = () => selectBoostPost(id, d.text || d.videoTitle || 'Sans titre');
-    act.appendChild(bBtn);
+  const comI=document.createElement('i');comI.className='fa-regular fa-comment';
+  const comCnt=document.createElement('span');comCnt.textContent=' … ';
+  act.append(comI,comCnt);
+  if(isMine){
+    const b=document.createElement('button');b.className='boost-btn';b.textContent='Booster';
+    b.onclick=()=>selectBoostPost(id,d.text||d.videoTitle||'Sans titre');
+    act.appendChild(b);
   }
-  wrap.appendChild(act);
-
-  /* comments section (hidden) */
-  const comSection = document.createElement('div');
-  comSection.className = 'comments-section';
-  comSection.style.display = 'none';
-  const comList = document.createElement('div');
-  comSection.appendChild(comList);
-
-  if (currentUser) {
-    const div = document.createElement('div'); div.className = 'comment-input';
-    const inp = document.createElement('input'); inp.placeholder = 'Ajouter un commentaire...';
-    const btn = document.createElement('button'); btn.textContent = 'Envoyer';
-    btn.onclick = () => {
-      const txt = inp.value.trim();
-      if (!txt) return alert('Le commentaire est vide');
-      addComment(id, txt);
-      inp.value = '';
-    };
-    div.append(inp, btn);
-    comSection.appendChild(div);
+  w.appendChild(act);
+  /* comments */
+  const comSec=document.createElement('div');comSec.className='comments-section';comSec.style.display='none';
+  const comList=document.createElement('div');comSec.appendChild(comList);
+  if(currentUser){
+    const div=document.createElement('div');div.className='comment-input';
+    const inp=document.createElement('input');inp.placeholder='Ajouter un commentaire...';
+    const btn=document.createElement('button');btn.textContent='Envoyer';
+    btn.onclick=()=>{const t=inp.value.trim();if(!t)return;addComment(id,t);inp.value='';};
+    div.append(inp,btn);comSec.appendChild(div);
   }
-  wrap.appendChild(comSection);
-
-  comI.onclick = () => {
-    if (comSection.style.display === 'none') {
-      comSection.style.display = 'block';
-      loadComments(id, comList, comCnt);
-    } else {
-      comSection.style.display = 'none';
-    }
-  };
-
-  // clic sur nom = ouvrir profil
-  wrap.querySelector('.username').onclick = e => openUserFeed(e.target.dataset.uid);
-
-  return wrap;
+  w.appendChild(comSec);
+  comI.onclick=()=>{comSec.style.display=comSec.style.display==='none'?'block':'none'; if(comSec.style.display==='block')loadComments(id,comList,comCnt);};
+  w.querySelector('.username').onclick=e=>openUserFeed(e.target.dataset.uid);
+  return w;
 }
-
-/* === LIKE ============================================ */
-async function toggleLike(postId, iconEl, countEl) {
-  if (!currentUser) return alert('Connectez-vous pour liker');
-
-  const postRef = doc(db, 'posts', postId);
-  if (likedPosts.has(postId)) {
-    likedPosts.delete(postId);
-    iconEl.classList.remove('liked');
-    await updateDoc(postRef, { likes: increment(-1) });
-  } else {
-    likedPosts.add(postId);
-    iconEl.classList.add('liked');
-    await updateDoc(postRef, { likes: increment(1) });
+/* LIKE */
+async function loadLikedPosts(){likedPosts.clear();}
+async function toggleLike(pid,icon,cnt){
+  if(!currentUser)return alert('Connectez-vous');
+  const ref=doc(db,'posts',pid);
+  if(likedPosts.has(pid)){
+    likedPosts.delete(pid);icon.classList.remove('liked');await updateDoc(ref,{likes:increment(-1)});
+  }else{
+    likedPosts.add(pid);icon.classList.add('liked');await updateDoc(ref,{likes:increment(1)});
   }
-  const dsnap = await getDoc(postRef);
-  countEl.textContent = fmt(dsnap.data().likes || 0);
+  const s=await getDoc(ref);cnt.textContent=fmt(s.data().likes||0);
 }
-async function loadLikedPosts() { likedPosts.clear(); }
-
-/* === COMMENTS ======================================== */
-async function loadComments(postId, container, countEl) {
-  const q = query(collection(db, 'posts', postId, 'comments'), orderBy('createdAt'));
-  const snap = await getDocs(q);
-  container.innerHTML = '';
-  countEl.textContent = snap.size;
-  snap.forEach(doc => {
-    const c = doc.data();
-    const div = document.createElement('div');
-    div.className = 'comment';
-    div.innerHTML = `<strong>${c.userName}</strong> : ${c.text}`;
-    container.appendChild(div);
+/* COMMENTS */
+async function loadComments(pid,container,cnt){
+  const s=await getDocs(query(collection(db,'posts',pid,'comments'),orderBy('createdAt')));
+  container.innerHTML='';cnt.textContent=s.size;
+  s.forEach(d=>{const c=d.data();const div=document.createElement('div');div.className='comment';
+                div.innerHTML=`<strong>${c.userName}</strong> : ${c.text}`;container.appendChild(div);});
+}
+async function addComment(pid,text){
+  if(!currentUser)return;
+  await addDoc(collection(db,'posts',pid,'comments'),{
+    userId:currentUser.uid,userName:currentUser.displayName||currentUser.email,
+    text,createdAt:serverTimestamp()
   });
 }
-async function addComment(postId, text) {
-  if (!currentUser) return alert('Connectez-vous pour commenter');
-  await addDoc(
-    collection(db, 'posts', postId, 'comments'),
-    {
-      userId   : currentUser.uid,
-      userName : currentUser.displayName || currentUser.email,
-      text,
-      createdAt: serverTimestamp()
-    }
-  );
+
+/* ------------------------------------------------------------------
+ 11. BOOST (sélection + paiement)
+------------------------------------------------------------------ */
+function selectBoostPost(pid,title){
+  boostId=pid;
+  qs('boostStatus').textContent=`1 publication sélectionnée : ${title}`;
+  qs('boostPanel').style.display='block';
+  openTab({currentTarget:document.querySelector('.tablinks[onclick*="vibo"]')},'vibo');
 }
 
-/* === BOOST =========================================== */
-function selectBoostPost(pid, title) {
-  boostId = pid;
-  qs('boostStatus').textContent = `1 publication sélectionnée : ${title}`;
-  qs('boostPanel').style.display = 'block';
-  openTab({currentTarget:document.querySelector('.tablinks[onclick*="vibo"]')}, 'vibo');
-}
-
-/* ===== PORTEFEUILLE (wallet) ========================== */
-async function loadWallet() {
-  if (!currentUser) return;
-  const ref  = doc(db, 'wallets', currentUser.uid);
-  const snap = await getDoc(ref);
-  const bal  = snap.exists() ? snap.data().balance : 0;
-  qs('argent').textContent = bal.toFixed(0);
-  return bal;
-}
-async function deposit(amount) {
-  if (!currentUser) return alert('Connectez-vous');
-  if (amount < 1900) return alert('Montant minimum 1 900 FCFA');
-
-  const ref = doc(db, 'wallets', currentUser.uid);
-
-  await runTransaction(db, async (t) => {
-    const snap = await t.get(ref);
-    const bal = snap.exists() ? snap.data().balance : 0;
-
-    t.set(ref, { balance: bal + amount }, { merge: true });
+async function debit(cost){
+  if(!currentUser)return false;
+  const ref=doc(db,'wallets',currentUser.uid);
+  const ok=await runTransaction(db,async t=>{
+    const snap=await t.get(ref);
+    const bal=snap.exists()?snap.data().balance:0;
+    if(bal<cost)return false;
+    t.update(ref,{balance:bal-cost});
+    return true;
   });
-
+  if(!ok)alert('Solde insuffisant');
   await loadWallet();
+  return ok;
 }
-window.boostPost = async () => {
-  if (!boostId) return alert('Choisissez une publication');
-  const vues = parseInt(qs('boostViews').value);
-  if (isNaN(vues) || vues < 1000) return alert('Min 1 000 vues');
 
-  const cout = Math.ceil(vues / 1000) * 250;   // 250 XAF / 1 k (ajuste si besoin)
-
-  /* 1) débiter le portefeuille */
-  if (!(await debit(cout))) return;
-
-  /* 2) appliquer le boost */
-  try {
-    const refP = doc(db, 'posts', boostId);
-    await updateDoc(refP, {
-      boosted: increment(vues),
-      views  : increment(vues)
-    });
-    qs('boostStatus').textContent = `Boost OK (−${cout} XAF)`;
-    qs('boostViews').value = '';
-    boostId = '';
-
-    /* refresh */
-    renderFeed(); renderMyFeed();
-    await loadTotalViewsAndBalance();
-  } catch (err) {
-    alert('Erreur boost : ' + err.message);
-    /* remboursement si erreur */
-    await deposit(cout);
-  }
+window.boostPost=async()=>{
+  if(!boostId)return alert('Choisissez une publication');
+  const vues=parseInt(qs('boostViews').value);
+  if(isNaN(vues)||vues<1000)return alert('Min 1 000 vues');
+  const cost=Math.ceil(vues/1000)*250;
+  if(!(await debit(cost)))return;
+  try{
+    await updateDoc(doc(db,'posts',boostId),{boosted:increment(vues),views:increment(vues)});
+    qs('boostStatus').textContent=`Boost OK (−${cost} XAF)`;
+    qs('boostViews').value='';boostId='';
+    renderFeed();renderMyFeed();await loadTotalViewsAndBalance();
+  }catch(e){alert('Erreur boost : '+e.message);await deposit(cost);}
 };
 
-/* === USER FEED ======================================= */
-window.openUserFeed = async uid => {
-  openTab({currentTarget:document.querySelector('.tablinks[onclick*="home"]')}, 'userFeed');
-
-  const cont  = qs('userFeedContent');
-  const title = qs('userFeedTitle');
-  cont.textContent = 'Chargement…';
-
-  let authorName  = 'Utilisateur';
-  let authorPhoto = 'https://via.placeholder.com/40';
-
-  const lastSnap = await getDocs(
-    query(
-      collection(db,'posts'),
-      where('userId','==',uid),
-      orderBy('createdAt','desc'),
-      limit(1)
-    )
-  );
-  if (!lastSnap.empty) {
-    const d = lastSnap.docs[0].data();
-    authorName  = d.userName  || authorName;
-    authorPhoto = d.userPhoto || authorPhoto;
-  }
-  title.innerHTML = `
-    <img src="${authorPhoto}" style="width:40px;height:40px;border-radius:50%;vertical-align:middle;margin-right:8px">
-    Publications de <strong>${authorName}</strong>
-  `;
-
-  onSnapshot(
-    query(collection(db,'posts'), where('userId','==',uid), orderBy('createdAt','desc')),
-    snap => {
-      cont.innerHTML='';
-      if (snap.empty) {
-        cont.textContent = 'Aucune publication.';
-      } else {
-        snap.forEach(d=>cont.appendChild(card(d.id,d.data(),false)));
-      }
-    }
-  );
-};
-
-/* === SEARCH ========================================== */
-window.searchUser = async () => {
-  const qstr = qs('searchUserInput').value.trim().toLowerCase();
-  if (!qstr) return alert('Entrez un nom ou e-mail');
-
-  const postsSnap = await getDocs(collection(db,'posts'));
-  const map = new Map();
-  postsSnap.forEach(doc => {
-    const d = doc.data();
-    if (
-      (d.userName || '').toLowerCase().includes(qstr) ||
-      (d.userEmail|| '').toLowerCase().includes(qstr)
-    ) {
-      map.set(d.userId, {
-        uid  : d.userId,
-        name : d.userName,
-        email: d.userEmail,
-        photo: d.userPhoto
-      });
-    }
-  });
-
-  const res = qs('searchResults');
-  res.innerHTML='';
-  if (map.size === 0) {
-    res.textContent='Aucun utilisateur trouvé';
-    return;
-  }
-  map.forEach(u => {
-    const d   = document.createElement('div');
-    d.style.cursor='pointer';
-    d.style.display='flex';
-    d.style.alignItems='center';
-    d.style.marginBottom='8px';
-
-    const img = document.createElement('img');
-    img.src  = u.photo || 'https://via.placeholder.com/40';
-    img.style.width='40px'; img.style.height='40px';
-    img.style.borderRadius='50%'; img.style.marginRight='10px';
-
-    const sp  = document.createElement('span');
-    sp.textContent = u.name || u.email;
-    sp.style.color='#1877f2'; sp.style.fontWeight='bold';
-
-    d.append(img, sp);
-    d.onclick = () => openUserFeed(u.uid);
-    res.appendChild(d);
+/* ------------------------------------------------------------------
+ 12. USER FEED & SEARCH
+------------------------------------------------------------------ */
+window.openUserFeed=async uid=>{
+  openTab({currentTarget:document.querySelector('.tablinks[onclick*="home"]')},'userFeed');
+  const cont=qs('userFeedContent'),title=qs('userFeedTitle');cont.textContent='Chargement…';
+  let name='Utilisateur',photo='https://via.placeholder.com/40';
+  const last=await getDocs(query(collection(db,'posts'),where('userId','==',uid),orderBy('createdAt','desc'),limit(1)));
+  if(!last.empty){const d=last.docs[0].data();name=d.userName||name;photo=d.userPhoto||photo;}
+  title.innerHTML=`<img src="${photo}" style="width:40px;height:40px;border-radius:50%;vertical-align:middle;margin-right:8px">Publications de <strong>${name}</strong>`;
+  onSnapshot(query(collection(db,'posts'),where('userId','==',uid),orderBy('createdAt','desc')),snap=>{
+    cont.innerHTML='';snap.empty?cont.textContent='Aucune publication.':snap.forEach(d=>cont.appendChild(card(d.id,d.data(),false)));
   });
 };
 
-/* === VIEWS & BALANCE ================================= */
-async function loadTotalViewsAndBalance() {
-  if (!currentUser) return;
-  const weekAgo = Date.now() - 7*24*60*60*1000;
-
-  const snap = await getDocs(
-    query(
-      collection(db,'posts'),
-      where('userId','==',currentUser.uid),
-      where('createdAt','>=', new Date(weekAgo))
-    )
-  );
-  let total = 0;
-  snap.forEach(d => {
-    const data = d.data();
-    total += (data.views || 0) + (data.boosted || 0);
+window.searchUser=async()=>{
+  const qstr=qs('searchUserInput').value.trim().toLowerCase();
+  if(!qstr)return alert('Entrez un nom ou e-mail');
+  const s=await getDocs(collection(db,'posts'));const map=new Map();
+  s.forEach(d=>{const v=d.data();if((v.userName||'').toLowerCase().includes(qstr)||(v.userEmail||'').toLowerCase().includes(qstr))
+     map.set(v.userId,{uid:v.userId,name:v.userName,email:v.userEmail,photo:v.userPhoto});});
+  const res=qs('searchResults');res.innerHTML='';
+  if(map.size===0)return res.textContent='Aucun utilisateur trouvé';
+  map.forEach(u=>{
+    const d=document.createElement('div');d.style.cursor='pointer';d.style.display='flex';d.style.alignItems='center';d.style.marginBottom='8px';
+    const img=document.createElement('img');img.src=u.photo||'https://via.placeholder.com/40';img.style.width='40px';img.style.height='40px';img.style.borderRadius='50%';img.style.marginRight='10px';
+    const sp=document.createElement('span');sp.textContent=u.name||u.email;sp.style.color='#1877f2';sp.style.fontWeight='bold';
+    d.append(img,sp);d.onclick=()=>openUserFeed(u.uid);res.appendChild(d);
   });
-  qs('totalViewsCount').textContent     = fmt(total);
-  currentBalance = Math.floor(total / 1000) * 50;
-  qs('currentBalance').textContent = `Solde actuel: ${currentBalance} FCFA`;
+};
+
+/* ------------------------------------------------------------------
+ 13. VUES 7 JOURS & RETRAIT
+------------------------------------------------------------------ */
+async function loadTotalViewsAndBalance(){
+  if(!currentUser)return;
+  const snap=await getDocs(
+    query(collection(db,'posts'),where('userId','==',currentUser.uid),where('createdAt','>=',new Date(Date.now()-6048e5)))
+  );
+  let total=0;
+  snap.forEach(d=>{const v=d.data();total+=(v.views||0)+(v.boosted||0);});
+  qs('totalViewsCount').textContent=fmt(total);
+  currentBalance=Math.floor(total/1000)*50;
+  qs('currentBalance').textContent=`Solde actuel: ${currentBalance} FCFA`;
 }
-window.withdrawBalance = async () => {
-  const amount = qs('withdrawAmount').valueAsNumber;
 
-  /* ----- 1. Vérifs ----- */
-  if (!Number.isFinite(amount) || amount < 5000) {
-    alert('Montant minimum 5000 FCFA');
-    return;
-  }
-  if (amount > currentBalance) {
-    alert('Solde insuffisant');
-    return;
-  }
-
-  /* ----- 2. Débiter dans Firestore ----- */
-  const ref = doc(db, 'balances', currentUser.uid);
-  await setDoc(
-    ref,
-    { balance: increment(-amount), updatedAt: serverTimestamp() },
-    { merge: true }
-  );
-
-  /* ----- 3. Mettre l’UI à jour ----- */
-  currentBalance -= amount;
-  qs('currentBalance').textContent = `Solde actuel: ${currentBalance} FCFA`;
-  qs('withdrawAmount').value = '';
-
-  alert(`Retrait de ${amount} FCFA effectué avec succès !`);
-};/* === EMAIL SIGNUP & LOGIN ============================ */
-window.signupWithEmail = async () => {
-  const name  = qs('signupName' ).value.trim();
-  const email = qs('signupEmail').value.trim();
-  const pass  = qs('signupPassword').value;
-  const age   = parseInt(qs('signupAge').value, 10);
-
-  if (!name || !email || !pass || isNaN(age))
-    return alert('Veuillez remplir tous les champs !');
-  if (age < 18)          return alert('Vous devez avoir au minimum 18 ans.');
-  if (pass.length < 6)   return alert('Le mot de passe doit contenir au moins 6 caractères.');
-
-  try {
-    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-    await updateProfile(cred.user, { displayName: name });
-    location.reload();
-  } catch (err) { alert(err.message); }
-};
-window.loginWithEmail = async () => {
-  const email = qs('loginEmail').value.trim();
-  const pass  = qs('loginPassword').value;
-  if (!email || !pass) return alert('Entrez votre e-mail et mot de passe.');
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-    location.reload();
-  } catch (err) { alert(err.message); }
+window.withdrawBalance=async()=>{
+  const amt=qs('withdrawAmount').valueAsNumber;
+  if(!Number.isFinite(amt)||amt<5000)return alert('Montant minimum 5 000 FCFA');
+  if(amt>currentBalance)return alert('Solde insuffisant');
+  currentBalance-=amt;
+  qs('currentBalance').textContent=`Solde actuel: ${currentBalance} FCFA`;
+  qs('withdrawAmount').value='';
+  alert(`Retrait de ${amt} FCFA effectué !`);
 };
 
+/* ------------------------------------------------------------------
+ 14. INSCRIPTION / CONNEXION E-MAIL
+------------------------------------------------------------------ */
+window.signupWithEmail=async()=>{
+  const name=qs('signupName').value.trim(),email=qs('signupEmail').value.trim(),pass=qs('signupPassword').value,
+        age=parseInt(qs('signupAge').value,10);
+  if(!name||!email||!pass||isNaN(age))return alert('Veuillez remplir tous les champs');
+  if(age<18)return alert('Vous devez avoir au minimum 18 ans');
+  if(pass.length<6)return alert('Mot de passe ≥ 6 caractères');
+  try{
+    const c=await createUserWithEmailAndPassword(auth,email,pass);
+    await updateProfile(c.user,{displayName:name});
+    location.reload();
+  }catch(e){alert(e.message);}
+};
+window.loginWithEmail=async()=>{
+  const email=qs('loginEmail').value.trim(),pass=qs('loginPassword').value;
+  if(!email||!pass)return alert('Entrez e-mail et mot de passe');
+  try{await signInWithEmailAndPassword(auth,email,pass);location.reload();}
+  catch(e){alert(e.message);}
+};
 </script>
 </body>
 </html>
