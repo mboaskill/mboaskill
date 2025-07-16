@@ -169,9 +169,11 @@
 <section id="vibo" class="tabcontent">
   <h3>Booster une publication</h3>
   <div class="post-header">
-    <input type="number" id="montant" placeholder="Entrez le montant" />
-    <button id="deposer">Déposer</button>
-  </div>
+  <input type="number" id="montant" placeholder="Montant à déposer" min="1900" style="padding: 6px; width: 150px;">
+  <button id="notchpayBtn" style="padding: 6px 12px; background-color: #1877f2; color: white; border: none; border-radius: 4px; cursor: pointer;">
+    Payer avec NotchPay
+  </button>
+</div> 
   <p>Argent: <span id="argent">0</span> XAF</p>
 
   <div id="boostPanel" style="display:none;margin-bottom:10px">
@@ -252,6 +254,53 @@ let boostId='', currentBalance=0;
 const qs=id=>document.getElementById(id);
 const fmt=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':n;
 
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const amount = parseFloat(params.get("amount"));
+  const uid = params.get("uid");
+  const ref = params.get("ref");
+
+  if (amount > 0 && uid && ref && currentUser?.uid === uid) {
+    // Empêche double ajout
+    const refDoc = doc(db, 'walletPayments', ref);
+    const existing = await getDoc(refDoc);
+    if (!existing.exists()) {
+      // Crédite le solde
+      const walletRef = doc(db, 'wallets', uid);
+      await runTransaction(db, async t => {
+        const snap = await t.get(walletRef);
+        const old = snap.exists() ? snap.data().balance : 0;
+        t.set(walletRef, { balance: old + amount }, { merge: true });
+      });
+      // Marque la transaction comme enregistrée
+      await setDoc(refDoc, { uid, amount, createdAt: serverTimestamp() });
+      alert(`Paiement réussi : ${amount} FCFA ajouté à votre solde`);
+      location.href = location.origin + location.pathname; // Nettoyer l'URL
+    }
+  }
+})();
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const amount = parseFloat(params.get("amount"));
+  const uid = params.get("uid");
+  const ref = params.get("ref");
+
+  if (amount > 0 && uid && ref && currentUser?.uid === uid) {
+    const refDoc = doc(db, 'walletPayments', ref);
+    const existing = await getDoc(refDoc);
+    if (!existing.exists()) {
+      const walletRef = doc(db, 'wallets', uid);
+      await runTransaction(db, async t => {
+        const snap = await t.get(walletRef);
+        const old = snap.exists() ? snap.data().balance : 0;
+        t.set(walletRef, { balance: old + amount }, { merge: true });
+      });
+      await setDoc(refDoc, { uid, amount, createdAt: serverTimestamp() });
+      alert(`Paiement réussi : ${amount} FCFA ajouté à votre solde`);
+      location.href = location.origin + location.pathname;
+    }
+  }
+})();
 /*──────────────────────────────────────────────────────────
   3. DOM READY — Dépôt
 ──────────────────────────────────────────────────────────*/
@@ -604,6 +653,20 @@ window.loginWithEmail=async()=>{
   try{await signInWithEmailAndPassword(auth,e,p);location.reload();}
   catch(err){alert(err.message);}
 };
+document.getElementById('notchpayBtn')?.addEventListener('click', () => {
+  const m = parseFloat(qs('montant').value);
+  if (isNaN(m) || m < 1900) return alert('Min 1 900 FCFA');
+
+  if (!currentUser) return alert('Connectez-vous');
+
+  const email = currentUser.email;
+  const uid = currentUser.uid;
+  const ref = `tx_${Date.now()}`;
+  const redirectUrl = encodeURIComponent(`${location.origin}${location.pathname}?amount=${m}&uid=${uid}&ref=${ref}`);
+
+  const link = `https://notchpay.me/uVKDgUezZ`;
+  window.location.href = link;
+});
 </script>
 </body>
 </html>
