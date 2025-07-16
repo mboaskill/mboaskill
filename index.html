@@ -80,7 +80,7 @@
 <body>
 
 <header>
-  <i class="fas fa-home tablinks selected"  onclick="openTab(event,'home')"></i>
+<i class="fas fa-home tablinks selected" onclick="openTab(event,'home'); window.scrollTo({ top: 0, behavior: 'smooth' });"></i>
   <i class="fas fa-coins tablinks"           onclick="openTab(event,'totalViewsSection')"></i>
   <i class="fas fa-video tablinks"           onclick="openTab(event,'videoFeed')"></i>
   <i class="fas fa-plus tablinks"            onclick="openTab(event,'post')"></i>
@@ -667,6 +667,10 @@ document.getElementById('notchpayBtn')?.addEventListener('click', () => {
   const link = `https://notchpay.me/uVKDgUezZ`;
   window.location.href = link;
 });
+function openHomeTab(evt) {
+  openTab(evt, 'home'); // Ouvre la section 'home'
+  window.scrollTo({ top: 0, behavior: 'smooth' }); // Remonte en haut avec animation douce
+}
 </script>
 </body>
 </html>
