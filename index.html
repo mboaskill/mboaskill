@@ -315,11 +315,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   4. NAVIGATION & SHUFFLE
 ──────────────────────────────────────────────────────────*/
 window.openTab=(evt,id)=>{
-  const homeActive=id==='home'&&qs('home').classList.contains('active');
+const reClickHome = id === 'home';
   document.querySelectorAll('.tabcontent').forEach(t=>t.classList.toggle('active',t.id===id));
   document.querySelectorAll('.tablinks').forEach(l=>l.classList.toggle('selected',l===evt.currentTarget));
   history.pushState({tab:id},'',`#${id}`);
-  if(homeActive)shuffleFeed();
+  if (reClickHome) renderFeed();
 };
 window.onpopstate=e=>{
   const tab=e.state?.tab||'home';
@@ -437,13 +437,60 @@ window.publishPost=async()=>{
 /*──────────────────────────────────────────────────────────
   9. FEED ACCUEIL (boostés + suivis)
 ──────────────────────────────────────────────────────────*/
-function renderFeed(){
-  const c=qs('feed');c.textContent='Chargement…';
-  const qBoost=query(collection(db,'posts'),where('boosted','>',0),orderBy('boosted','desc'),orderBy('createdAt','desc'),limit(30));
-  onSnapshot(qBoost,snap=>{
-    c.innerHTML='';snap.forEach(d=>c.appendChild(card(d.id,d.data(),false)));
-    loadFollowedPosts(c);
+async function renderFeed() {
+  if (!currentUser) return;
+
+  const c = qs('feed');
+  c.textContent = 'Chargement…';
+
+  const posts = [];
+
+  // Récupérer les posts boostés
+  const qBoost = query(
+    collection(db, 'posts'),
+    where('boosted', '>', 0),
+    orderBy('boosted', 'desc'),
+    orderBy('createdAt', 'desc'),
+    limit(30)
+  );
+  const snapBoost = await getDocs(qBoost);
+  snapBoost.forEach(d => posts.push({ id: d.id, data: d.data() }));
+
+  // Récupérer les posts des utilisateurs suivis
+  if (followingIds.size > 0) {
+    const groups = [...followingIds].reduce((a, u, i) => {
+      if (i % 10 === 0) a.push([]);
+      a[a.length - 1].push(u);
+      return a;
+    }, []);
+
+    for (const g of groups) {
+      const q = query(
+        collection(db, 'posts'),
+        where('userId', 'in', g),
+        orderBy('createdAt', 'desc'),
+        limit(30)
+      );
+      const snap = await getDocs(q);
+      snap.forEach(d => {
+        // Évite les doublons (ex : post déjà boosté)
+        if (!posts.find(p => p.id === d.id)) {
+          posts.push({ id: d.id, data: d.data() });
+        }
+      });
+    }
+  }
+
+  // Trier les posts par date décroissante (plus récents en premier)
+  posts.sort((a, b) => {
+    const ta = a.data.createdAt?.toMillis?.() || 0;
+    const tb = b.data.createdAt?.toMillis?.() || 0;
+    return tb - ta;
   });
+
+  // Afficher les posts
+  c.innerHTML = '';
+  posts.forEach(p => c.appendChild(card(p.id, p.data, false)));
 }
 function loadFollowedPosts(c){
   if(!followingIds.size)return;
@@ -489,58 +536,135 @@ function renderBoostFeed(){
 /*──────────────────────────────────────────────────────────
  12. CARD (like / comments / boost)
 ──────────────────────────────────────────────────────────*/
-function card(id,d,isMine){
-  const w=document.createElement('div');w.className='post';w.dataset.post=id;
+
+function card(id, d, isMine) {
+  const w = document.createElement('div');
+  w.className = 'post';
+  w.dataset.post = id;
 
   /* header */
-  const head=document.createElement('div');head.className='post-header';
-  const img=document.createElement('img');img.src=d.userPhoto;img.onclick=()=>openUserFeed(d.userId);
-  const name=document.createElement('span');name.className='username';name.textContent=d.userName||d.userEmail;
-  name.onclick=()=>openUserFeed(d.userId);
-  head.append(img,name);
-  const fbtn=renderFollowBtn(d.userId);if(fbtn)head.appendChild(fbtn);
-  if(d.boosted>0){const tag=document.createElement('span');tag.textContent='Sponsorisé';tag.style.cssText='margin-left:auto;color:#ffa500;font-size:12px;font-weight:bold';head.appendChild(tag);}
+  const head = document.createElement('div');
+  head.className = 'post-header';
+
+  const img = document.createElement('img');
+  img.src = d.userPhoto;
+  img.onclick = () => openUserFeed(d.userId);
+
+  const name = document.createElement('span');
+  name.className = 'username';
+  name.textContent = d.userName || d.userEmail;
+  name.onclick = () => openUserFeed(d.userId);
+
+  // Affichage du temps écoulé
+  const time = document.createElement('small');
+  time.style.marginLeft = '8px';
+  time.style.color = '#888';
+  if (d.createdAt?.toDate) {
+    time.textContent = `• il y a ${timeSince(d.createdAt.toDate())}`;
+  }
+
+  head.append(img, name, time);
+
+  const fbtn = renderFollowBtn(d.userId);
+  if (fbtn) head.appendChild(fbtn);
+
+  if (d.boosted > 0) {
+    const tag = document.createElement('span');
+    tag.textContent = 'Sponsorisé';
+    tag.style.cssText = 'margin-left:auto;color:#ffa500;font-size:12px;font-weight:bold';
+    head.appendChild(tag);
+  }
+
   w.appendChild(head);
 
   /* content */
-  const cont=document.createElement('div');cont.className='post-content';
-  if(d.videoUrl){cont.innerHTML=`<video src="${d.videoUrl}" controls></video>${d.videoTitle?`<div style="font-weight:bold">${d.videoTitle}</div>`:''}`;}
-  else if(d.text){cont.innerHTML=`<div class="text-bg" style="background:${d.bgColor}">${d.text}</div>`;}
+  const cont = document.createElement('div');
+  cont.className = 'post-content';
+
+  if (d.videoUrl) {
+    cont.innerHTML = `<video src="${d.videoUrl}" controls></video>${d.videoTitle ? `<div style="font-weight:bold">${d.videoTitle}</div>` : ''}`;
+  } else if (d.text) {
+    cont.innerHTML = `<div class="text-bg" style="background:${d.bgColor}">${d.text}</div>`;
+  }
+
   w.appendChild(cont);
 
   /* actions */
-  const act=document.createElement('div');act.className='post-actions';
+  const act = document.createElement('div');
+  act.className = 'post-actions';
+
   // like
-  const like=document.createElement('i');like.className='fa-regular fa-thumbs-up like';
-  if(likedPosts.has(id))like.classList.add('liked');
-  const lCnt=document.createElement('span');lCnt.textContent=fmt(d.likes||0);
-  like.onclick=()=>toggleLike(id,like,lCnt);
-  act.append(like,lCnt);
+  const like = document.createElement('i');
+  like.className = 'fa-regular fa-thumbs-up like';
+  if (likedPosts.has(id)) like.classList.add('liked');
+
+  const lCnt = document.createElement('span');
+  lCnt.textContent = fmt(d.likes || 0);
+
+  like.onclick = () => toggleLike(id, like, lCnt);
+  act.append(like, lCnt);
+
   // vues
-  const vCnt=document.createElement('span');vCnt.textContent=`👁️ ${fmt((d.views||0)+(d.boosted||0))}`;act.appendChild(vCnt);
+  const vCnt = document.createElement('span');
+  vCnt.textContent = `👁️ ${fmt((d.views || 0) + (d.boosted || 0))}`;
+  act.appendChild(vCnt);
+
   // commentaire
-  const comI=document.createElement('i');comI.className='fa-regular fa-comment';
-  const comCnt=document.createElement('span');comCnt.textContent=' … ';act.append(comI,comCnt);
+  const comI = document.createElement('i');
+  comI.className = 'fa-regular fa-comment';
+
+  const comCnt = document.createElement('span');
+  comCnt.textContent = ' … ';
+  act.append(comI, comCnt);
+
   // boost
-  if(isMine){const b=document.createElement('button');b.className='boost-btn';b.textContent='Booster';
-    b.onclick=()=>selectBoostPost(id,d.text||d.videoTitle||'Sans titre');act.appendChild(b);}
+  if (isMine) {
+    const b = document.createElement('button');
+    b.className = 'boost-btn';
+    b.textContent = 'Booster';
+    b.onclick = () => selectBoostPost(id, d.text || d.videoTitle || 'Sans titre');
+    act.appendChild(b);
+  }
+
   w.appendChild(act);
 
   /* comments section */
-  const comSec=document.createElement('div');comSec.className='comments-section';comSec.style.display='none';
-  const comList=document.createElement('div');comSec.appendChild(comList);
-  if(currentUser){
-    const div=document.createElement('div');div.className='comment-input';
-    const inp=document.createElement('input');inp.placeholder='Ajouter un commentaire...';
-    const btn=document.createElement('button');btn.textContent='Envoyer';
-    btn.onclick=()=>{const t=inp.value.trim();if(!t)return;addComment(id,t);inp.value='';};
-    div.append(inp,btn);comSec.appendChild(div);
+  const comSec = document.createElement('div');
+  comSec.className = 'comments-section';
+  comSec.style.display = 'none';
+
+  const comList = document.createElement('div');
+  comSec.appendChild(comList);
+
+  if (currentUser) {
+    const div = document.createElement('div');
+    div.className = 'comment-input';
+
+    const inp = document.createElement('input');
+    inp.placeholder = 'Ajouter un commentaire...';
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Envoyer';
+    btn.onclick = () => {
+      const t = inp.value.trim();
+      if (!t) return;
+      addComment(id, t);
+      inp.value = '';
+    };
+
+    div.append(inp, btn);
+    comSec.appendChild(div);
   }
+
   w.appendChild(comSec);
-  comI.onclick=()=>{comSec.style.display=comSec.style.display==='none'?'block':'none';if(comSec.style.display==='block')loadComments(id,comList,comCnt);};
+
+  comI.onclick = () => {
+    comSec.style.display = comSec.style.display === 'none' ? 'block' : 'none';
+    if (comSec.style.display === 'block') loadComments(id, comList, comCnt);
+  };
+
   return w;
 }
-
 /* LIKE */
 async function loadLikedPosts(){likedPosts.clear();}
 async function toggleLike(pid,icon,cnt){
@@ -670,6 +794,26 @@ document.getElementById('notchpayBtn')?.addEventListener('click', () => {
 function openHomeTab(evt) {
   openTab(evt, 'home'); // Ouvre la section 'home'
   window.scrollTo({ top: 0, behavior: 'smooth' }); // Remonte en haut avec animation douce
+}
+function timeSince(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+  const intervals = {
+    année: 31536000,
+    mois: 2592000,
+    semaine: 604800,
+    jour: 86400,
+    heure: 3600,
+    minute: 60,
+    seconde: 1,
+  };
+
+  for (const [unit, value] of Object.entries(intervals)) {
+    const amount = Math.floor(seconds / value);
+    if (amount >= 1) {
+      return `${amount} ${unit}${amount > 1 ? 's' : ''}`;
+    }
+  }
+  return 'quelques secondes';
 }
 </script>
 </body>
