@@ -437,15 +437,29 @@ window.publishPost=async()=>{
 /*──────────────────────────────────────────────────────────
   9. FEED ACCUEIL (boostés + suivis)
 ──────────────────────────────────────────────────────────*/
+let firstRenderDone = false;
+let cachedPosts = [];
 async function renderFeed() {
-  if (!currentUser) return;
-
   const c = qs('feed');
   c.textContent = 'Chargement…';
 
+  // Si déjà chargé une fois → on permute uniquement
+  if (firstRenderDone && cachedPosts.length > 0) {
+    const shuffled = [...cachedPosts];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    c.innerHTML = '';
+    shuffled.forEach(p => c.appendChild(card(p.id, p.data, false)));
+    return;
+  }
+
+  // Sinon : premier affichage → on récupère depuis Firestore
   const posts = [];
 
-  // Récupérer les posts boostés
+  // Boosted posts
   const qBoost = query(
     collection(db, 'posts'),
     where('boosted', '>', 0),
@@ -456,7 +470,7 @@ async function renderFeed() {
   const snapBoost = await getDocs(qBoost);
   snapBoost.forEach(d => posts.push({ id: d.id, data: d.data() }));
 
-  // Récupérer les posts des utilisateurs suivis
+  // Followed users
   if (followingIds.size > 0) {
     const groups = [...followingIds].reduce((a, u, i) => {
       if (i % 10 === 0) a.push([]);
@@ -473,7 +487,6 @@ async function renderFeed() {
       );
       const snap = await getDocs(q);
       snap.forEach(d => {
-        // Évite les doublons (ex : post déjà boosté)
         if (!posts.find(p => p.id === d.id)) {
           posts.push({ id: d.id, data: d.data() });
         }
@@ -481,14 +494,16 @@ async function renderFeed() {
     }
   }
 
-  // Trier les posts par date décroissante (plus récents en premier)
+  // Trier du plus récent au plus ancien
   posts.sort((a, b) => {
     const ta = a.data.createdAt?.toMillis?.() || 0;
     const tb = b.data.createdAt?.toMillis?.() || 0;
     return tb - ta;
   });
 
-  // Afficher les posts
+  cachedPosts = posts;
+  firstRenderDone = true;
+
   c.innerHTML = '';
   posts.forEach(p => c.appendChild(card(p.id, p.data, false)));
 }
