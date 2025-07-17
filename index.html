@@ -604,11 +604,11 @@ function card(id, d, isMine) {
   like.onclick = () => toggleLike(id, like, lCnt);
   act.append(like, lCnt);
 
-  // vues
-  const vCnt = document.createElement('span');
-  vCnt.textContent = `👁️ ${fmt((d.views || 0) + (d.boosted || 0))}`;
-  act.appendChild(vCnt);
-
+// vues
+const vCnt = document.createElement('span');
+const vuesAffichees = (d.views || 0) + (d.boosted || 0) + ((d.likes || 0) * 10);
+vCnt.textContent = `👁️ ${fmt(vuesAffichees)}`;
+act.appendChild(vCnt);
   // commentaire
   const comI = document.createElement('i');
   comI.className = 'fa-regular fa-comment';
