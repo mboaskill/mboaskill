@@ -315,17 +315,22 @@ document.addEventListener('DOMContentLoaded',()=>{
 /*──────────────────────────────────────────────────────────
   4. NAVIGATION & SHUFFLE
 ──────────────────────────────────────────────────────────*/
-window.openTab=(evt,id)=>{
-const reClickHome = id === 'home';
-  document.querySelectorAll('.tabcontent').forEach(t=>t.classList.toggle('active',t.id===id));
-  document.querySelectorAll('.tablinks').forEach(l=>l.classList.toggle('selected',l===evt.currentTarget));
-  history.pushState({tab:id},'',`#${id}`);
-  if (reClickHome) renderFeed();
-};
-window.onpopstate=e=>{
-  const tab=e.state?.tab||'home';
-  const icon=document.querySelector(`.tablinks[onclick*="'${tab}'"]`)||document.querySelector('.tablinks');
-  if(icon)openTab({currentTarget:icon},tab);
+window.openTab = (evt, id) => {
+  const isAlreadyActive = document.getElementById(id).classList.contains('active');
+
+  // Affiche l’onglet sélectionné
+  document.querySelectorAll('.tabcontent').forEach(t => t.classList.toggle('active', t.id === id));
+  document.querySelectorAll('.tablinks').forEach(l => l.classList.toggle('selected', l === evt.currentTarget));
+  history.pushState({ tab: id }, '', `#${id}`);
+
+  // Recharge le contenu si re-clic
+  if (isAlreadyActive) {
+    if (id === 'home') renderFeed();
+    if (id === 'videoFeed') renderVideoFeed(); // <- ici !
+  }
+
+  // 🟢 S’assurer qu'on appelle renderVideoFeed au premier clic aussi
+  if (id === 'videoFeed') renderVideoFeed();
 };
 function shuffleFeed(){
   const c=qs('feed');const n=[...c.children];
@@ -537,10 +542,27 @@ function renderMyFeed(){
 /*──────────────────────────────────────────────────────────
  11. VIDEO FEED & BOOST FEED
 ──────────────────────────────────────────────────────────*/
-function renderVideoFeed(){
-  const c=qs('videoFeedContent');c.textContent='Chargement…';
-  onSnapshot(query(collection(db,'posts'),where('videoUrl','!=',null),orderBy('createdAt','desc')),
-    snap=>{c.innerHTML='';snap.forEach(d=>c.appendChild(card(d.id,d.data(),false)));});
+function renderVideoFeed() {
+  const c = qs('videoFeedContent');
+  c.textContent = 'Chargement…';
+
+  onSnapshot(
+    query(collection(db, 'posts'), where('videoUrl', '!=', null), orderBy('createdAt', 'desc')),
+    snap => {
+      c.innerHTML = '';
+
+      // Convertir en tableau
+      const docs = Array.from(snap.docs);
+
+      // 🔀 Mélanger les vidéos aléatoirement
+      docs.sort(() => Math.random() - 0.5);
+
+      // Afficher
+      for (const d of docs) {
+        c.appendChild(card(d.id, d.data(), false));
+      }
+    }
+  );
 }
 function renderBoostFeed(){
   if(!currentUser)return;
