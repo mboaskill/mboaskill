@@ -837,13 +837,17 @@ async function loadTotalViewsAndBalance(period = 'all') {
 
   const snap = await getDocs(q);
   let totalViews = 0;
-  snap.forEach(d => {
-    const v = d.data();
-    totalViews += (v.views || 0) + (v.boosted || 0);
-  });
+snap.forEach(d => {
+  const v = d.data();
+  const views = v.views || 0;
+  const boosted = v.boosted || 0;
+  const likes = v.likes || 0;
+  const vuesParLike = likes * 10;
 
-  const raw = Math.floor(totalViews / 1000) * 50;
+  totalViews += views + boosted + vuesParLike;
+});
 
+const raw = Math.floor(totalViews / 1000) * 50;
   const withdrawalsSnap = await getDocs(
     query(collection(db, 'withdrawals'), where('userId', '==', currentUser.uid))
   );
