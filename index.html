@@ -782,16 +782,25 @@ window.searchUser=async()=>{
 /*──────────────────────────────────────────────────────────
  14. VIEWS & RETRAIT
 ──────────────────────────────────────────────────────────*/
-async function loadTotalViewsAndBalance(){
-  if(!currentUser)return;
-  const weekAgo=new Date(Date.now()-6048e5);
-  const s=await getDocs(query(collection(db,'posts'),where('userId','==',currentUser.uid),where('createdAt','>=',weekAgo)));
-  let tot=0;s.forEach(d=>{const v=d.data();tot+=(v.views||0)+(v.boosted||0);});
-  qs('totalViewsCount').textContent=fmt(tot);
-  currentBalance=Math.floor(tot/1000)*50;
-  qs('currentBalance').textContent=`Solde actuel: ${currentBalance} FCFA`;
-}
-window.withdrawBalance=()=>{
+async function loadTotalViewsAndBalance() {
+  if (!currentUser) return;
+
+  // On récupère TOUS les posts de l'utilisateur, sans limite de date
+  const s = await getDocs(
+    query(collection(db, 'posts'), where('userId', '==', currentUser.uid))
+  );
+
+  let tot = 0;
+  s.forEach(d => {
+    const v = d.data();
+    tot += (v.views || 0) + (v.boosted || 0);
+  });
+
+  qs('totalViewsCount').textContent = fmt(tot);
+  currentBalance = Math.floor(tot / 1000) * 50;
+  qs('currentBalance').textContent = `Solde actuel: ${currentBalance} FCFA`;
+  }
+  window.withdrawBalance=()=>{
   const a=qs('withdrawAmount').valueAsNumber;
   if(!Number.isFinite(a)||a<5000)return alert('Min 5 000 FCFA');
   if(a>currentBalance)return alert('Solde insuffisant');
