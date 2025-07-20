@@ -762,6 +762,18 @@ function selectBoostPost(pid,title){
   boostId=pid;qs('boostStatus').textContent=`1 sélection : ${title}`;qs('boostPanel').style.display='block';
   openTab({currentTarget:document.querySelector('.tablinks[onclick*="vibo"]')},'vibo');
 }
+async function prepareWallet() {
+  if (!currentUser) return;
+
+  const walletRef = doc(db, "wallets", currentUser.uid);
+  const walletSnap = await getDoc(walletRef);
+
+  if (!walletSnap.exists()) {
+    // Créer un wallet vide avec 0 FCFA
+    await setDoc(walletRef, { balance: 0 });
+    console.log("Wallet initialisé à 0 FCFA");
+  }
+}
 async function debit(cost){
   if(!currentUser)return false;
   const ref=doc(db,'wallets',currentUser.uid);
@@ -913,35 +925,22 @@ window.loginWithEmail=async()=>{
   try{await signInWithEmailAndPassword(auth,e,p);location.reload();}
   catch(err){alert(err.message);}
 };
-document.getElementById('notchpayBtn')?.addEventListener('click', async () => {
-  const m = parseFloat(qs('montant').value);
-  if (isNaN(m) || m < 1900) return alert('Min 1 900 FCFA');
-  if (!currentUser) return alert('Connectez-vous');
+document.getElementById("notchpayBtn")?.addEventListener("click", async () => {
+  const m = parseFloat(qs("montant").value);
+  if (isNaN(m) || m < 1900) return alert("Min 1 900 FCFA");
+  if (!currentUser) return alert("Connectez-vous");
+
+  await prepareWallet(); // ← ici on initialise le wallet si nécessaire
 
   const email = currentUser.email;
   const uid = currentUser.uid;
   const ref = `tx_${Date.now()}`;
+  const redirectUrl = encodeURIComponent(
+    `${location.origin}${location.pathname}?amount=${m}&uid=${uid}&ref=${ref}`
+  );
 
-  try {
-    // 🔥 Enregistre la tentative de dépôt
-    await setDoc(doc(db, 'pending_deposits', ref), {
-      userId: uid,
-      email,
-      amount: m,
-      reference: ref,
-      status: 'pending',
-      date: new Date()
-    });
-
-    alert("Redirection vers le paiement...");
-
-    // 💰 Redirige vers ta page NotchPay
-    window.location.href = `https://notchpay.me/uVKDgUezZ`;
-
-  } catch (err) {
-    console.error("Erreur Firestore :", err);
-    alert("Erreur lors de l’enregistrement du paiement.");
-  }
+  const link = `https://notchpay.me/uVKDgUezZ`;
+  window.location.href = link;
 });
 function openHomeTab(evt) {
   openTab(evt, 'home'); // Ouvre la section 'home'
