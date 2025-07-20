@@ -129,8 +129,16 @@
 </select>
   Vues: <p id="totalViewsCount" style="background-color:orange">Chargement...</p>
   <p id="currentBalance">Solde actuel: 0 FCFA</p>
-  <input type="number" id="withdrawAmount" placeholder="Montant à retirer (min 50 FCFA)" min="50" />
-  <button onclick="withdrawBalance()">Retirer</button>
+
+  <label for="withdrawAmount">Montant à retirer :</label><br>
+  <input type="number" id="withdrawAmount" placeholder="Ex: 10000" min="5000" required style="width: 100%; margin-bottom: 10px;"><br>
+
+  <label for="withdrawPhone">Numéro de téléphone :</label><br>
+  <input type="tel" id="withdrawPhone" placeholder="Ex: 0700000000" required style="width: 100%; margin-bottom: 15px;"><br>
+
+  <button onclick="withdrawBalance()" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px;">
+    Retirer
+  </button>
   <p id="withdrawStatus"></p>
 </section>
 
@@ -829,8 +837,9 @@ async function loadTotalViewsAndBalance(period = 'all') {
   currentBalance = Math.floor(tot / 1000) * 50;
   qs('currentBalance').textContent = `Solde actuel: ${currentBalance} FCFA`;
   }
-  window.withdrawBalance = async () => {
+ window.withdrawBalance = async () => {
   const a = qs('withdrawAmount').valueAsNumber;
+  const phone = qs('withdrawPhone').value.trim();
 
   if (!Number.isFinite(a) || a < 5000)
     return alert('Montant minimum : 5 000 FCFA');
@@ -838,29 +847,41 @@ async function loadTotalViewsAndBalance(period = 'all') {
   if (a > currentBalance)
     return alert('Solde insuffisant');
 
-  // Mise à jour du solde local
-  currentBalance -= a;
-  qs('currentBalance').textContent = `Solde actuel: ${currentBalance} FCFA`;
-  qs('withdrawAmount').value = '';
+  if (!phone || phone.length < 8)
+    return alert('Veuillez entrer un numéro de téléphone valide.');
 
-  // 🔥 Enregistrement du retrait dans Firestore
   try {
+    // 🔥 1. Enregistrement dans Firestore
     await addDoc(collection(db, 'withdrawals'), {
       userId: currentUser.uid,
       amount: a,
+      phone: phone,
       date: new Date(),
-      status: 'en attente' // tu peux modifier selon ton flux
+      status: 'en attente'
     });
 
-    alert(`Retrait de ${a} FCFA enregistré avec succès !`);
+    // 🧮 2. Mise à jour locale du solde
+    currentBalance -= a;
+    qs('currentBalance').textContent = `Solde actuel: ${currentBalance} FCFA`;
+    qs('withdrawAmount').value = '';
+    qs('withdrawPhone').value = '';
+
+    // 💬 3. Redirection vers WhatsApp avec message
+    const message = encodeURIComponent(
+      `Demande de retrait:\nMontant: ${a} FCFA\nTéléphone: ${phone}`
+    );
+    const whatsappAdmin = '237674073769'; // ← Ton numéro admin
+    const whatsappURL = `https://wa.me/${whatsappAdmin}?text=${message}`;
+    window.open(whatsappURL, '_blank');
+
+    alert(`Demande de retrait enregistrée et transmise !`);
+
   } catch (error) {
     alert('Erreur lors de l’enregistrement du retrait.');
     console.error(error);
   }
-};
-/*──────────────────────────────────────────────────────────
- 15. SIGNUP / LOGIN EMAIL
-──────────────────────────────────────────────────────────*/
+}; 
+// SIGNUP  LOGIN EMAIL
     window.signupWithEmail=async()=>{
   const n=qs('signupName').value.trim(),e=qs('signupEmail').value.trim(),p=qs('signupPassword').value,age=parseInt(qs('signupAge').value,10);
   if(!n||!e||!p||isNaN(age))return alert('Champs manquants');
