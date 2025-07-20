@@ -841,47 +841,64 @@ async function loadTotalViewsAndBalance(period = 'all') {
   const a = qs('withdrawAmount').valueAsNumber;
   const phone = qs('withdrawPhone').value.trim();
 
-  if (!Number.isFinite(a) || a < 5000)
+  if (!currentUser || !currentUser.uid) {
+    return alert("Utilisateur non authentifié.");
+  }
+
+  if (!Number.isFinite(a) || a < 5000) {
     return alert('Montant minimum : 5 000 FCFA');
+  }
 
-  if (a > currentBalance)
+  if (a > currentBalance) {
     return alert('Solde insuffisant');
+  }
 
-  if (!phone || phone.length < 8)
+  if (!phone || phone.length < 8) {
     return alert('Veuillez entrer un numéro de téléphone valide.');
+  }
 
   try {
-    // 🔥 1. Enregistrement dans Firestore
+    // Affiche en console les données qu'on va enregistrer
+    console.log("Enregistrement retrait dans Firestore", {
+      userId: currentUser.uid,
+      amount: a,
+      phone,
+      date: new Date(),
+      status: 'en attente',
+    });
+
+    // Enregistrement dans Firestore
     await addDoc(collection(db, 'withdrawals'), {
       userId: currentUser.uid,
       amount: a,
-      phone: phone,
+      phone,
       date: new Date(),
-      status: 'en attente'
+      status: 'en attente',
     });
 
-    // 🧮 2. Mise à jour locale du solde
+    // Mise à jour locale du solde
     currentBalance -= a;
     qs('currentBalance').textContent = `Solde actuel: ${currentBalance} FCFA`;
+
+    // Réinitialiser les champs
     qs('withdrawAmount').value = '';
     qs('withdrawPhone').value = '';
 
-    // 💬 3. Redirection vers WhatsApp avec message
+    // Préparer et ouvrir le message WhatsApp
     const message = encodeURIComponent(
       `Demande de retrait:\nMontant: ${a} FCFA\nTéléphone: ${phone}`
     );
-    const whatsappAdmin = '237674073769'; // ← Ton numéro admin
+    const whatsappAdmin = '237674073769'; // Remplace par TON numéro WhatsApp admin
     const whatsappURL = `https://wa.me/${whatsappAdmin}?text=${message}`;
     window.open(whatsappURL, '_blank');
 
-    alert(`Demande de retrait enregistrée et transmise !`);
-
+    alert('Demande de retrait enregistrée et transmise !');
   } catch (error) {
-    alert('Erreur lors de l’enregistrement du retrait.');
-    console.error(error);
+    console.error("Erreur lors de l'enregistrement du retrait :", error);
+    alert('Erreur lors de l’enregistrement du retrait. Veuillez réessayer.');
   }
-}; 
-// SIGNUP  LOGIN EMAIL
+};
+  // SIGNUP  LOGIN EMAIL
     window.signupWithEmail=async()=>{
   const n=qs('signupName').value.trim(),e=qs('signupEmail').value.trim(),p=qs('signupPassword').value,age=parseInt(qs('signupAge').value,10);
   if(!n||!e||!p||isNaN(age))return alert('Champs manquants');
