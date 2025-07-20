@@ -423,11 +423,11 @@ async function refreshFollowerCounters(uid){
   7. WALLET dépôt
 ──────────────────────────────────────────────────────────*/
 async function loadWallet(){
-  if(!currentUser)return;
-  const s=await getDoc(doc(db,'wallets',currentUser.uid));
-  qs('argent').textContent=(s.exists()?s.data().balance:10).toFixed(0);
-}
-async function deposit(a){
+  if (!currentUser) return;
+  const s = await getDoc(doc(db, "wallets", currentUser.uid));
+  qs("argent").textContent = (s.exists() ? s.data().balance : 10).toFixed(0);
+  }
+  async function deposit(a){
   if(!currentUser)return alert('Connectez-vous');
   if(a<1900)return alert('Min 1 900 FCFA');
   const ref=doc(db,'wallets',currentUser.uid);
@@ -837,65 +837,65 @@ async function loadTotalViewsAndBalance(period = 'all') {
   currentBalance = Math.floor(tot / 1000) * 50;
   qs('currentBalance').textContent = `Solde actuel: ${currentBalance} FCFA`;
   }
- window.withdrawBalance = async () => {
-  const a = qs('withdrawAmount').valueAsNumber;
-  const phone = qs('withdrawPhone').value.trim();
+window.withdrawBalance = async () => {
+  const a = qs("withdrawAmount").valueAsNumber;
+  const phone = qs("withdrawPhone").value.trim();
 
   if (!currentUser || !currentUser.uid) {
     return alert("Utilisateur non authentifié.");
   }
 
   if (!Number.isFinite(a) || a < 5000) {
-    return alert('Montant minimum : 5 000 FCFA');
-  }
-
-  if (a > currentBalance) {
-    return alert('Solde insuffisant');
+    return alert("Montant minimum : 5 000 FCFA");
   }
 
   if (!phone || phone.length < 8) {
-    return alert('Veuillez entrer un numéro de téléphone valide.');
+    return alert("Veuillez entrer un numéro de téléphone valide.");
+  }
+
+  // 🔁 Récupération du portefeuille Firestore
+  const walletRef = doc(db, "wallets", currentUser.uid);
+  const walletSnap = await getDoc(walletRef);
+  let currentBalance = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
+
+  if (a > currentBalance) {
+    return alert("Solde insuffisant");
   }
 
   try {
-    // Affiche en console les données qu'on va enregistrer
-    console.log("Enregistrement retrait dans Firestore", {
+    // 🔥 Enregistrement du retrait dans la collection 'withdrawals'
+    await addDoc(collection(db, "withdrawals"), {
       userId: currentUser.uid,
       amount: a,
-      phone,
+      phone: phone,
       date: new Date(),
-      status: 'en attente',
+      status: "en attente",
     });
 
-    // Enregistrement dans Firestore
-    await addDoc(collection(db, 'withdrawals'), {
-      userId: currentUser.uid,
-      amount: a,
-      phone,
-      date: new Date(),
-      status: 'en attente',
+    // 🔄 Mise à jour du solde dans le document 'wallets/{uid}'
+    await updateDoc(walletRef, {
+      balance: currentBalance - a,
     });
 
-    // Mise à jour locale du solde
-    currentBalance -= a;
-    qs('currentBalance').textContent = `Solde actuel: ${currentBalance} FCFA`;
+    // 🖥️ Mise à jour visuelle (dans l’élément HTML avec id 'argent')
+    qs("argent").textContent = (currentBalance - a).toFixed(0);
 
-    // Réinitialiser les champs
-    qs('withdrawAmount').value = '';
-    qs('withdrawPhone').value = '';
+    // 🧼 Réinitialiser les champs
+    qs("withdrawAmount").value = "";
+    qs("withdrawPhone").value = "";
 
-    // Préparer et ouvrir le message WhatsApp
+    // 💬 Envoi WhatsApp
     const message = encodeURIComponent(
       `Demande de retrait:\nMontant: ${a} FCFA\nTéléphone: ${phone}`
     );
-    const whatsappAdmin = '237674073769'; // Remplace par TON numéro WhatsApp admin
+    const whatsappAdmin = "237674073769"; // ← ton numéro WhatsApp admin
     const whatsappURL = `https://wa.me/${whatsappAdmin}?text=${message}`;
-    window.open(whatsappURL, '_blank');
+    window.open(whatsappURL, "_blank");
 
-    alert('Demande de retrait enregistrée et transmise !');
+    alert("Demande de retrait enregistrée et transmise !");
   } catch (error) {
-    console.error("Erreur lors de l'enregistrement du retrait :", error);
-    alert('Erreur lors de l’enregistrement du retrait. Veuillez réessayer.');
+    console.error("Erreur lors du retrait :", error);
+    alert("Une erreur est survenue lors du retrait.");
   }
 };
   // SIGNUP  LOGIN EMAIL
