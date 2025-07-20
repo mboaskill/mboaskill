@@ -410,14 +410,14 @@ async function refreshFollowerCounters(uid){
 async function loadWallet(){
   if(!currentUser)return;
   const s=await getDoc(doc(db,'wallets',currentUser.uid));
-  qs('argent').textContent=(s.exists()?s.data().balance:0).toFixed(0);
+  qs('argent').textContent=(s.exists()?s.data().balance:10).toFixed(0);
 }
 async function deposit(a){
   if(!currentUser)return alert('Connectez-vous');
   if(a<1900)return alert('Min 1 900 FCFA');
   const ref=doc(db,'wallets',currentUser.uid);
   await runTransaction(db,async t=>{
-    const s=await t.get(ref);const bal=s.exists()?s.data().balance:0;
+    const s=await t.get(ref);const bal=s.exists()?s.data().balance:10;
     t.set(ref,{balance:bal+a},{merge:true});
   });
   await loadWallet();
