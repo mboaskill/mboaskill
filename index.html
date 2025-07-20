@@ -829,14 +829,35 @@ async function loadTotalViewsAndBalance(period = 'all') {
   currentBalance = Math.floor(tot / 1000) * 50;
   qs('currentBalance').textContent = `Solde actuel: ${currentBalance} FCFA`;
   }
-  window.withdrawBalance=()=>{
-  const a=qs('withdrawAmount').valueAsNumber;
-  if(!Number.isFinite(a)||a<5000)return alert('Min 5 000 FCFA');
-  if(a>currentBalance)return alert('Solde insuffisant');
-  currentBalance-=a;qs('currentBalance').textContent=`Solde actuel: ${currentBalance} FCFA`;
-  qs('withdrawAmount').value='';alert(`Retrait de ${a} FCFA effectué !`);
-};
+  window.withdrawBalance = async () => {
+  const a = qs('withdrawAmount').valueAsNumber;
 
+  if (!Number.isFinite(a) || a < 5000)
+    return alert('Montant minimum : 5 000 FCFA');
+
+  if (a > currentBalance)
+    return alert('Solde insuffisant');
+
+  // Mise à jour du solde local
+  currentBalance -= a;
+  qs('currentBalance').textContent = `Solde actuel: ${currentBalance} FCFA`;
+  qs('withdrawAmount').value = '';
+
+  // 🔥 Enregistrement du retrait dans Firestore
+  try {
+    await addDoc(collection(db, 'withdrawals'), {
+      userId: currentUser.uid,
+      amount: a,
+      date: new Date(),
+      status: 'en attente' // tu peux modifier selon ton flux
+    });
+
+    alert(`Retrait de ${a} FCFA enregistré avec succès !`);
+  } catch (error) {
+    alert('Erreur lors de l’enregistrement du retrait.');
+    console.error(error);
+  }
+};
 /*──────────────────────────────────────────────────────────
  15. SIGNUP / LOGIN EMAIL
 ──────────────────────────────────────────────────────────*/
