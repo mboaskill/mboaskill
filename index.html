@@ -119,7 +119,14 @@
 
 <!-- ============ TOTAL VIEWS ============ -->
 <section id="totalViewsSection" class="tabcontent">
-  <h3>Total des vues (7 derniers jours)</h3>
+  <h3>Total des vues</h3>
+  <label for="periodSelect">Période :</label>
+<select id="periodSelect">
+  <option value="all">Tout</option>
+  <option value="week">7 derniers jours</option>
+  <option value="month">Dernier mois</option>
+  <option value="year">Dernière année</option>
+</select>
   <p id="totalViewsCount">Chargement...</p>
   <p id="currentBalance">Solde actuel: 0 FCFA</p>
   <input type="number" id="withdrawAmount" placeholder="Montant à retirer (min 50 FCFA)" min="50" />
@@ -782,13 +789,35 @@ window.searchUser=async()=>{
 /*──────────────────────────────────────────────────────────
  14. VIEWS & RETRAIT
 ──────────────────────────────────────────────────────────*/
-async function loadTotalViewsAndBalance() {
+async function loadTotalViewsAndBalance(period = 'all') {
   if (!currentUser) return;
 
-  // On récupère TOUS les posts de l'utilisateur, sans limite de date
-  const s = await getDocs(
-    query(collection(db, 'posts'), where('userId', '==', currentUser.uid))
-  );
+  const postsRef = collection(db, 'posts');
+  let q = query(postsRef, where('userId', '==', currentUser.uid));
+
+  // Appliquer un filtre selon la période choisie
+  if (period !== 'all') {
+    let startDate;
+
+    const now = new Date();
+    switch (period) {
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 jours
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        break;
+      case 'year':
+        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        break;
+    }
+
+    if (startDate) {
+      q = query(q, where('createdAt', '>=', startDate));
+    }
+  }
+
+  const s = await getDocs(q);
 
   let tot = 0;
   s.forEach(d => {
@@ -811,7 +840,7 @@ async function loadTotalViewsAndBalance() {
 /*──────────────────────────────────────────────────────────
  15. SIGNUP / LOGIN EMAIL
 ──────────────────────────────────────────────────────────*/
-window.signupWithEmail=async()=>{
+    window.signupWithEmail=async()=>{
   const n=qs('signupName').value.trim(),e=qs('signupEmail').value.trim(),p=qs('signupPassword').value,age=parseInt(qs('signupAge').value,10);
   if(!n||!e||!p||isNaN(age))return alert('Champs manquants');
   if(age<18)return alert('Âge min 18'); if(p.length<6)return alert('Mot de passe ≥6');
@@ -862,6 +891,13 @@ function timeSince(date) {
   }
   return 'quelques secondes';
 }
+  document.getElementById('periodSelect').addEventListener('change', (e) => {
+  const selectedPeriod = e.target.value;
+  loadTotalViewsAndBalance(selectedPeriod);
+});
+
+// Chargement initial avec la période "all"
+loadTotalViewsAndBalance('all');
 </script>
 </body>
 </html>
