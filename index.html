@@ -422,22 +422,40 @@ async function refreshFollowerCounters(uid){
 /*──────────────────────────────────────────────────────────
   7. WALLET dépôt
 ──────────────────────────────────────────────────────────*/
-async function loadWallet(){
+async function loadWallet() {
   if (!currentUser) return;
-  const s = await getDoc(doc(db, "wallets", currentUser.uid));
-  qs("argent").textContent = (s.exists() ? s.data().balance : 10).toFixed(0);
-  }
-  async function deposit(a){
-  if(!currentUser)return alert('Connectez-vous');
-  if(a<1900)return alert('Min 1 900 FCFA');
-  const ref=doc(db,'wallets',currentUser.uid);
-  await runTransaction(db,async t=>{
-    const s=await t.get(ref);const bal=s.exists()?s.data().balance:10;
-    t.set(ref,{balance:bal+a},{merge:true});
-  });
-  await loadWallet();
+
+  const walletRef = doc(db, "wallets", currentUser.uid);
+  const walletSnap = await getDoc(walletRef);
+
+  const balance = walletSnap.exists() ? walletSnap.data().balance : 0;
+  qs("argent").textContent = balance.toFixed(0);
 }
 
+// 🟢 Fonction de dépôt
+async function deposit(amount) {
+  if (!currentUser) return alert("Connectez-vous d'abord.");
+  if (!Number.isFinite(amount) || amount < 1900)
+    return alert("Montant minimum de dépôt : 1 900 FCFA");
+
+  const walletRef = doc(db, "wallets", currentUser.uid);
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const snap = await transaction.get(walletRef);
+      const current = snap.exists() ? snap.data().balance || 0 : 0;
+      const updated = current + amount;
+
+      transaction.set(walletRef, { balance: updated }, { merge: true });
+    });
+
+    alert("Dépôt effectué avec succès !");
+    await loadWallet();
+  } catch (e) {
+    console.error("Erreur dépôt :", e);
+    alert("Erreur lors du dépôt.");
+  }
+}
 /*──────────────────────────────────────────────────────────
   8. PUBLISH POST
 ──────────────────────────────────────────────────────────*/
@@ -797,46 +815,35 @@ window.searchUser=async()=>{
 /*──────────────────────────────────────────────────────────
  14. VIEWS & RETRAIT
 ──────────────────────────────────────────────────────────*/
+
 async function loadTotalViewsAndBalance(period = 'all') {
   if (!currentUser) return;
 
   const postsRef = collection(db, 'posts');
   let q = query(postsRef, where('userId', '==', currentUser.uid));
+  // Ajoute filtre période si besoin
 
-  // Appliquer un filtre selon la période choisie
-  if (period !== 'all') {
-    let startDate;
-
-    const now = new Date();
-    switch (period) {
-      case 'week':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 jours
-        break;
-      case 'month':
-        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-        break;
-      case 'year':
-        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-        break;
-    }
-
-    if (startDate) {
-      q = query(q, where('createdAt', '>=', startDate));
-    }
-  }
-
-  const s = await getDocs(q);
-
-  let tot = 0;
-  s.forEach(d => {
+  const snap = await getDocs(q);
+  let totalViews = 0;
+  snap.forEach(d => {
     const v = d.data();
-    tot += (v.views || 0) + (v.boosted || 0);
+    totalViews += (v.views || 0) + (v.boosted || 0);
   });
 
-  qs('totalViewsCount').textContent = fmt(tot);
-  currentBalance = Math.floor(tot / 1000) * 50;
-  qs('currentBalance').textContent = `Solde actuel: ${currentBalance} FCFA`;
-  }
+  const raw = Math.floor(totalViews / 1000) * 50;
+
+  const withdrawalsSnap = await getDocs(
+    query(collection(db, 'withdrawals'), where('userId', '==', currentUser.uid))
+  );
+  const withdrawn = withdrawalsSnap.docs.reduce((sum, d) => sum + (d.data().amount || 0), 0);
+
+  const potential = raw - withdrawn;
+  qs('totalViewsCount').textContent = fmt(totalViews);
+  qs('currentBalance').textContent = potential + ' FCFA';
+
+  currentBalance = potential; // mise à jour interne seulement
+}
+// 🔁 Fonction de retrait
 window.withdrawBalance = async () => {
   const a = qs("withdrawAmount").valueAsNumber;
   const phone = qs("withdrawPhone").value.trim();
@@ -850,20 +857,18 @@ window.withdrawBalance = async () => {
   }
 
   if (!phone || phone.length < 8) {
-    return alert("Veuillez entrer un numéro de téléphone valide.");
+    return alert("Veuillez entrer un numéro valide.");
   }
 
-  // 🔁 Récupération du portefeuille Firestore
-  const walletRef = doc(db, "wallets", currentUser.uid);
-  const walletSnap = await getDoc(walletRef);
-  let currentBalance = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
+  // Recalculer le solde si jamais la page n’est pas fraîche
+  await loadTotalViewsAndBalance(); // pour éviter erreurs
 
   if (a > currentBalance) {
-    return alert("Solde insuffisant");
+    return alert("Solde insuffisant.");
   }
 
   try {
-    // 🔥 Enregistrement du retrait dans la collection 'withdrawals'
+    // 🔥 Enregistrer le retrait
     await addDoc(collection(db, "withdrawals"), {
       userId: currentUser.uid,
       amount: a,
@@ -872,32 +877,28 @@ window.withdrawBalance = async () => {
       status: "en attente",
     });
 
-    // 🔄 Mise à jour du solde dans le document 'wallets/{uid}'
-    await updateDoc(walletRef, {
-      balance: currentBalance - a,
-    });
-
-    // 🖥️ Mise à jour visuelle (dans l’élément HTML avec id 'argent')
-    qs("argent").textContent = (currentBalance - a).toFixed(0);
-
-    // 🧼 Réinitialiser les champs
-    qs("withdrawAmount").value = "";
-    qs("withdrawPhone").value = "";
-
-    // 💬 Envoi WhatsApp
+    // 💬 Message WhatsApp
     const message = encodeURIComponent(
       `Demande de retrait:\nMontant: ${a} FCFA\nTéléphone: ${phone}`
     );
-    const whatsappAdmin = "237674073769"; // ← ton numéro WhatsApp admin
+    const whatsappAdmin = "237674073769";
     const whatsappURL = `https://wa.me/${whatsappAdmin}?text=${message}`;
     window.open(whatsappURL, "_blank");
 
+    // 🖥️ Réinitialiser l’UI
+    qs("withdrawAmount").value = "";
+    qs("withdrawPhone").value = "";
+
+    // 🔁 Recharger le solde à l’écran
+    await loadTotalViewsAndBalance();
+
     alert("Demande de retrait enregistrée et transmise !");
-  } catch (error) {
-    console.error("Erreur lors du retrait :", error);
-    alert("Une erreur est survenue lors du retrait.");
+  } catch (err) {
+    console.error("Erreur de retrait :", err);
+    alert("Une erreur est survenue.");
   }
 };
+
   // SIGNUP  LOGIN EMAIL
     window.signupWithEmail=async()=>{
   const n=qs('signupName').value.trim(),e=qs('signupEmail').value.trim(),p=qs('signupPassword').value,age=parseInt(qs('signupAge').value,10);
@@ -912,19 +913,35 @@ window.loginWithEmail=async()=>{
   try{await signInWithEmailAndPassword(auth,e,p);location.reload();}
   catch(err){alert(err.message);}
 };
-document.getElementById('notchpayBtn')?.addEventListener('click', () => {
+document.getElementById('notchpayBtn')?.addEventListener('click', async () => {
   const m = parseFloat(qs('montant').value);
   if (isNaN(m) || m < 1900) return alert('Min 1 900 FCFA');
-
   if (!currentUser) return alert('Connectez-vous');
 
   const email = currentUser.email;
   const uid = currentUser.uid;
   const ref = `tx_${Date.now()}`;
-  const redirectUrl = encodeURIComponent(`${location.origin}${location.pathname}?amount=${m}&uid=${uid}&ref=${ref}`);
 
-  const link = `https://notchpay.me/uVKDgUezZ`;
-  window.location.href = link;
+  try {
+    // 🔥 Enregistre la tentative de dépôt
+    await setDoc(doc(db, 'pending_deposits', ref), {
+      userId: uid,
+      email,
+      amount: m,
+      reference: ref,
+      status: 'pending',
+      date: new Date()
+    });
+
+    alert("Redirection vers le paiement...");
+
+    // 💰 Redirige vers ta page NotchPay
+    window.location.href = `https://notchpay.me/uVKDgUezZ`;
+
+  } catch (err) {
+    console.error("Erreur Firestore :", err);
+    alert("Erreur lors de l’enregistrement du paiement.");
+  }
 });
 function openHomeTab(evt) {
   openTab(evt, 'home'); // Ouvre la section 'home'
