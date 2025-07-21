@@ -916,7 +916,7 @@ window.withdrawBalance = async () => {
 };
 
   // SIGNUP  LOGIN EMAIL
-    window.signupWithEmail = async () => {
+window.signupWithEmail = async () => {
   const n = qs('signupName').value.trim();
   const e = qs('signupEmail').value.trim();
   const p = qs('signupPassword').value;
@@ -927,12 +927,12 @@ window.withdrawBalance = async () => {
   if (p.length < 6) return alert('Mot de passe ≥6');
 
   try {
-    // ✅ Création du compte
+    // Création du compte
     const c = await createUserWithEmailAndPassword(auth, e, p);
     const user = c.user;
     await updateProfile(user, { displayName: n });
 
-    // ✅ Enregistrement dans Firestore
+    // Enregistrement dans Firestore
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       name: n,
@@ -941,7 +941,7 @@ window.withdrawBalance = async () => {
       createdAt: serverTimestamp()
     });
 
-    // ✅ Suivi automatique de mboaskill
+    // Suivi automatique de mboaskill — même format que dans Home
     const mboaskillUID = "RyYsQko6cLSltTL0uiUYRx0guag1";
     await setDoc(doc(db, "followers", `${mboaskillUID}_${user.uid}`), {
       followedId: mboaskillUID,
@@ -949,7 +949,7 @@ window.withdrawBalance = async () => {
       date: serverTimestamp()
     });
 
-    alert("Compte créé et abonnement automatique à mboaskill effectué !");
+    alert("Compte créé avec succes!");
     location.reload();
 
   } catch (err) {
