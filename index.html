@@ -977,6 +977,24 @@ function timeSince(date) {
 
 // Chargement initial avec la période "all"
 loadTotalViewsAndBalance('all');
+  function handleVideoVisibility() {
+  const videos = document.querySelectorAll('video[data-video]');
+
+  videos.forEach(video => {
+    const rect = video.getBoundingClientRect();
+    const inView = rect.top >= 0 && rect.bottom <= window.innerHeight;
+
+    if (inView) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  });
+}
+
+window.addEventListener('scroll', handleVideoVisibility);
+window.addEventListener('resize', handleVideoVisibility);
+window.addEventListener('load', handleVideoVisibility);
 </script>
 </body>
 </html>
