@@ -786,7 +786,7 @@ window.boostPost=async()=>{
   const cost=Math.ceil(v/1000)*250;if(!(await debit(cost)))return;
   try{
     await updateDoc(doc(db,'posts',boostId),{boosted:increment(v),views:increment(v)});
-    qs('boostStatus').textContent=`Boost OK (−${cost} XAF)`;qs('boostViews').value='';boostId='';renderFeed();renderMyFeed();await loadTotalViewsAndBalance();
+    qs('boostStatus').textContent=`Boost succès ✔️`;qs('boostViews').value='';boostId='';renderFeed();renderMyFeed();await loadTotalViewsAndBalance();
   }catch(e){alert('Erreur boost : '+e.message);await deposit(cost);}
 };
 
@@ -916,12 +916,46 @@ window.withdrawBalance = async () => {
 };
 
   // SIGNUP  LOGIN EMAIL
-    window.signupWithEmail=async()=>{
-  const n=qs('signupName').value.trim(),e=qs('signupEmail').value.trim(),p=qs('signupPassword').value,age=parseInt(qs('signupAge').value,10);
-  if(!n||!e||!p||isNaN(age))return alert('Champs manquants');
-  if(age<18)return alert('Âge min 18'); if(p.length<6)return alert('Mot de passe ≥6');
-  try{const c=await createUserWithEmailAndPassword(auth,e,p);await updateProfile(c.user,{displayName:n});location.reload();}
-  catch(err){alert(err.message);}
+    window.signupWithEmail = async () => {
+  const n = qs('signupName').value.trim();
+  const e = qs('signupEmail').value.trim();
+  const p = qs('signupPassword').value;
+  const age = parseInt(qs('signupAge').value, 10);
+
+  if (!n || !e || !p || isNaN(age)) return alert('Champs manquants');
+  if (age < 18) return alert('Âge min 18');
+  if (p.length < 6) return alert('Mot de passe ≥6');
+
+  try {
+    // ✅ Création du compte
+    const c = await createUserWithEmailAndPassword(auth, e, p);
+    const user = c.user;
+    await updateProfile(user, { displayName: n });
+
+    // ✅ Enregistrement dans Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      uid: user.uid,
+      name: n,
+      email: e,
+      age: age,
+      createdAt: serverTimestamp()
+    });
+
+    // ✅ Suivi automatique de mboaskill
+    const mboaskillUID = "RyYsQko6cLSltTL0uiUYRx0guag1";
+    await setDoc(doc(db, "followers", `${mboaskillUID}_${user.uid}`), {
+      followedId: mboaskillUID,
+      followerId: user.uid,
+      date: serverTimestamp()
+    });
+
+    alert("Compte créé et abonnement automatique à mboaskill effectué !");
+    location.reload();
+
+  } catch (err) {
+    alert(err.message);
+    console.error(err);
+  }
 };
 window.loginWithEmail=async()=>{
   const e=qs('loginEmail').value.trim(),p=qs('loginPassword').value;
