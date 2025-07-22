@@ -382,43 +382,69 @@ onAuthStateChanged(auth,async user=>{
   6. FOLLOW / FOLLOWERS
 ──────────────────────────────────────────────────────────*/
   
-async function loadFollowing(){
-  if(!currentUser)return;
-  const s=await getDocs(collection(db,'follows',currentUser.uid,'list'));
-  followingIds=new Set(s.docs.map(d=>d.id));
+let followingIds = new Set();
+
+async function loadFollowing() {
+  if (!currentUser) return;
+  const s = await getDocs(collection(db, 'follows', currentUser.uid, 'list'));
+  followingIds = new Set(s.docs.map(d => d.id));
 }
-function updateFollowBtn(uid,b){
-  const on=followingIds.has(uid);
-  b.textContent=on?'Suivi(e)':'Suivre';
-  b.style.background=on?'#ccc':'#1877f2';
-  b.style.color=on?'#000':'#fff';
+
+function updateFollowBtn(uid, b) {
+  // Sécurité si followingIds pas encore chargé
+  if (!followingIds || typeof followingIds.has !== 'function') {
+    b.textContent = '...';
+    b.disabled = true;
+    return;
+  }
+
+  const on = followingIds.has(uid);
+  b.textContent = on ? 'Suivi(e)' : 'Suivre';
+  b.style.background = on ? '#ccc' : '#1877f2';
+  b.style.color = on ? '#000' : '#fff';
+  b.disabled = false;
 }
-function renderFollowBtn(uid){
-  if(!currentUser||uid===currentUser.uid)return null;
-  const b=document.createElement('button');b.className='follow-btn';
-  updateFollowBtn(uid,b);
-  b.onclick=()=>toggleFollow(uid,b);
+
+function renderFollowBtn(uid) {
+  if (!currentUser || uid === currentUser.uid) return null;
+  const b = document.createElement('button');
+  b.className = 'follow-btn';
+  updateFollowBtn(uid, b);
+  b.onclick = () => toggleFollow(uid, b);
   return b;
 }
-async function toggleFollow(uid,b){
-  if(!currentUser)return alert('Connectez-vous');
-  const myRef=doc(db,'follows',currentUser.uid,'list',uid);
-  const hisRef=doc(db,'follows',uid,'list',currentUser.uid);
-  const on=followingIds.has(uid);
-  if(on){
-    await Promise.all([deleteDoc(myRef),deleteDoc(hisRef)]);
+
+async function toggleFollow(uid, b) {
+  if (!currentUser) return alert('Connectez-vous');
+
+  const myRef = doc(db, 'follows', currentUser.uid, 'list', uid);
+  const hisRef = doc(db, 'follows', uid, 'list', currentUser.uid);
+  const on = followingIds.has(uid);
+
+  if (on) {
+    await Promise.all([
+      deleteDoc(myRef),
+      deleteDoc(hisRef)
+    ]);
     followingIds.delete(uid);
-  }else{
-    await Promise.all([setDoc(myRef,{}),setDoc(hisRef,{})]);
+  } else {
+    await Promise.all([
+      setDoc(myRef, {}),
+      setDoc(hisRef, { uid: currentUser.uid, date: serverTimestamp() })
+    ]);
     followingIds.add(uid);
   }
-  updateFollowBtn(uid,b); refreshFollowerCounters(uid);
+
+  updateFollowBtn(uid, b);
+  refreshFollowerCounters(uid);
 }
-async function refreshFollowerCounters(uid){
-  const snap=await getDocs(collection(db,'follows',uid,'list'));
-  const n=snap.size;
-  document.querySelectorAll(`[data-followers-of="${uid}"]`).forEach(el => el.textContent = `Followers : ${fmt(n)}`);
-}
+
+async function refreshFollowerCounters(uid) {
+  const snap = await getDocs(collection(db, 'follows', uid, 'list'));
+  const n = snap.size;
+  document.querySelectorAll(`[data-followers-of="${uid}"]`)
+    .forEach(el => el.textContent = `Followers : ${fmt(n)}`);
+  }
 /*──────────────────────────────────────────────────────────
   7. WALLET dépôt
 ──────────────────────────────────────────────────────────*/
@@ -933,7 +959,7 @@ window.signupWithEmail = async () => {
     const user = c.user;
     await updateProfile(user, { displayName: n });
 
-    // ✅ Enregistrement dans "users"
+    // ✅ Enregistrement dans Firestore
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       name: n,
@@ -944,12 +970,16 @@ window.signupWithEmail = async () => {
 
     // ✅ Suivi automatique de l'admin (mboaskill)
     const mboaskillUID = "RyYsQko6cLSltTL0uiUYRx0guag1";
+    await Promise.all([
+      setDoc(doc(db, "follows", user.uid, "list", mboaskillUID), {}),
+      setDoc(doc(db, "follows", mboaskillUID, "list", user.uid), {
+        uid: user.uid,
+        date: serverTimestamp()
+      })
+    ]);
 
-    const followRef = doc(db, "follows", mboaskillUID, "list", user.uid);
-    await setDoc(followRef, {
-      uid: user.uid,
-      date: serverTimestamp()
-    });
+    // ✅ Met à jour followingIds pour que les boutons soient corrects
+    await loadFollowing();
 
     alert("Compte créé avec succès !");
     location.reload();
