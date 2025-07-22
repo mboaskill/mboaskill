@@ -808,22 +808,54 @@ window.openUserFeed=async uid=>{
   onSnapshot(query(collection(db,'posts'),where('userId','==',uid),orderBy('createdAt','desc')),
     snap=>{cont.innerHTML='';snap.empty?cont.textContent='Aucune publication.':snap.forEach(d=>cont.appendChild(card(d.id,d.data(),false)));});
 };
-window.searchUser=async()=>{
-  const q=qs('searchUserInput').value.trim().toLowerCase();
-  if(!q)return alert('Entrez un nom ou e-mail');
-  const s=await getDocs(collection(db,'posts'));const map=new Map();
-  s.forEach(d=>{const v=d.data();if((v.userName||'').toLowerCase().includes(q)||(v.userEmail||'').toLowerCase().includes(q))map.set(v.userId,{uid:v.userId,name:v.userName,email:v.userEmail,photo:v.userPhoto});});
-  const res=qs('searchResults');res.innerHTML='';
-  if(map.size===0)return res.textContent='Aucun utilisateur trouvé';
-  map.forEach(u=>{
-    const d=document.createElement('div');d.style.cssText='cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:8px';
-    const img=document.createElement('img');img.src=u.photo||'https://via.placeholder.com/40';img.style.cssText='width:40px;height:40px;border-radius:50%';
-    const span=document.createElement('span');span.textContent=u.name||u.email;span.style.cssText='color:#1877f2;font-weight:bold';
-    const btn=renderFollowBtn(u.uid);
-    d.append(img,span);if(btn)d.append(btn);d.onclick=()=>openUserFeed(u.uid);res.appendChild(d);
+window.search = async () => {
+  const q = qs('searchUserInput').value.trim().toLowerCase();
+  if (!q) return alert('Entrez un nom ou e-mail');
+
+  const snapshot = await getDocs(collection(db, 'users'));
+  const currentUser = auth.currentUser;
+  const res = qs('searchResults');
+  res.innerHTML = '';
+
+  const foundUsers = [];
+
+  snapshot.forEach(docSnap => {
+    const u = docSnap.data();
+    const name = (u.name || '').toLowerCase();
+    const email = (u.email || '').toLowerCase();
+
+    // On exclut l'utilisateur courant + on filtre par nom ou email
+    if (
+      u.uid !== currentUser.uid &&
+      (name.includes(q) || email.includes(q))
+    ) {
+      foundUsers.push(u);
+    }
+  });
+
+  if (foundUsers.length === 0) return (res.textContent = 'Aucun utilisateur trouvé');
+
+  foundUsers.forEach(u => {
+    const d = document.createElement('div');
+    d.style.cssText = 'cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:8px';
+
+    const img = document.createElement('img');
+    img.src = u.photo || 'https://via.placeholder.com/40';
+    img.style.cssText = 'width:40px;height:40px;border-radius:50%';
+
+    const span = document.createElement('span');
+    span.textContent = u.name || u.email;
+    span.style.cssText = 'color:#1877f2;font-weight:bold';
+
+    const btn = renderFollowBtn(u.uid);
+
+    d.append(img, span);
+    if (btn) d.append(btn);
+
+    d.onclick = () => openUserFeed(u.uid);
+    res.appendChild(d);
   });
 };
-
 /*──────────────────────────────────────────────────────────
  14. VIEWS & RETRAIT
 ──────────────────────────────────────────────────────────*/
