@@ -932,7 +932,7 @@ window.signupWithEmail = async () => {
     const user = c.user;
     await updateProfile(user, { displayName: n });
 
-    // ✅ Enregistrement dans Firestore
+    // ✅ Enregistrement dans "users"
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       name: n,
@@ -941,15 +941,14 @@ window.signupWithEmail = async () => {
       createdAt: serverTimestamp()
     });
 
-    // ✅ Suivi automatique — on ajoute dans /follows/{followedId}/list/{followerId}
+    // ✅ Suivi automatique de l'admin (mboaskill)
     const mboaskillUID = "RyYsQko6cLSltTL0uiUYRx0guag1";
-    await setDoc(
-      doc(db, "follows", mboaskillUID, "list", user.uid),
-      {
-        uid: user.uid,
-        date: serverTimestamp()
-      }
-    );
+
+    const followRef = doc(db, "follows", mboaskillUID, "list", user.uid);
+    await setDoc(followRef, {
+      uid: user.uid,
+      date: serverTimestamp()
+    });
 
     alert("Compte créé avec succès !");
     location.reload();
@@ -959,30 +958,6 @@ window.signupWithEmail = async () => {
     console.error(err);
   }
 };
-  async function checkIfFollowing(targetUID, currentUserUID) {
-  const docRef = doc(db, "follows", targetUID, "list", currentUserUID);
-  const docSnap = await getDoc(docRef);
-  return docSnap.exists(); // true si déjà suivi
-  }
-  for (const user of allUsers) {
-  const isFollowing = await checkIfFollowing(user.uid, auth.currentUser.uid);
-
-  const btn = document.createElement('button');
-  btn.textContent = isFollowing ? "Suivi(e)" : "Suivre";
-  btn.className = isFollowing ? "followed-btn" : "follow-btn";
-
-  btn.onclick = async () => {
-    if (isFollowing) return; // déjà suivi
-    await setDoc(doc(db, "follows", user.uid, "list", auth.currentUser.uid), {
-      uid: auth.currentUser.uid,
-      date: serverTimestamp()
-    });
-    btn.textContent = "Suivi(e)";
-    btn.className = "followed-btn";
-  };
-
-  container.appendChild(btn);
-  }
 window.loginWithEmail=async()=>{
   const e=qs('loginEmail').value.trim(),p=qs('loginPassword').value;
   if(!e||!p)return alert('Entrez e-mail et mdp');
