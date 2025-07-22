@@ -382,8 +382,6 @@ onAuthStateChanged(auth,async user=>{
   6. FOLLOW / FOLLOWERS
 ──────────────────────────────────────────────────────────*/
   
-let followingIds = new Set();
-
 async function loadFollowing() {
   if (!currentUser) return;
   const s = await getDocs(collection(db, 'follows', currentUser.uid, 'list'));
