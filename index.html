@@ -679,8 +679,8 @@ function card(id, d, isMine) {
   if (d.videoUrl) {
     cont.innerHTML = `<video src="${d.videoUrl}" controls></video>${d.videoTitle ? `<div style="font-weight:bold">${d.videoTitle}</div>` : ''}`;
   } else if (d.text) {
-    cont.innerHTML = `<div class="text-bg" style="background:${d.bgColor}">${d.text}</div>`;
-  }
+  cont.innerHTML = `<div class="text-bg" style="background:${d.bgColor}">${linkifyText(d.text)}</div>`;
+}
 
   w.appendChild(cont);
 
@@ -771,10 +771,21 @@ async function toggleLike(pid,icon,cnt){
 }
 
 /* COMMENTS */
-async function loadComments(pid,container,cnt){
-  const s=await getDocs(query(collection(db,'posts',pid,'comments'),orderBy('createdAt')));
-  container.innerHTML='';cnt.textContent=s.size;
-  s.forEach(d=>{const c=d.data();const div=document.createElement('div');div.className='comment';div.innerHTML=`<strong>${c.userName}</strong> : ${c.text}`;container.appendChild(div);});
+async function loadComments(pid, container, cnt) {
+  const s = await getDocs(query(collection(db, 'posts', pid, 'comments'), orderBy('createdAt')));
+  container.innerHTML = '';
+  cnt.textContent = s.size;
+
+  s.forEach(d => {
+    const c = d.data();
+    const div = document.createElement('div');
+    div.className = 'comment';
+    
+    const textWithLinks = linkifyText(c.text || '');
+    div.innerHTML = `<strong>${c.userName}</strong> : ${textWithLinks}`;
+
+    container.appendChild(div);
+  });
 }
 async function addComment(pid,text){
   if(!currentUser)return;
@@ -1059,6 +1070,14 @@ loadTotalViewsAndBalance('all');
 window.addEventListener('scroll', handleVideoVisibility);
 window.addEventListener('resize', handleVideoVisibility);
 window.addEventListener('load', handleVideoVisibility);
+function linkifyText(text) {
+  const urlPattern = /(\b(https?:\/\/)?([\w.-]+\.[a-z]{2,})(\/\S*)?)/gi;
+  return text.replace(urlPattern, (match) => {
+    let url = match;
+    if (!url.startsWith("http")) url = "https://" + url;
+    return `<a href="${url}" target="_blank" style="color:#1877f2;text-decoration:underline;">${match}</a>`;
+  });
+}
 </script>
 </body>
 </html>
