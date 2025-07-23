@@ -637,20 +637,21 @@ function card(id, d, isMine) {
   w.className = 'post';
   w.dataset.post = id;
 
-  /* header */
+  /* ---------- HEADER ---------- */
   const head = document.createElement('div');
   head.className = 'post-header';
 
   const img = document.createElement('img');
-  img.src = d.userPhoto;
+  img.src = d.userPhoto || 'https://via.placeholder.com/40';
+  img.alt = d.userName || d.userEmail || 'Profil';
   img.onclick = () => openUserFeed(d.userId);
 
   const name = document.createElement('span');
   name.className = 'username';
-  name.textContent = d.userName || d.userEmail;
+  name.textContent = d.userName || d.userEmail || 'Utilisateur';
   name.onclick = () => openUserFeed(d.userId);
 
-  // Affichage du temps écoulé
+  // Temps relatif
   const time = document.createElement('small');
   time.style.marginLeft = '8px';
   time.style.color = '#888';
@@ -660,10 +661,12 @@ function card(id, d, isMine) {
 
   head.append(img, name, time);
 
+  // Bouton suivre
   const fbtn = renderFollowBtn(d.userId);
   if (fbtn) head.appendChild(fbtn);
 
-  if (d.boosted > 0) {
+  // Étiquette sponsorisé si boosté
+  if ((d.boosted || 0) > 0) {
     const tag = document.createElement('span');
     tag.textContent = 'Sponsorisé';
     tag.style.cssText = 'margin-left:auto;color:#ffa500;font-size:12px;font-weight:bold';
@@ -672,23 +675,29 @@ function card(id, d, isMine) {
 
   w.appendChild(head);
 
-  /* content */
+  /* ---------- CONTENT ---------- */
   const cont = document.createElement('div');
   cont.className = 'post-content';
 
   if (d.videoUrl) {
-    cont.innerHTML = `<video src="${d.videoUrl}" controls></video>${d.videoTitle ? `<div style="font-weight:bold">${d.videoTitle}</div>` : ''}`;
+    // Vidéo
+    const vidHtml = `
+      <video src="${d.videoUrl}" controls></video>
+      ${d.videoTitle ? `<div style="font-weight:bold;margin-top:4px;">${linkifyText(d.videoTitle)}</div>` : ''}
+    `;
+    cont.innerHTML = vidHtml;
   } else if (d.text) {
-  cont.innerHTML = `<div class="text-bg" style="background:${d.bgColor}">${linkifyText(d.text)}</div>`;
-}
+    // Texte + liens
+    cont.innerHTML = `<div class="text-bg" style="background:${d.bgColor || '#1877f2'}">${linkifyText(d.text)}</div>`;
+  }
 
   w.appendChild(cont);
 
-  /* actions */
+  /* ---------- ACTIONS ---------- */
   const act = document.createElement('div');
   act.className = 'post-actions';
 
-  // like
+  // Like
   const like = document.createElement('i');
   like.className = 'fa-regular fa-thumbs-up like';
   if (likedPosts.has(id)) like.classList.add('liked');
@@ -699,20 +708,30 @@ function card(id, d, isMine) {
   like.onclick = () => toggleLike(id, like, lCnt);
   act.append(like, lCnt);
 
-// vues
-const vCnt = document.createElement('span');
-const vuesAffichees = (d.views || 0) + (d.boosted || 0) + ((d.likes || 0) * 10);
-vCnt.textContent = `👁️ ${fmt(vuesAffichees)}`;
-act.appendChild(vCnt);
-  // commentaire
+  // 🟡 EDIT (uniquement mes posts) — placé AVANT commentaires
+  if (isMine) {
+    const edit = document.createElement('i');
+    edit.className = 'fa-solid fa-pen-to-square';
+    edit.style.cursor = 'pointer';
+    edit.title = 'Modifier';
+    edit.onclick = () => editPost(id, d);
+    act.appendChild(edit);
+  }
+
+  // Vues (affichage combiné)
+  const vCnt = document.createElement('span');
+  const vuesAffichees = (d.views || 0) + (d.boosted || 0) + ((d.likes || 0) * 10);
+  vCnt.textContent = `👁️ ${fmt(vuesAffichees)}`;
+  act.appendChild(vCnt);
+
+  // Commentaire
   const comI = document.createElement('i');
   comI.className = 'fa-regular fa-comment';
-
   const comCnt = document.createElement('span');
   comCnt.textContent = ' … ';
   act.append(comI, comCnt);
 
-  // boost
+  // Boost (uniquement mes posts)
   if (isMine) {
     const b = document.createElement('button');
     b.className = 'boost-btn';
@@ -723,7 +742,7 @@ act.appendChild(vCnt);
 
   w.appendChild(act);
 
-  /* comments section */
+  /* ---------- COMMENTS SECTION (toggle) ---------- */
   const comSec = document.createElement('div');
   comSec.className = 'comments-section';
   comSec.style.display = 'none';
@@ -753,13 +772,33 @@ act.appendChild(vCnt);
 
   w.appendChild(comSec);
 
+  // Toggle affichage commentaires
   comI.onclick = () => {
-    comSec.style.display = comSec.style.display === 'none' ? 'block' : 'none';
-    if (comSec.style.display === 'block') loadComments(id, comList, comCnt);
+    const show = comSec.style.display === 'none';
+    comSec.style.display = show ? 'block' : 'none';
+    if (show) loadComments(id, comList, comCnt);
   };
 
   return w;
 }
+async function editPost(postId, data) {
+  // Récup valeur actuelle
+  const currentText = data.text || '';
+  const newText = prompt('Modifiez le texte de la publication :', currentText);
+  if (newText === null) return; // Annulé
+
+  // Si rien changé, on ne fait rien
+  if (newText.trim() === currentText.trim()) return;
+
+  try {
+    await updateDoc(doc(db, 'posts', postId), { text: newText.trim() });
+    alert('Publication mise à jour.');
+  } catch (e) {
+    console.error('Erreur mise à jour post', e);
+    alert('Erreur lors de la mise à jour.');
+  }
+}
+
 /* LIKE */
 async function loadLikedPosts(){likedPosts.clear();}
 async function toggleLike(pid,icon,cnt){
