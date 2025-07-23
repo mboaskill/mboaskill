@@ -780,10 +780,18 @@ async function loadComments(pid, container, cnt) {
     const c = d.data();
     const div = document.createElement('div');
     div.className = 'comment';
-    
-    const textWithLinks = linkifyText(c.text || '');
-    div.innerHTML = `<strong>${c.userName}</strong> : ${textWithLinks}`;
 
+    const username = document.createElement('strong');
+    username.textContent = c.userName;
+    username.style.cursor = 'pointer';
+    username.style.color = '#1877f2';
+    username.onclick = () => openUserFeed(c.userId);
+
+    const span = document.createElement('span');
+    span.innerHTML = ' : ' + linkifyText(c.text || '');
+
+    div.appendChild(username);
+    div.appendChild(span);
     container.appendChild(div);
   });
 }
