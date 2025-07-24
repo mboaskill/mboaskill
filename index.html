@@ -172,6 +172,8 @@
     <p id="accountStatusFeed"></p>
     <label for="profilePhotoInput" title="Changer la photo"><i class="fas fa-plus" style="cursor:pointer"></i></label>
     <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" />
+  <input id="profile-link" type="text" readonly style="width:100%;padding:8px" />
+  <button id="copy-link-btn">Copier le lien</button>
   </div>
   <div id="myFeed"></div>
 </section>
@@ -366,7 +368,9 @@ onAuthStateChanged(auth,async user=>{
   qs('authStatus').textContent=user?` ${user.displayName||user.email}`:'';
   qs('accountStatus').textContent=user?`• ${user.displayName||user.email}`:'';
   qs('accountStatusFeed').textContent=qs('accountStatus').textContent;
-
+if (user) {
+    showProfileLink(user.uid);
+  }
   if(user){
     await loadWallet(); await loadFollowing(); await loadLikedPosts();
     renderFeed();renderMyFeed();renderVideoFeed();renderBoostFeed();
@@ -646,11 +650,14 @@ function card(id, d, isMine) {
   img.alt = d.userName || d.userEmail || 'Profil';
   img.onclick = () => openUserFeed(d.userId);
 
-  const name = document.createElement('span');
-  name.className = 'username';
-  name.textContent = d.userName || d.userEmail || 'Utilisateur';
-  name.onclick = () => openUserFeed(d.userId);
-
+  const name = document.createElement('a');
+name.className = 'username';
+name.href = `https://mboaskill.cm/${d.userId}`;
+name.textContent = d.userName || d.userEmail;
+name.onclick = (e) => {
+  e.preventDefault();
+  openUserFeed(d.userId);
+};
   // Temps relatif
   const time = document.createElement('small');
   time.style.marginLeft = '8px';
@@ -1125,6 +1132,60 @@ function linkifyText(text) {
     return `<a href="${url}" target="_blank" style="color:#1877f2;text-decoration:underline;">${match}</a>`;
   });
 }
+// Fonction pour afficher le lien de profil
+function showProfileLink(uid) {
+  const link = `https://mboaskill.cm/u/${uid}`;
+  const input = document.getElementById('profile-link');
+  if (input) input.value = link;
+
+  const box = document.getElementById('profile-link-box');
+  if (box) box.style.display = 'block';
+}
+
+// Fonction pour copier le lien
+function profil_link() {
+  const input = document.getElementById('profile-link');
+  if (!input) return;
+  input.select();
+  navigator.clipboard.writeText(input.value).then(() => {
+    alert('Lien copié !');
+  });
+}
+
+// Attendre que l'utilisateur soit connecté
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    showProfileLink(user.uid);
+  } else {
+    console.warn("Utilisateur non connecté");
+  }
+});
+
+// Attacher l'événement au bouton
+document.getElementById('copy-link-btn')?.addEventListener('click', profil_link);
+// Vérifie si l’URL est de la forme https://mboaskill.cm/u/<uid>
+window.addEventListener('DOMContentLoaded', () => {
+  const path = window.location.pathname;
+  const match = path.match(/^\/u\/([^\/]+)/);
+
+  if (match && match[1]) {
+    const uid = match[1];
+    if (typeof window.openUserFeed === 'function') {
+      window.openUserFeed(uid);
+    } else {
+      // Si openUserFeed n'est pas encore dispo, on attend
+      const check = setInterval(() => {
+        if (typeof window.openUserFeed === 'function') {
+          clearInterval(check);
+          window.openUserFeed(uid);
+        }
+      }, 200);
+    }
+
+    // Nettoyer l’URL visuellement
+    history.replaceState({}, '', '/');
+  }
+});
 </script>
 </body>
 </html>
