@@ -527,16 +527,33 @@ async function renderFeed() {
   const posts = [];
 
   // Boosted posts
-  const qBoost = query(
-    collection(db, 'posts'),
-    where('boosted', '>', 0),
-    orderBy('boosted', 'desc'),
-    orderBy('createdAt', 'desc'),
-    limit(30)
-  );
-  const snapBoost = await getDocs(qBoost);
-  snapBoost.forEach(d => posts.push({ id: d.id, data: d.data() }));
+const now = Date.now();
 
+const qBoost = query(
+  collection(db, 'posts'),
+  where('boosted', '>', 0),
+  orderBy('boosted', 'desc'),
+  orderBy('createdAt', 'desc'),
+  limit(30)
+);
+
+const snapBoost = await getDocs(qBoost);
+
+for (const docSnap of snapBoost.docs) {
+  const data = docSnap.data();
+  const boostAt = data.boostAt?.toMillis?.() || 0;
+
+  const diffDays = (now - boostAt) / (1000 * 60 * 60 * 24);
+
+  if (diffDays <= 5) {
+    posts.push({ id: docSnap.id, data });
+  } else {
+    // Supprime le statut boosté si expiré
+    await updateDoc(doc(db, 'posts', docSnap.id), {
+      boosted: 0
+    });
+  }
+}
   // Followed users
   if (followingIds.size > 0) {
     const groups = [...followingIds].reduce((a, u, i) => {
@@ -871,10 +888,14 @@ async function debit(cost){
 }
 window.boostPost=async()=>{
   if(!boostId)return alert('Choisissez une publication');
-  const v=parseInt(qs('boostViews').value);if(isNaN(v)||v<1000)return alert('Min 1 000 vues');
+  const v=parseInt(qs('boostViews').value);if(isNaN(v)||v<4000)return alert('Min 4 000 vues');
   const cost=Math.ceil(v/1000)*250;if(!(await debit(cost)))return;
   try{
-    await updateDoc(doc(db,'posts',boostId),{boosted:increment(v),views:increment(v)});
+await updateDoc(doc(db, 'posts', boostId), {
+  boosted: increment(v),
+  views: increment(v),
+  boostAt: serverTimestamp() // ← très important pour savoir quand le boost a commencé
+});
     qs('boostStatus').textContent=`Boost succès ✔️`;qs('boostViews').value='';boostId='';renderFeed();renderMyFeed();await loadTotalViewsAndBalance();
   }catch(e){alert('Erreur boost : '+e.message);await deposit(cost);}
 };
