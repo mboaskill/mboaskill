@@ -723,15 +723,22 @@ name.onclick = (e) => {
 
   // Like
   const like = document.createElement('i');
-  like.className = 'fa-regular fa-thumbs-up like';
-  if (likedPosts.has(id)) like.classList.add('liked');
+like.className = 'fa-regular fa-thumbs-up like';
 
-  const lCnt = document.createElement('span');
-  lCnt.textContent = fmt(d.likes || 0);
+const lCnt = document.createElement('span');
+lCnt.textContent = fmt(d.likes || 0);
 
-  like.onclick = () => toggleLike(id, like, lCnt);
-  act.append(like, lCnt);
+// Vérifie si déjà liké depuis Firestore
+if (currentUser) {
+  const likeRef = doc(db, 'posts', id, 'likes', currentUser.uid);
+  getDoc(likeRef).then(snap => {
+    if (snap.exists()) like.classList.add('liked');
+  });
+}
 
+like.onclick = () => toggleLike(id, like, lCnt);
+
+act.append(like, lCnt);
   // 🟡 EDIT (uniquement mes posts) — placé AVANT commentaires
   if (isMine) {
     const edit = document.createElement('i');
@@ -825,14 +832,34 @@ async function editPost(postId, data) {
 
 /* LIKE */
 async function loadLikedPosts(){likedPosts.clear();}
-async function toggleLike(pid,icon,cnt){
-  if(!currentUser)return alert('Connectez-vous');
-  const ref=doc(db,'posts',pid);
-  if(likedPosts.has(pid)){likedPosts.delete(pid);icon.classList.remove('liked');await updateDoc(ref,{likes:increment(-1)});}
-  else{likedPosts.add(pid);icon.classList.add('liked');await updateDoc(ref,{likes:increment(1)});}
-  const s=await getDoc(ref);cnt.textContent=fmt(s.data().likes||0);
-}
+async function toggleLike(pid, icon, cnt) {
+  if (!currentUser) return alert('Connectez-vous');
 
+  const ref = doc(db, 'posts', pid);
+  const likeRef = doc(db, 'posts', pid, 'likes', currentUser.uid);
+
+  const snap = await getDoc(likeRef);
+
+  if (snap.exists()) {
+    // Déjà liké → on retire
+    await deleteDoc(likeRef);
+    icon.classList.remove('liked');
+    await updateDoc(ref, { likes: increment(-1) });
+  } else {
+    // Pas encore liké → on ajoute
+    await setDoc(likeRef, {
+      userId: currentUser.uid,
+      userName: currentUser.displayName || currentUser.email || '',
+      likedAt: serverTimestamp()
+    });
+    icon.classList.add('liked');
+    await updateDoc(ref, { likes: increment(1) });
+  }
+
+  // Actualiser le compteur
+  const postSnap = await getDoc(ref);
+  cnt.textContent = fmt(postSnap.data().likes || 0);
+}
 /* COMMENTS */
 async function loadComments(pid, container, cnt) {
   const s = await getDocs(query(collection(db, 'posts', pid, 'comments'), orderBy('createdAt')));
