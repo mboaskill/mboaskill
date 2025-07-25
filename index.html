@@ -82,7 +82,7 @@
 <header>
 <i class="fas fa-home tablinks selected" onclick="openTab(event,'home'); window.scrollTo({ top: 0, behavior: 'smooth' });"></i>
   <i class="fas fa-coins tablinks"           onclick="openTab(event,'totalViewsSection')"></i>
-  <i class="fas fa-video tablinks"           onclick="openTab(event,'videoFeed')"></i>
+  <i class="fas fa-video tablinks"           onclick="openTab(event,'video')"></i>
   <i class="fas fa-plus tablinks"            onclick="openTab(event,'post')"></i>
   <i class="fas fa-search tablinks"          onclick="openTab(event,'search')"></i>
   <i class="fas fa-user tablinks"            onclick="openTab(event,'account')"></i>
@@ -172,6 +172,8 @@
     <p id="accountStatusFeed"></p>
     <label for="profilePhotoInput" title="Changer la photo"><i class="fas fa-plus" style="cursor:pointer"></i></label>
     <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" />
+    </div>
+      <div class="post-header">
   <input id="profile-link" type="text" readonly style="width:100%;padding:8px" />
   <button id="copy-link-btn"> <i class="fas fa-share"></i></button>
   </div>
@@ -180,6 +182,11 @@
 
 <!-- ============ BOOST VIDEO LIST ============ -->
 <section id="video" class="tabcontent">
+  <div class="post-header">
+      
+<button onclick="openTab(event,'videoFeed')">Pour toi <i class="fas fa-video tablinks"></i>
+ </button>     
+  </div>
   <div id="videoFeedContentBoost"></div>
 </section>
 
