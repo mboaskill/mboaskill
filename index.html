@@ -227,7 +227,11 @@
 <section id="inscrip" class="tabcontent">
   <h3>Inscription</h3>
   <div id="emailSignupBox">
-    <input type="text"     id="signupName"     placeholder="Nom complet" />
+   <input type="text"
+       id="signupName"
+       placeholder="Nom complet"
+       pattern="[a-zA-ZÀ-ÿ0-9\s]+"
+       required/>  
     <input type="email"    id="signupEmail"    placeholder="Email" />
     <input type="password" id="signupPassword" placeholder="Mot de passe (≥ 6 car.)" />
     <input type="number"   id="signupAge"      placeholder="Âge (min 18)" min="18" />
@@ -1124,6 +1128,13 @@ window.signupWithEmail = async () => {
     console.error(err);
   }
 };
+  const nameInput = document.getElementById("signupName");
+
+  nameInput.addEventListener("input", function () {
+    // Autorise lettres (avec accents), chiffres, et espaces
+    this.value = this.value.replace(/[^a-zA-ZÀ-ÿ0-9\s]/g, '');
+  });
+ 
 window.loginWithEmail=async()=>{
   const e=qs('loginEmail').value.trim(),p=qs('loginPassword').value;
   if(!e||!p)return alert('Entrez e-mail et mdp');
