@@ -357,28 +357,45 @@ document.addEventListener('DOMContentLoaded',()=>{
   4. NAVIGATION & SHUFFLE
 ──────────────────────────────────────────────────────────*/
 window.openTab = (evt, id) => {
-  const isAlreadyActive = document.getElementById(id).classList.contains('active');
+  const tab = document.getElementById(id);
+  const isAlreadyActive = tab.classList.contains('active');
 
-  // Affiche l’onglet sélectionné
-  document.querySelectorAll('.tabcontent').forEach(t => t.classList.toggle('active', t.id === id));
-  document.querySelectorAll('.tablinks').forEach(l => l.classList.toggle('selected', l === evt.currentTarget));
+  // Activer seulement l’onglet sélectionné
+  document.querySelectorAll('.tabcontent').forEach(t =>
+    t.classList.toggle('active', t.id === id)
+  );
+  document.querySelectorAll('.tablinks').forEach(l =>
+    l.classList.toggle('selected', l === evt.currentTarget)
+  );
   history.pushState({ tab: id }, '', `#${id}`);
 
-  // Recharge le contenu si re-clic
   if (isAlreadyActive) {
-    if (id === 'home') renderFeed();
-    if (id === 'videoFeed') renderVideoFeed(); // <- ici !
+    // 👇 Utilise scrollY (scroll global de la page)
+    const isAtTop = window.scrollY <= 10;
+
+    if (isAtTop) {
+      // ✅ Déjà en haut → recharger le site
+      location.reload();
+    } else {
+      // 🔼 Sinon → juste remonter la page
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    return;
   }
 
-  // 🟢 S’assurer qu'on appelle renderVideoFeed au premier clic aussi
+  // 👉 Premier clic ou changement d’onglet
   if (id === 'videoFeed') renderVideoFeed();
 };
-function shuffleFeed(){
-  const c=qs('feed');const n=[...c.children];
-  for(let i=n.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[n[i],n[j]]=[n[j],n[i]];}
-  n.forEach(el=>c.appendChild(el));
+function shuffleFeed() {
+  const c = qs('feed');
+  const n = [...c.children];
+  for (let i = n.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [n[i], n[j]] = [n[j], n[i]];
+  }
+  n.forEach(el => c.appendChild(el));
 }
-
 /*──────────────────────────────────────────────────────────
   5. AUTH
 ──────────────────────────────────────────────────────────*/
@@ -493,7 +510,7 @@ async function loadWallet() {
 async function deposit(amount) {
   if (!currentUser) return alert("Connectez-vous d'abord.");
   if (!Number.isFinite(amount) || amount < 2000)
-    return alert("Montant minimum de dépôt : 2000 FCFA");
+    return alert("Montant minimum de dépôt : 2 000 FCFA");
 
   const walletRef = doc(db, "wallets", currentUser.uid);
 
