@@ -360,32 +360,39 @@ window.openTab = (evt, id) => {
   const tab = document.getElementById(id);
   const isAlreadyActive = tab.classList.contains('active');
 
-  // Activer seulement l’onglet sélectionné
+  // 🔁 Cas : on clique sur l'onglet déjà actif
+  if (isAlreadyActive) {
+    const isAtTop = window.scrollY <= 10;
+
+    if (isAtTop) {
+      // 🟢 Déjà en haut → recharger toute la page
+      location.reload();
+    } else {
+      // 🔼 Scroll vers le haut + shuffle si on est sur "home"
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (id === 'home') {
+        shuffleFeed();
+        renderFeed();
+      }
+    }
+
+    return; // ⛔️ Ne pas continuer : pas de changement d’onglet
+  }
+
+  // 🆕 Cas : on change d’onglet → juste activer le nouvel onglet
   document.querySelectorAll('.tabcontent').forEach(t =>
     t.classList.toggle('active', t.id === id)
   );
   document.querySelectorAll('.tablinks').forEach(l =>
     l.classList.toggle('selected', l === evt.currentTarget)
   );
+
   history.pushState({ tab: id }, '', `#${id}`);
 
-  if (isAlreadyActive) {
-    // 👇 Utilise scrollY (scroll global de la page)
-    const isAtTop = window.scrollY <= 10;
-
-    if (isAtTop) {
-      // ✅ Déjà en haut → recharger le site
-      location.reload();
-    } else {
-      // 🔼 Sinon → juste remonter la page
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    return;
-  }
-
-  // 👉 Premier clic ou changement d’onglet
-  if (id === 'videoFeed') renderVideoFeed();
+  // ✅ On NE FAIT RIEN D’AUTRE ! Ni shuffle, ni render ici.
+  // Pas de renderFeed(), pas de shuffleFeed()
+  // → L’Accueil ne doit jamais être modifié juste en y revenant
 };
 function shuffleFeed() {
   const c = qs('feed');
