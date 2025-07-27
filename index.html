@@ -492,8 +492,8 @@ async function loadWallet() {
 // 🟢 Fonction de dépôt
 async function deposit(amount) {
   if (!currentUser) return alert("Connectez-vous d'abord.");
-  if (!Number.isFinite(amount) || amount < 1900)
-    return alert("Montant minimum de dépôt : 1 900 FCFA");
+  if (!Number.isFinite(amount) || amount < 2000)
+    return alert("Montant minimum de dépôt : 2000 FCFA");
 
   const walletRef = doc(db, "wallets", currentUser.uid);
 
@@ -945,7 +945,7 @@ async function debit(cost){
 window.boostPost=async()=>{
   if(!boostId)return alert('Choisissez une publication');
   const v=parseInt(qs('boostViews').value);if(isNaN(v)||v<4000)return alert('Min 4 000 vues');
-  const cost=Math.ceil(v/1000)*250;if(!(await debit(cost)))return;
+  const cost=Math.ceil(v/1000)*500;if(!(await debit(cost)))return;
   try{
 await updateDoc(doc(db, 'posts', boostId), {
   boosted: increment(v),
@@ -1014,7 +1014,7 @@ snap.forEach(d => {
   totalViews += views + boosted + vuesParLike;
 });
 
-const raw = Math.floor(totalViews / 1000) * 50;
+const raw = Math.floor(totalViews / 1000) * 200;
   const withdrawalsSnap = await getDocs(
     query(collection(db, 'withdrawals'), where('userId', '==', currentUser.uid))
   );
