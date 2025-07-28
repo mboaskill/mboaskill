@@ -74,6 +74,11 @@
   padding:2px 3px;border:none;border-radius:4px;font-size:12px;
   cursor:pointer;background:#1877f2;color:#fff
 }
+      .circle {
+          width: 4rem;
+          aspect-ratio: 1 / 1;
+          border-radius: 50%;
+      }
 
   </style>
 </head>
@@ -98,7 +103,7 @@
   </div>
   <hr>
     <div class="post-header">
-        <button onclick="openTab(event,'amis')">Ajouter +</button>
+    <img class="circle" src="https://ucarecdn.com/18dbaec6-1d7c-4b73-8624-4cd1741b13c0/-/preview/1000x1000/">   <button onclick="openTab(event,'amis')">Ajouter +</button>
 </div>
   <hr>
   <div id="feed"></div>
@@ -246,6 +251,10 @@
 </section>
 <section id="amis" class="tabcontent">
  <i class="fas fa-arrow-left" onclick="openTab(event,'home')"></i>
+   <div class="post-header" onclick="window.open('https://skills-camer.cm')">
+    talent D'Afrik   <img class="circle"  src="https://ucarecdn.com/04a9cc78-e2a1-4e71-baa0-b83b5de179ed/-/preview/417x417/" />
+    
+   </div>
   <div id="suggestions">
  <h3>vous connaissez peut etre:</h3>
   <div id="suggestionsList">Chargement…</div>
