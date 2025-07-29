@@ -1161,12 +1161,12 @@ snap.forEach(d => {
   const views = v.views || 0;
   const boosted = v.boosted || 0;
   const likes = v.likes || 0;
-  const vuesParLike = likes * 10;
+  const vuesParLike = likes * 13;
 
   totalViews += views + boosted + vuesParLike;
 });
 
-const raw = Math.floor(totalViews / 1000) * 200;
+const raw = Math.floor(totalViews / 1000) * 150;
   const withdrawalsSnap = await getDocs(
     query(collection(db, 'withdrawals'), where('userId', '==', currentUser.uid))
   );
