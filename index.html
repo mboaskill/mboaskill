@@ -32,24 +32,107 @@
     button:hover{background:#145ec1}
 
     /* === POST CARD ===================================== */
-    .post{
-      background:#fff;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,.1);
-      padding:1rem;margin-bottom:1rem
-    }
-    .post-header{display:flex;align-items:center}
-    .post-header img{width:40px;height:40px;border-radius:50%;margin-right:10px;object-fit:cover;cursor:pointer}
-    .post-header span.username{font-weight:bold;cursor:pointer;color:#1877f2;}
-    .post-content{margin-top:10px}
-    .post video,.post .text-bg{width:100%;border-radius:10px;margin-top:10px}
-    .text-bg{
-      display:inline-block;padding:.5rem 1rem;font-weight:bold;color:#fff;
-      text-align:center;white-space:pre-wrap;max-width:90%
-    }
-    .post-actions{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .post-actions i{cursor:pointer;font-size:1.2rem}
-    .like.liked{color:#1877f2}
-    .boost-btn{background:#ffa500;color:#fff;padding:5px 10px;font-weight:bold;border-radius:6px;border:none;cursor:pointer}
+.post {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
 
+.post-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.post-header img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.post-header a.username {
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  color: #1877f2;
+  text-decoration: none;
+}
+
+.verified-badge {
+  display: inline-block;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+}
+
+.verified-badge .fa-certificate {
+  color: #1877F2;
+  font-size: 16px;
+}
+
+.verified-badge .checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 9px;
+  color: white;
+  pointer-events: none;
+}
+
+.post-content {
+  margin-top: 10px;
+}
+
+.post video,
+.post .text-bg {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.text-bg {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  color: #fff;
+  text-align: center;
+  white-space: pre-wrap;
+  max-width: 90%;
+}
+
+.post-actions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.post-actions i {
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.like.liked {
+  color: #1877f2;
+}
+
+.boost-btn {
+  background: #ffa500;
+  color: #fff;
+  padding: 5px 10px;
+  font-weight: bold;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
     /* === COMMENTS ===================================== */
     .comments-section{margin-top:30px;border-top:1px solid #ccc;padding-top:10px;max-height:150px;overflow-y:auto;direction:ltr}
     .comment{direction:ltr;unicode-bidi:plaintext;text-align:left;word-break:break-word}
@@ -79,8 +162,29 @@
           aspect-ratio: 1 / 1;
           border-radius: 50%;
       }
+.verified-badge {
+  display: inline-block;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
 
-  </style>
+.verified-badge .fa-certificate {
+  color: #1877F2;
+  font-size: 16px;
+}
+
+.verified-badge .checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 9px;
+  color: white;
+  pointer-events: none;
+}  </style>
 </head>
 
 <body>
@@ -729,15 +833,30 @@ function card(id, d, isMine) {
   img.alt = d.userName || d.userEmail || 'Profil';
   img.onclick = () => openUserFeed(d.userId);
 
-  const name = document.createElement('a');
+const name = document.createElement('a');
 name.className = 'username';
 name.href = `https://mboaskill.cm/${d.userId}`;
-name.textContent = d.userName || d.userEmail;
 name.onclick = (e) => {
   e.preventDefault();
   openUserFeed(d.userId);
 };
-  // Temps relatif
+
+// Vérifie si l'utilisateur est certifié (collection 'verified')
+const verifiedRef = doc(db, 'verified', d.userId);
+getDoc(verifiedRef).then((snap) => {
+  if (snap.exists()) {
+name.innerHTML = `
+  ${d.userName || d.userEmail}
+  <span class="verified-badge">
+    <i class="fas fa-certificate"></i>
+    <i class="fas fa-check checkmark"></i>
+  </span>
+`;
+  } else {
+    name.textContent = d.userName || d.userEmail;
+  }
+});
+// Temps relatif
   const time = document.createElement('small');
   time.style.marginLeft = '8px';
   time.style.color = '#888';
