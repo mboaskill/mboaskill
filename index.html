@@ -21,14 +21,14 @@
       padding:1rem;background:#fff;border-bottom:1px solid #ddd;z-index:99999
     }
     header i{font-size:1.4rem;color:#888;cursor:pointer}
-    header i.selected{color:#1877f2}
+    header i.selected{color:#FFA500}
     .tabcontent{display:none;padding:6rem 1rem 1rem;max-width:600px;margin:auto}
     .tabcontent.active{display:block}
     input,textarea,button,select{
       display:block;width:100%;padding:10px;margin-bottom:10px;
       border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box
     }
-    button{background:#1877f2;color:#fff;font-weight:bold;border:none;border-radius:6px;cursor:pointer}
+    button{background:#FFA500;color:#fff;font-weight:bold;border:none;border-radius:6px;cursor:pointer}
     button:hover{background:#145ec1}
 
     /* === POST CARD ===================================== */
@@ -59,7 +59,7 @@
   display: flex;
   align-items: center;
   font-weight: bold;
-  color: #1877f2;
+  color: #FFA500;
   text-decoration: none;
 }
 
@@ -125,7 +125,7 @@
 }
 
 .boost-btn {
-  background: #ffa500;
+  background: #FFA500;
   color: #fff;
   padding: 5px 10px;
   font-weight: bold;
@@ -139,7 +139,7 @@
     .comment strong{color:#1877f2}
     .comment-input{display:flex;gap:14px;margin-top:14px}
     .comment-input input{flex:1;height:30px;padding:12px;border-radius:5px;border:1px solid #ccc;font-size:14px;width:100px;height:60px;}
-    .comment-input button{padding:5px 9px;background:#1877f2;color:#fff;border:none;border-radius:8px;cursor:pointer}
+    .comment-input button{padding:5px 9px;background:#FFA500;color:#fff;border:none;border-radius:8px;cursor:pointer}
 
     /* === ACCOUNT FORMS ================================= */
     #emailLoginBox,#emailSignupBox{
@@ -155,7 +155,7 @@
     #userFeedContent .post{/* inherits .post styles */}
     .follow-btn{
   padding:2px 3px;border:none;border-radius:4px;font-size:12px;
-  cursor:pointer;background:#1877f2;color:#fff
+  cursor:pointer;background:#FFA500;color:#fff
 }
       .circle {
           width: 4rem;
@@ -1055,7 +1055,7 @@ async function loadComments(pid, container, cnt) {
     const username = document.createElement('strong');
     username.textContent = c.userName;
     username.style.cursor = 'pointer';
-    username.style.color = '#1877f2';
+    username.style.color = '#FFA500';
     username.onclick = () => openUserFeed(c.userId);
 
     const span = document.createElement('span');
@@ -1296,7 +1296,7 @@ window.loginWithEmail=async()=>{
 };
 document.getElementById("notchpayBtn")?.addEventListener("click", async () => {
   const m = parseFloat(qs("montant").value);
-  if (isNaN(m) || m < 1900) return alert("Min 1 900 FCFA");
+  if (isNaN(m) || m < 2000) return alert("Min 2 000 FCFA");
   if (!currentUser) return alert("Connectez-vous");
 
   await prepareWallet(); // ← ici on initialise le wallet si nécessaire
