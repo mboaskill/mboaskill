@@ -907,7 +907,6 @@ function card(id, d, isMine) {
   img.src = d.userPhoto || 'https://via.placeholder.com/40';
   img.alt = d.userName || d.userEmail || 'Profil';
   img.onclick = () => openUserFeed(d.userId);
-
 const name = document.createElement('a');
 name.className = 'username';
 name.href = `https://mboaskill.cm/${d.userId}`;
@@ -919,14 +918,14 @@ name.onclick = (e) => {
 // Vérifie si l'utilisateur est certifié (collection 'verified')
 const verifiedRef = doc(db, 'verified', d.userId);
 getDoc(verifiedRef).then((snap) => {
-  if (snap.exists()) {
-name.innerHTML = `
-  ${d.userName || d.userEmail}
-  <span class="verified-badge">
-    <i class="fas fa-certificate"></i>
-    <i class="fas fa-check checkmark"></i>
-  </span>
-`;
+  if (snap.exists() && snap.data().status === true) {
+    name.innerHTML = `
+      ${d.userName || d.userEmail}
+      <span class="verified-badge">
+        <i class="fas fa-certificate"></i>
+        <i class="fas fa-check checkmark"></i>
+      </span>
+    `;
   } else {
     name.textContent = d.userName || d.userEmail;
   }
@@ -1570,23 +1569,40 @@ async function loadSuggestions() {
   clearInterval(suggestionInterval);
   suggestionInterval = setInterval(updateSuggestions, 60000); // toutes les 1 min
 }
-window.certifyUser = async function() {
+window.certifyUser = async function () {
   const userId = currentUser?.uid;
   if (!userId) return alert("Utilisateur non connecté");
 
-  const walletRef = doc(db, 'wallet', userId);
+  const walletRef = doc(db, 'wallets', userId);  // <-- collection wallets
   const verifiedRef = doc(db, 'verified', userId);
 
-  const snap = await getDoc(walletRef);
-  const balance = snap.exists() ? snap.data().amount || 0 : 0;
+  try {
+    const snap = await getDoc(walletRef);
+    const balance = snap.exists() ? snap.data().balance || 0 : 0;
 
-  if (balance >= 18000) {
-    await updateDoc(walletRef, { amount: balance - 18000 });
-    await setDoc(verifiedRef, { status: true });
-    alert("✅ Vous êtes maintenant certifié !");
-  } else {
-    await setDoc(verifiedRef, { status: false });
-    alert("💸 Solde insuffisant. Le montant requis est de 18 000FcFa.");
+    if (balance >= 18000) {
+      // Déduction de 18 000 Fcfa
+      await updateDoc(walletRef, {
+        balance: balance - 18000
+      });
+
+      // Mise à jour du statut certifié
+      await setDoc(verifiedRef, {
+        status: true
+      });
+
+      alert("✅ Vous êtes maintenant certifié !");
+    } else {
+      // Ne pas déduire, mettre status à false
+      await setDoc(verifiedRef, {
+        status: false
+      });
+
+      alert("💸 Solde insuffisant. Le montant requis est de 18 000 Fcfa.");
+    }
+  } catch (error) {
+    console.error("Erreur de certification :", error);
+    alert("❌ Une erreur est survenue. Veuillez réessayer.");
   }
 };
 window.publishMusic = publishMusic;
