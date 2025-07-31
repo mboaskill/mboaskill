@@ -123,7 +123,15 @@
 .like.liked {
   color: #1877f2;
 }
+.like {
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
 
+.fa-heart.liked {
+  color: #1877f2 !important; /* 💙 bleu Facebook */
+}
 .boost-btn {
   background: #FFA500;
   color: #fff;
@@ -184,14 +192,22 @@
   font-size: 9px;
   color: white;
   pointer-events: none;
-}  </style>
+} 
+.boutons {
+  display: flex;
+  justify-content: center;
+}
+
+.boutons button {
+  margin: 8px;
+}
+
+</style>
 </head>
-
 <body>
-
 <header>
 <i class="fas fa-home tablinks selected" onclick="openTab(event,'home'); window.scrollTo({ top: 0, behavior: 'smooth' });"></i>
-  <i class="fas fa-coins tablinks"           onclick="openTab(event,'totalViewsSection')"></i>
+  <i class="fas fa-music tablinks"           onclick="openTab(event,'music')"></i>
   <i class="fas fa-video tablinks"           onclick="openTab(event,'videoFeed')"></i>
   <i class="fas fa-plus tablinks"            onclick="openTab(event,'post')"></i>
   <i class="fas fa-search tablinks"          onclick="openTab(event,'search')"></i>
@@ -207,7 +223,7 @@
   </div>
   <hr>
     <div class="post-header">
-    <img class="circle" src="https://ucarecdn.com/18dbaec6-1d7c-4b73-8624-4cd1741b13c0/-/preview/1000x1000/">   <button onclick="openTab(event,'amis')">Ajouter +</button>
+    <img class="circle" src="https://ucarecdn.com/18dbaec6-1d7c-4b73-8624-4cd1741b13c0/-/preview/1000x1000/">   <button onclick="openTab(event,'amis')">Ajouter +<i class="fa-solid fa-user-group"></i></button>
 </div>
   <hr>
   <div id="feed"></div>
@@ -217,7 +233,7 @@
 <section id="post" class="tabcontent">
   <h3>Créer une publication</h3>
   <textarea id="postText" placeholder="Exprimez-vous..."></textarea>
-  <input type="color" id="bgColor" value="#1877f2" />
+  <input type="color" id="bgColor" value="#FFA500"/>
   <hr/>
   <input type="text" id="videoTitle" placeholder="Titre de la vidéo" />
   <input type="file" id="videoFile" accept="video/*" />
@@ -267,15 +283,22 @@
 <!-- ============ ACCOUNT ============ -->
 <section id="account" class="tabcontent">
   <div class="post-header">
+      <div class="boutons">
     <button onclick="openTab(event,'conect')">Connexion</button>
     <button onclick="openTab(event,'inscrip')">Inscription</button>
+    
+  <button onclick="signInWithGoogle()"><i class="fab fa-google"></i> Continuer avec Google</button>
   </div>
-  <hr>
-  <button onclick="signInWithGoogle()"><i class="fab fa-google"></i> Connexion par Google</button>
+  </div>
   <hr/>
   <button onclick="signOutUser()" style="background-color:red">Se déconnecter</button>
   <br/><br/>
-  <u><a href="https://www.facebook.com/profile.php?id=61577616822265">contact support</a> <i class="fab fa-facebook" style="color:#1877f2"></i></u>
+  <div class="boutons">
+<button style="background-color:transparent">
+      <u><a href="https://www.facebook.com/profile.php?id=61577616822265">contact support</a> <i class="fab fa-facebook" style="color:#1877f2"></i></u>
+  </button>
+<button style="background-color:transparent"><u onclick="openTab(event,'condis')" style="background-color:black">Critères a connaître</u></button>
+  </div>
 </section>
 
 <!-- ============ FEEDME (MY FEED) ============ -->
@@ -290,6 +313,11 @@
       <div class="post-header">
   <input id="profile-link" type="text" readonly style="width:100%;padding:8px" />
   <button id="copy-link-btn"> <i class="fas fa-share"></i></button>
+  </div>
+  <div class="boutons">
+  <button onclick="openTab(event,'vibo')">Deposer</button>    
+  <button onclick="certifyUser()">Certifier</button>
+  <button onclick="openTab(event,'totalViewsSection')">Retirer</button>
   </div>
   <div id="myFeed"></div>
 </section>
@@ -355,8 +383,8 @@
 </section>
 <section id="amis" class="tabcontent">
  <i class="fas fa-arrow-left" onclick="openTab(event,'home')"></i>
-   <div class="post-header" onclick="window.open('https://skills-camer.cm')">
-    talent D'Afrik   <img class="circle"  src="https://ucarecdn.com/04a9cc78-e2a1-4e71-baa0-b83b5de179ed/-/preview/417x417/" />
+   <div class="post-header">
+    talent D'Afrik   <img class="circle"  src="https://ucarecdn.com/04a9cc78-e2a1-4e71-baa0-b83b5de179ed/-/preview/417x417/" onclick="window.open('https://skills-camer.cm')"/>
     
    </div>
   <div id="suggestions">
@@ -364,7 +392,38 @@
   <div id="suggestionsList">Chargement…</div>
 </div>   
 </section>
+<section id="music" class="tabcontent">
+ <button onclick="openTab(event,'mus')">importer ma musique <i class="fas fa-download"></i></button>  
+ <h2>Musiques publiées 🎧</h2>
+<div id="musicFeed"></div>
+</section>
+<section id="mus" class="tabcontent">
+  <h2>Publier un morceau</h2>
+  <input type="text" id="nom" placeholder="Votre nom d'artiste" />
+  <input type="text" id="titre" placeholder="Titre de la musique" />
+  <input type="file" id="audioFile" accept="audio/*" />
+  <button onclick="publishMusic()">Publier</button>
 
+  <div id="statusMsg"></div>
+</section>
+<section id="condis" class="tabcontent">
+  <h2>       Conditions d'utilisation générales :
+
+</h2> 
+   <div>
+En créant votre compte sur mboa skills vous acceptez les conditions d'utilisation de l'application.
+<p style="color:orange">Monétisation:</p> Disponible partout en Afrique.
+<p style="color:orange">Publications :</p> À chaque fois que tu publie une vidéo où du texte tu gagnes <u style="color:blue">150FcfA</u> pour chaque 1k de vues affligé à ta publication ; 
+<p>Musique-pub:</p> pour partager ta musique cela nécessite un montant de <u style="color:blue">5100f</u> ;
+<p style="color:orange">musique-pay:</p> avec ta musique tu gagnes <u style="color:blue">55FcFa</u> à chaque fois que quelqu'un écoute ta musique, tu peux gagner jusqu'à <u style="color:blue">55 000FCFa</u> pour 1k d'écoute ;
+<p style="color:orange">Certification:</p> pour être certifié tu dois répondre aux critères d'éligibilité (tes informations doivent être juste ce qui nécessite un temps précis); Dans le cas contraire pour être certifié il te faudra dépenser un montant de <u style="color:blue">18 000FcFa</u>.
+
+L'application mboa skills est disponible partout dans le monde (la monétisation est Disponible) Le système du dépôt fonctionne sans problème ainsi que celui du retrait ;
+<p style="color:orange">Retrait/Dépôt :</p> Disponible <u style="color:blue">24h/24 7j/7 du lundi au dimanche</u>. MTN et orange Money uniquement (pour le cas du Cameroun)
+<br><br/>
+N'oubliez pas de nous contacter sur <u style="color:blue">Facebook</u> merci.
+   </div> 
+</section>
 <script type="module">
 /*──────────────────────────────────────────────────────────
   1. IMPORTS
@@ -469,39 +528,52 @@ document.addEventListener('DOMContentLoaded',()=>{
 /*──────────────────────────────────────────────────────────
   4. NAVIGATION & SHUFFLE
 ──────────────────────────────────────────────────────────*/
-window.openTab = (evt, id) => {
+ window.openTab = (evt, id) => {
   const tab = document.getElementById(id);
   const isAlreadyActive = tab.classList.contains('active');
 
   // 🔁 Cas : on clique sur l'onglet déjà actif
   if (isAlreadyActive) {
     const isAtTop = window.scrollY <= 10;
-
     if (isAtTop) {
       // 🟢 Déjà en haut → recharger toute la page
       location.reload();
     } else {
       // 🔼 Scroll vers le haut + shuffle si on est sur "home"
       window.scrollTo({ top: 0, behavior: 'smooth' });
-
       if (id === 'home') {
         shuffleFeed();
         renderFeed();
       }
     }
-
     return; // ⛔️ Ne pas continuer : pas de changement d’onglet
   }
 
   // 🆕 Cas : on change d’onglet → juste activer le nouvel onglet
-  document.querySelectorAll('.tabcontent').forEach(t =>
-    t.classList.toggle('active', t.id === id)
-  );
-  document.querySelectorAll('.tablinks').forEach(l =>
-    l.classList.toggle('selected', l === evt.currentTarget)
-  );
-
+  document.querySelectorAll('.tabcontent').forEach(t => t.classList.toggle('active', t.id === id));
+  document.querySelectorAll('.tablinks').forEach(l => l.classList.toggle('selected', l === evt.currentTarget));
   history.pushState({ tab: id }, '', `#${id}`);
+
+
+// Ajouter l'événement popstate pour gérer le bouton retour
+window.addEventListener('popstate', (event) => {
+  if (event.state && event.state.tab) {
+    const tabId = event.state.tab;
+    document.querySelectorAll('.tabcontent').forEach(t => t.classList.toggle('active', t.id === tabId));
+    document.querySelectorAll('.tablinks').forEach(l => l.classList.toggle('selected', l.getAttribute('onclick').includes(tabId)));
+  }
+});
+
+window.addEventListener('load', () => {
+  const hash = window.location.hash.substring(1);
+  if (hash) {
+    const tab = document.getElementById(hash);
+    if (tab) {
+      document.querySelectorAll('.tabcontent').forEach(t => t.classList.toggle('active', t.id === hash));
+      document.querySelectorAll('.tablinks').forEach(l => l.classList.toggle('selected', l.getAttribute('onclick').includes(hash)));
+    }
+  }
+});
 
   // ✅ On NE FAIT RIEN D’AUTRE ! Ni shuffle, ni render ici.
   // Pas de renderFeed(), pas de shuffleFeed()
@@ -791,17 +863,20 @@ function renderVideoFeed() {
   c.textContent = 'Chargement…';
 
   onSnapshot(
-    query(collection(db, 'posts'), where('videoUrl', '!=', null), orderBy('createdAt', 'desc')),
+    query(
+      collection(db, 'posts'),
+      where('videoUrl', '!=', null),
+      where('boosted', '>', 0), // 👉 Affiche uniquement les vidéos boostées
+      orderBy('createdAt', 'desc')
+    ),
     snap => {
       c.innerHTML = '';
 
-      // Convertir en tableau
       const docs = Array.from(snap.docs);
 
-      // 🔀 Mélanger les vidéos aléatoirement
+      // Optionnel : Mélanger aléatoirement
       docs.sort(() => Math.random() - 0.5);
 
-      // Afficher
       for (const d of docs) {
         c.appendChild(card(d.id, d.data(), false));
       }
@@ -903,12 +978,26 @@ name.innerHTML = `
   act.className = 'post-actions';
 
   // Like
-  const like = document.createElement('i');
-like.className = 'fa-regular fa-thumbs-up like';
+const like = document.createElement('i');
+like.className = 'fa-regular fa-heart'; // cœur vide au départ
+like.classList.add('like'); // ta classe perso pour styliser
 
 const lCnt = document.createElement('span');
 lCnt.textContent = fmt(d.likes || 0);
 
+// Vérifie si l'utilisateur a déjà liké
+if (currentUser) {
+  const likeRef = doc(db, 'posts', id, 'likes', currentUser.uid);
+  getDoc(likeRef).then(snap => {
+    if (snap.exists()) {
+      like.classList.remove('fa-regular');
+      like.classList.add('fa-solid', 'liked'); // plein + couleur
+    }
+  });
+}
+
+// Toggle au clic
+like.onclick = () => toggleLike(id, like, lCnt);
 // Vérifie si déjà liké depuis Firestore
 if (currentUser) {
   const likeRef = doc(db, 'posts', id, 'likes', currentUser.uid);
@@ -1481,6 +1570,173 @@ async function loadSuggestions() {
   clearInterval(suggestionInterval);
   suggestionInterval = setInterval(updateSuggestions, 60000); // toutes les 1 min
 }
+window.certifyUser = async function() {
+  const userId = currentUser?.uid;
+  if (!userId) return alert("Utilisateur non connecté");
+
+  const walletRef = doc(db, 'wallet', userId);
+  const verifiedRef = doc(db, 'verified', userId);
+
+  const snap = await getDoc(walletRef);
+  const balance = snap.exists() ? snap.data().amount || 0 : 0;
+
+  if (balance >= 18000) {
+    await updateDoc(walletRef, { amount: balance - 18000 });
+    await setDoc(verifiedRef, { status: true });
+    alert("✅ Vous êtes maintenant certifié !");
+  } else {
+    await setDoc(verifiedRef, { status: false });
+    alert("💸 Solde insuffisant. Le montant requis est de 18 000FcFa.");
+  }
+};
+window.publishMusic = publishMusic;
+async function publishMusic() {
+  const nom = document.getElementById('nom').value.trim();
+  const titre = document.getElementById('titre').value.trim();
+  const audioFile = document.getElementById('audioFile').files[0];
+  const statusMsg = document.getElementById('statusMsg');
+  statusMsg.textContent = '';
+
+  if (!currentUser) {
+    return alert("Vous devez être connecté.");
+  }
+
+  if (!nom || !titre || !audioFile) {
+    return alert("Tous les champs sont requis.");
+  }
+
+  try {
+    const walletRef = doc(db, 'wallets', currentUser.uid);
+    const walletSnap = await getDoc(walletRef);
+
+    if (!walletSnap.exists()) {
+      return alert("Aucun portefeuille trouvé.");
+    }
+
+    const walletData = walletSnap.data();
+    const currentBalance = typeof walletData.balance === 'number' ? walletData.balance : 0;
+
+    if (currentBalance < 5100) {
+      return alert("Solde insuffisant (minimum requis : 5100).");
+    }
+
+    // ✅ Déduire 5100
+    await updateDoc(walletRef, {
+      balance: currentBalance - 5100
+    });
+
+    statusMsg.textContent = "Téléchargement du fichier audio...";
+
+    const fileName = `${Date.now()}_${audioFile.name}`;
+    const storageRef = ref(storage, 'musics/' + fileName);
+    await uploadBytes(storageRef, audioFile);
+    const audioUrl = await getDownloadURL(storageRef);
+
+    statusMsg.textContent = "Publication en cours...";
+
+    await addDoc(collection(db, 'musfeed'), {
+      userId: currentUser.uid,
+      nom,
+      titre,
+      audioUrl,
+      createdAt: new Date()
+    });
+
+    statusMsg.textContent = "✅ Musique publiée avec succès.";
+    document.getElementById('nom').value = '';
+    document.getElementById('titre').value = '';
+    document.getElementById('audioFile').value = '';
+  } catch (err) {
+    console.error("Erreur lors de la publication :", err);
+    statusMsg.textContent = "❌ Erreur lors de la publication.";
+  }
+}
+async function renderMusicFeed() {
+  const container = document.getElementById('musicFeed');
+  container.textContent = 'Chargement…';
+
+  try {
+    const q = query(collection(db, 'musfeed'), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    container.innerHTML = '';
+    const user = currentUser;
+
+    for (const docSnap of snapshot.docs) {
+      const d = docSnap.data();
+      const musicId = docSnap.id;
+
+      // 🎯 1. Ne pas afficher les musiques expirées (10 jours)
+      const createdAt = d.createdAt?.toDate?.() || new Date();
+      const now = new Date();
+      const ageInMs = now - createdAt;
+      const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
+      if (ageInDays > 10) continue;
+
+      // 🎯 2. Vérifie si l’utilisateur a déjà écouté
+      let alreadyViewed = false;
+      if (user) {
+        const viewDocRef = doc(db, 'views', `${musicId}_${user.uid}`);
+        const viewDocSnap = await getDoc(viewDocRef);
+        alreadyViewed = viewDocSnap.exists();
+      }
+
+      // 🎯 3. Si première écoute : déduction + ajout des vues
+      if (user && !alreadyViewed && user.uid !== d.userId) {
+        const walletRef = doc(db, 'wallets', user.uid);
+        const walletSnap = await getDoc(walletRef);
+        const balance = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
+
+        if (balance >= 55) {
+          // ➖ Déduire 55
+          await updateDoc(walletRef, {
+            balance: increment(-55)
+          });
+
+          // ✅ Marquer comme écouté
+          const viewDocRef = doc(db, 'views', `${musicId}_${user.uid}`);
+          await setDoc(viewDocRef, {
+            userId: user.uid,
+            musicId,
+            playedAt: now
+          });
+
+          // ➕ Ajouter 340 vues dans totalviewcontent
+          const statsRef = doc(db, 'totalviewcontent', d.userId);
+          await setDoc(statsRef, { views: increment(340) }, { merge: true });
+
+          // ➕ Ajouter 340 vues dans totalviews (global)
+          const globalViewsRef = doc(db, 'totalviews', d.userId);
+          await setDoc(globalViewsRef, { views: increment(340) }, { merge: true });
+        } else {
+          alert("Solde insuffisant pour écouter cette musique.");
+        }
+      }
+
+      // 🎯 4. Affiche le bloc de musique
+      const div = document.createElement('div');
+      div.style.border = '1px solid #ccc';
+      div.style.borderRadius = '10px';
+      div.style.padding = '1rem';
+      div.style.marginBottom = '1rem';
+
+      div.innerHTML = `
+        <strong>${d.nom} - ${d.titre}</strong><br/>
+        <audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>
+      `;
+
+      container.appendChild(div);
+    }
+  } catch (err) {
+    console.error(err);
+    container.textContent = 'Erreur de chargement des musiques.';
+  }
+}
+
+// Appel automatique au chargement
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+  renderMusicFeed();
+});
 </script>
 </body>
 </html>
