@@ -744,11 +744,15 @@ window.publishPost=async()=>{
 ──────────────────────────────────────────────────────────*/
 let firstRenderDone = false;
 let cachedPosts = [];
+
 async function renderFeed() {
   const c = qs('feed');
   c.textContent = 'Chargement…';
 
-  // Si déjà chargé une fois → on permute uniquement
+  const now = Date.now();
+  const sevenDays = 7 * 24 * 60 * 60 * 1000;
+  const posts = [];
+
   if (firstRenderDone && cachedPosts.length > 0) {
     const shuffled = [...cachedPosts];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -761,38 +765,33 @@ async function renderFeed() {
     return;
   }
 
-  // Sinon : premier affichage → on récupère depuis Firestore
-  const posts = [];
+  // BOOSTED POSTS (affichées même si +7 jours, tant que le boost est actif)
+  const qBoost = query(
+    collection(db, 'posts'),
+    where('boosted', '>', 0),
+    orderBy('boosted', 'desc'),
+    orderBy('createdAt', 'desc'),
+    limit(30)
+  );
 
-  // Boosted posts
-const now = Date.now();
+  const snapBoost = await getDocs(qBoost);
 
-const qBoost = query(
-  collection(db, 'posts'),
-  where('boosted', '>', 0),
-  orderBy('boosted', 'desc'),
-  orderBy('createdAt', 'desc'),
-  limit(30)
-);
+  for (const docSnap of snapBoost.docs) {
+    const data = docSnap.data();
+    const boostAt = data.boostAt?.toMillis?.() || 0;
+    const diffBoostDays = (now - boostAt) / (1000 * 60 * 60 * 24);
 
-const snapBoost = await getDocs(qBoost);
-
-for (const docSnap of snapBoost.docs) {
-  const data = docSnap.data();
-  const boostAt = data.boostAt?.toMillis?.() || 0;
-
-  const diffDays = (now - boostAt) / (1000 * 60 * 60 * 24);
-
-  if (diffDays <= 5) {
-    posts.push({ id: docSnap.id, data });
-  } else {
-    // Supprime le statut boosté si expiré
-    await updateDoc(doc(db, 'posts', docSnap.id), {
-      boosted: 0
-    });
+    if (diffBoostDays <= 5) {
+      posts.push({ id: docSnap.id, data });
+    } else {
+      // Boost expiré → nettoyage
+      await updateDoc(doc(db, 'posts', docSnap.id), {
+        boosted: 0
+      });
+    }
   }
-}
-  // Followed users
+
+  // FOLLOWED USERS : on affiche seulement les posts récents (-7 jours)
   if (followingIds.size > 0) {
     const groups = [...followingIds].reduce((a, u, i) => {
       if (i % 10 === 0) a.push([]);
@@ -809,14 +808,19 @@ for (const docSnap of snapBoost.docs) {
       );
       const snap = await getDocs(q);
       snap.forEach(d => {
-        if (!posts.find(p => p.id === d.id)) {
-          posts.push({ id: d.id, data: d.data() });
+        const postData = d.data();
+        const createdAt = postData.createdAt?.toMillis?.() || 0;
+        const isRecent = (now - createdAt) <= sevenDays;
+
+        const alreadyAdded = posts.find(p => p.id === d.id);
+        if (isRecent && !alreadyAdded) {
+          posts.push({ id: d.id, data: postData });
         }
       });
     }
   }
 
-  // Trier du plus récent au plus ancien
+  // Tri du plus récent au plus ancien
   posts.sort((a, b) => {
     const ta = a.data.createdAt?.toMillis?.() || 0;
     const tb = b.data.createdAt?.toMillis?.() || 0;
