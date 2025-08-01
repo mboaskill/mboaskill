@@ -1,0 +1,194 @@
+
+    /* === GLOBAL STYLES ================================= */
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      background-image:url('https://ucarecdn.com/ff597083-3c69-4040-8b93-1cb2c38ac703/-/preview/1000x999/');
+    }
+    header{
+      position:fixed;top:0;left:0;right:0;
+      display:flex;justify-content:space-around;align-items:center;
+      padding:1rem;background:#fff;border-bottom:1px solid #ddd;z-index:99999
+    }
+    header i{font-size:1.4rem;color:#888;cursor:pointer}
+    header i.selected{color:#FFA500}
+    .tabcontent{display:none;padding:6rem 1rem 1rem;max-width:600px;margin:auto}
+    .tabcontent.active{display:block}
+    input,textarea,button,select{
+      display:block;width:100%;padding:10px;margin-bottom:10px;
+      border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box
+    }
+    button{background:#FFA500;color:#fff;font-weight:bold;border:none;border-radius:6px;cursor:pointer}
+    button:hover{background:#145ec1}
+
+    /* === POST CARD ===================================== */
+.post {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.post-header img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.post-header a.username {
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  color: #FFA500;
+  text-decoration: none;
+}
+
+.verified-badge {
+  display: inline-block;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+}
+
+.verified-badge .fa-certificate {
+  color: #1877F2;
+  font-size: 16px;
+}
+
+.verified-badge .checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 9px;
+  color: white;
+  pointer-events: none;
+}
+
+.post-content {
+  margin-top: 10px;
+}
+
+.post video,
+.post .text-bg {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.text-bg {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  color: #fff;
+  text-align: center;
+  white-space: pre-wrap;
+  max-width: 90%;
+}
+
+.post-actions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.post-actions i {
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.like.liked {
+  color: #1877f2;
+}
+.like {
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
+
+.fa-heart.liked {
+  color: #1877f2 !important; /* 💙 bleu Facebook */
+}
+.boost-btn {
+  background: #FFA500;
+  color: #fff;
+  padding: 5px 10px;
+  font-weight: bold;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+    /* === COMMENTS ===================================== */
+    .comments-section{margin-top:30px;border-top:1px solid #ccc;padding-top:10px;max-height:150px;overflow-y:auto;direction:ltr}
+    .comment{direction:ltr;unicode-bidi:plaintext;text-align:left;word-break:break-word}
+    .comment strong{color:#1877f2}
+    .comment-input{display:flex;gap:14px;margin-top:14px}
+    .comment-input input{flex:1;height:30px;padding:12px;border-radius:5px;border:1px solid #ccc;font-size:14px;width:100px;height:60px;}
+    .comment-input button{padding:5px 9px;background:#FFA500;color:#fff;border:none;border-radius:8px;cursor:pointer}
+
+    /* === ACCOUNT FORMS ================================= */
+    #emailLoginBox,#emailSignupBox{
+      background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,.1);margin-bottom:15px
+    }
+    #emailLoginBox input,#emailSignupBox input{margin-bottom:10px}
+    #emailLoginBox button,#emailSignupBox button{background:#1877f2;color:#fff;border:none;padding:10px;font-weight:bold;border-radius:6px;cursor:pointer;width:100%}
+    #emailLoginBox button:hover,#emailSignupBox button:hover{background:#145ec1}
+    #accountStatus{margin-top:10px;font-weight:bold;color:#1877f2}
+    #authStatus{margin-top:10px;font-weight:bold;color:limegreen}
+
+    /* === USER FEED ==================================== */
+    #userFeedContent .post{/* inherits .post styles */}
+    .follow-btn{
+  padding:2px 3px;border:none;border-radius:4px;font-size:12px;
+  cursor:pointer;background:#FFA500;color:#fff
+}
+      .circle {
+          width: 4rem;
+          aspect-ratio: 1 / 1;
+          border-radius: 50%;
+      }
+.verified-badge {
+  display: inline-block;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.verified-badge .fa-certificate {
+  color: #1877F2;
+  font-size: 16px;
+}
+
+.verified-badge .checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 9px;
+  color: white;
+  pointer-events: none;
+} 
+.boutons {
+  display: flex;
+  justify-content: center;
+}
+
+.boutons button {
+  margin: 8px;
+}
+
