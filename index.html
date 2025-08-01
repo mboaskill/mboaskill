@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mboa Skills</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+<i class="fas fa-home tablinks selected" onclick="openTab(event,'home'); window.scrollTo({ top: 0, behavior: 'smooth' });"></i>
+  <i class="fas fa-music tablinks"           onclick="openTab(event,'music')"></i>
+  <i class="fas fa-video tablinks"           onclick="openTab(event,'videoFeed')"></i>
+  <i class="fas fa-plus tablinks"            onclick="openTab(event,'post')"></i>
+  <i class="fas fa-search tablinks"          onclick="openTab(event,'search')"></i>
+  <i class="fas fa-user tablinks"            onclick="openTab(event,'account')"></i>
+</header>
+
+<!-- ============ HOME ============ -->
+<section id="home" class="tabcontent active">
+  <div class="post-header">
+    <img id="homeProfilePhoto" src="https://via.placeholder.com/40" onclick="openTab(event,'feedme')"/>
+  <p id="authStatus"></p>
+    <p id="accountStatus"></p>
+  </div>
+  <hr>
+    <div class="post-header">
+    <img class="circle" src="https://ucarecdn.com/18dbaec6-1d7c-4b73-8624-4cd1741b13c0/-/preview/1000x1000/">   <button onclick="openTab(event,'amis')">Ajouter +<i class="fa-solid fa-user-group"></i></button>
+</div>
+  <hr>
+  <div id="feed"></div>
+</section>
+
+<!-- ============ POST ============ -->
+<section id="post" class="tabcontent">
+  <h3>Créer une publication</h3>
+  <textarea id="postText" placeholder="Exprimez-vous..."></textarea>
+  <input type="color" id="bgColor" value="#FFA500"/>
+  <hr/>
+  <input type="text" id="videoTitle" placeholder="Titre de la vidéo" />
+  <input type="file" id="videoFile" accept="video/*" />
+  <button onclick="publishPost()">Publier</button>
+  <p id="status"></p>
+</section>
+
+<!-- ============ VIDEO FEED ============ -->
+<section id="videoFeed" class="tabcontent">
+  <h3>Publications avec vidéos</h3>
+  <div id="videoFeedContent"></div>
+</section>
+
+<!-- ============ TOTAL VIEWS ============ -->
+<section id="totalViewsSection" class="tabcontent">
+  <h3>Total des vues</h3>
+  <label for="periodSelect">Période :</label>
+<select id="periodSelect">
+  <option value="all">Tout</option>
+  <option value="week">7 derniers jours</option>
+  <option value="month">Dernier mois</option>
+  <option value="year">Dernière année</option>
+</select>
+  Vues: <p id="totalViewsCount" style="background-color:orange">Chargement...</p>
+  <p id="currentBalance">Solde actuel: 0 FCFA</p>
+
+  <label for="withdrawAmount">Montant à retirer :</label><br>
+  <input type="number" id="withdrawAmount" placeholder="Ex: 10000" min="5000" required style="width: 100%; margin-bottom: 10px;"><br>
+
+  <label for="withdrawPhone">Numéro de téléphone :</label><br>
+  <input type="tel" id="withdrawPhone" placeholder="Ex: 0700000000" required style="width: 100%; margin-bottom: 15px;"><br>
+
+  <button onclick="withdrawBalance()" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px;">
+    Retirer
+  </button>
+  <p id="withdrawStatus"></p>
+</section>
+
+<!-- ============ SEARCH ============ -->
+<section id="search" class="tabcontent">
+  <h3>Rechercher un utilisateur</h3>
+  <input type="text" id="searchUserInput" placeholder="Nom ou e-mail de l'utilisateur" />
+  <button onclick="searchUser()">Rechercher</button>
+  <div id="searchResults"></div>
+</section>
+
+<!-- ============ ACCOUNT ============ -->
+<section id="account" class="tabcontent">
+  <div class="post-header">
+      <div class="boutons">
+    <button onclick="openTab(event,'conect')">Connexion</button>
+    <button onclick="openTab(event,'inscrip')">Inscription</button>
+    
+  <button onclick="signInWithGoogle()"><i class="fab fa-google"></i> Continuer avec Google</button>
+  </div>
+  </div>
+  <hr/>
+  <button onclick="signOutUser()" style="background-color:red">Se déconnecter</button>
+  <br/><br/>
+  <div class="boutons">
+<button style="background-color:transparent">
+      <u><a href="https://www.facebook.com/profile.php?id=61577616822265">contact support</a> <i class="fab fa-facebook" style="color:#1877f2"></i></u>
+  </button>
+<button style="background-color:transparent"><u onclick="openTab(event,'condis')" style="background-color:black">Critères a connaître</u></button>
+  </div>
+</section>
+
+<!-- ============ FEEDME (MY FEED) ============ -->
+<section id="feedme" class="tabcontent">
+  <h3>Mes publications</h3>
+  <div class="post-header">
+    <img id="feedmeProfilePhoto" src="https://via.placeholder.com/40" />
+    <p id="accountStatusFeed"></p>
+    <label for="profilePhotoInput" title="Changer la photo"><i class="fas fa-plus" style="cursor:pointer"></i></label>
+    <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" />
+    </div>
+      <div class="post-header">
+  <input id="profile-link" type="text" readonly style="width:100%;padding:8px" />
+  <button id="copy-link-btn"> <i class="fas fa-share"></i></button>
+  </div>
+  <div class="boutons">
+  <button onclick="openTab(event,'vibo')">Deposer</button>    
+  <button onclick="certifyUser()">Certifier</button>
+  <button onclick="openTab(event,'totalViewsSection')">Retirer</button>
+  </div>
+  <div id="myFeed"></div>
+</section>
+
+<!-- ============ BOOST VIDEO LIST ============ -->
+<section id="video" class="tabcontent">
+  <div class="post-header">
+      
+<button onclick="openTab(event,'videoFeed')">Pour toi <i class="fas fa-video tablinks"></i>
+ </button>     
+  </div>
+  <div id="videoFeedContentBoost"></div>
+</section>
+
+<!-- ============ BOOST PANEL ============ -->
+<section id="vibo" class="tabcontent">
+  <h3>Booster une publication</h3>
+  <div class="post-header">
+  <input type="number" id="montant" placeholder="Montant à déposer" min="1900" style="padding: 6px; width: 150px;">
+  <button id="notchpayBtn" style="padding: 6px 12px; background-color: #1877f2; color: white; border: none; border-radius: 4px; cursor: pointer;">
+    Deposer
+  </button>
+</div> 
+  <p>Argent: <span id="argent">0</span> XAF</p>
+
+  <div id="boostPanel" style="display:none;margin-bottom:10px">
+    <span id="boostStatus" style="font-weight:bold"></span>
+    <input type="number" id="boostViews" placeholder="Nombre de vues à acheter" min="1" />
+    <button onclick="boostPost()">Booster</button>
+  </div>
+</section>
+
+<!-- ============ LOGIN FORM ============ -->
+<section id="conect" class="tabcontent">
+  <h3>Connectez-vous</h3>
+  <div id="emailLoginBox">
+    <input type="email"    id="loginEmail"    placeholder="Email" />
+    <input type="password" id="loginPassword" placeholder="Mot de passe" />
+    <button onclick="loginWithEmail()">Se connecter</button>
+  </div>
+</section>
+
+<!-- ============ SIGNUP FORM ============ -->
+<section id="inscrip" class="tabcontent">
+  <h3>Inscription</h3>
+  <div id="emailSignupBox">
+   <input type="text"
+       id="signupName"
+       placeholder="Nom complet"
+       pattern="[a-zA-ZÀ-ÿ0-9\s]+"
+       required/>  
+    <input type="email"    id="signupEmail"    placeholder="Email" />
+    <input type="password" id="signupPassword" placeholder="Mot de passe (≥ 6 car.)" />
+    <input type="number"   id="signupAge"      placeholder="Âge (min 18)" min="18" />
+    <button onclick="signupWithEmail()">S’inscrire</button>
+  </div>
+</section>
+
+<!-- ============ OTHER USER FEED ============ -->
+<section id="userFeed" class="tabcontent">
+  <h3 id="userFeedTitle">Publications de …</h3>
+  <div id="userFeedContent"></div>
+</section>
+<section id="amis" class="tabcontent">
+ <i class="fas fa-arrow-left" onclick="openTab(event,'home')"></i>
+   <div class="post-header">
+    talent D'Afrik   <img class="circle"  src="https://ucarecdn.com/04a9cc78-e2a1-4e71-baa0-b83b5de179ed/-/preview/417x417/" onclick="window.open('https://skills-camer.cm')"/>
+    
+   </div>
+  <div id="suggestions">
+ <h3>vous connaissez peut etre:</h3>
+  <div id="suggestionsList">Chargement…</div>
+</div>   
+</section>
+<section id="music" class="tabcontent">
+ <button onclick="openTab(event,'mus')">importer ma musique <i class="fas fa-download"></i></button>  
+ <h2>Musiques publiées 🎧</h2>
+<div id="musicFeed"></div>
+</section>
+<section id="mus" class="tabcontent">
+  <h2>Publier un morceau</h2>
+  <input type="text" id="nom" placeholder="Votre nom d'artiste" />
+  <input type="text" id="titre" placeholder="Titre de la musique" />
+  <input type="file" id="audioFile" accept="audio/*" />
+  <button onclick="publishMusic()">Publier</button>
+
+  <div id="statusMsg"></div>
+</section>
+<section id="condis" class="tabcontent">
+  <h2>       Conditions d'utilisation générales :
+
+</h2> 
+   <div>
+En créant votre compte sur mboa skills vous acceptez les conditions d'utilisation de l'application.
+<p style="color:orange">Monétisation:</p> Disponible partout en Afrique.
+<p style="color:orange">Publications :</p> À chaque fois que tu publie une vidéo où du texte tu gagnes <u style="color:blue">150FcfA</u> pour chaque 1k de vues affligé à ta publication ; 
+<p>Musique-pub:</p> pour partager ta musique cela nécessite un montant de <u style="color:blue">5100f</u> ;
+<p style="color:orange">musique-pay:</p> avec ta musique tu gagnes <u style="color:blue">55FcFa</u> à chaque fois que quelqu'un écoute ta musique, tu peux gagner jusqu'à <u style="color:blue">55 000FCFa</u> pour 1k d'écoute ;
+<p style="color:orange">Certification:</p> pour être certifié tu dois répondre aux critères d'éligibilité (tes informations doivent être juste ce qui nécessite un temps précis); Dans le cas contraire pour être certifié il te faudra dépenser un montant de <u style="color:blue">18 000FcFa</u>.
+
+L'application mboa skills est disponible partout dans le monde (la monétisation est Disponible) Le système du dépôt fonctionne sans problème ainsi que celui du retrait ;
+<p style="color:orange">Retrait/Dépôt :</p> Disponible <u style="color:blue">24h/24 7j/7 du lundi au dimanche</u>. MTN et orange Money uniquement (pour le cas du Cameroun)
+<br><br/>
+N'oubliez pas de nous contacter sur <u style="color:blue">Facebook</u> merci.
+   </div> 
+</section>
+<script type="module" src="script.js">
+</script>
+</body>
+</html>
