@@ -3,13 +3,208 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-     <meta http-equiv="refresh" content="0; url=/" />
-  
   <title>Mboa Skills</title>
-<!-- Font Awesome -->
+
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  
-  <link rel="stylesheet" href="styles.css">
+  <style>
+      
+    /* === GLOBAL STYLES ================================= */
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      background-image:url('https://ucarecdn.com/ff597083-3c69-4040-8b93-1cb2c38ac703/-/preview/1000x999/');
+    }
+    header{
+      position:fixed;top:0;left:0;right:0;
+      display:flex;justify-content:space-around;align-items:center;
+      padding:1rem;background:#fff;border-bottom:1px solid #ddd;z-index:99999
+    }
+    header i{font-size:1.4rem;color:#888;cursor:pointer}
+    header i.selected{color:#FFA500}
+    .tabcontent{display:none;padding:6rem 1rem 1rem;max-width:600px;margin:auto}
+    .tabcontent.active{display:block}
+    input,textarea,button,select{
+      display:block;width:100%;padding:10px;margin-bottom:10px;
+      border:1px solid #ccc;border-radius:6px;font-size:14px;box-sizing:border-box
+    }
+    button{background:#FFA500;color:#fff;font-weight:bold;border:none;border-radius:6px;cursor:pointer}
+    button:hover{background:#145ec1}
+
+    /* === POST CARD ===================================== */
+.post {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.post-header img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.post-header a.username {
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  color: #FFA500;
+  text-decoration: none;
+}
+
+.verified-badge {
+  display: inline-block;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+}
+
+.verified-badge .fa-certificate {
+  color: #1877F2;
+  font-size: 16px;
+}
+
+.verified-badge .checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 9px;
+  color: white;
+  pointer-events: none;
+}
+
+.post-content {
+  margin-top: 10px;
+}
+
+.post video,
+.post .text-bg {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+.text-bg {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
+  color: #fff;
+  text-align: center;
+  white-space: pre-wrap;
+  max-width: 90%;
+}
+
+.post-actions {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.post-actions i {
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.like.liked {
+  color: #1877f2;
+}
+.like {
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
+
+.fa-heart.liked {
+  color: #1877f2 !important; /* 💙 bleu Facebook */
+}
+.boost-btn {
+  background: #FFA500;
+  color: #fff;
+  padding: 5px 10px;
+  font-weight: bold;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+    /* === COMMENTS ===================================== */
+    .comments-section{margin-top:30px;border-top:1px solid #ccc;padding-top:10px;max-height:150px;overflow-y:auto;direction:ltr}
+    .comment{direction:ltr;unicode-bidi:plaintext;text-align:left;word-break:break-word}
+    .comment strong{color:#1877f2}
+    .comment-input{display:flex;gap:14px;margin-top:14px}
+    .comment-input input{flex:1;height:30px;padding:12px;border-radius:5px;border:1px solid #ccc;font-size:14px;width:100px;height:60px;}
+    .comment-input button{padding:5px 9px;background:#FFA500;color:#fff;border:none;border-radius:8px;cursor:pointer}
+
+    /* === ACCOUNT FORMS ================================= */
+    #emailLoginBox,#emailSignupBox{
+      background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,.1);margin-bottom:15px
+    }
+    #emailLoginBox input,#emailSignupBox input{margin-bottom:10px}
+    #emailLoginBox button,#emailSignupBox button{background:#1877f2;color:#fff;border:none;padding:10px;font-weight:bold;border-radius:6px;cursor:pointer;width:100%}
+    #emailLoginBox button:hover,#emailSignupBox button:hover{background:#145ec1}
+    #accountStatus{margin-top:10px;font-weight:bold;color:#1877f2}
+    #authStatus{margin-top:10px;font-weight:bold;color:limegreen}
+
+    /* === USER FEED ==================================== */
+    #userFeedContent .post{/* inherits .post styles */}
+    .follow-btn{
+  padding:2px 3px;border:none;border-radius:4px;font-size:12px;
+  cursor:pointer;background:#FFA500;color:#fff
+}
+      .circle {
+          width: 4rem;
+          aspect-ratio: 1 / 1;
+          border-radius: 50%;
+      }
+.verified-badge {
+  display: inline-block;
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.verified-badge .fa-certificate {
+  color: #1877F2;
+  font-size: 16px;
+}
+
+.verified-badge .checkmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 9px;
+  color: white;
+  pointer-events: none;
+} 
+.boutons {
+  display: flex;
+  justify-content: center;
+}
+
+.boutons button {
+  margin: 8px;
+}
+        #bouton-lundi {
+            display: none; /* Masquer le bouton par défaut */
+        }
+  </style>
 </head>
 <body>
 <header>
@@ -143,7 +338,7 @@
 <section id="vibo" class="tabcontent">
   <h3>Booster une publication</h3>
   <div class="post-header">
-  <input type="number" id="montant" placeholder="Montant à déposer" min="1900" style="padding: 6px; width: 150px;">
+  <input type="number" id="montant" placeholder="Montant à déposer" min="500" style="padding: 6px; width: 150px;">
   <button id="notchpayBtn" style="padding: 6px 12px; background-color: #1877f2; color: white; border: none; border-radius: 4px; cursor: pointer;">
     Deposer
   </button>
@@ -200,8 +395,8 @@
 </div>   
 </section>
 <section id="music" class="tabcontent">
- <button onclick="openTab(event,'mus')">importer ma musique <i class="fas fa-download"></i></button>  
- <h2>Musiques publiées 🎧</h2>
+ <button onclick="openTab(event,'mus')" id="bouton-lundi">importer ma musique <i class="fas fa-download"></i></button>  
+ <h2>Musiques expire dans 10 jours 🎧</h2>
 <div id="musicFeed"></div>
 </section>
 <section id="mus" class="tabcontent">
@@ -221,7 +416,7 @@
 En créant votre compte sur mboa skills vous acceptez les conditions d'utilisation de l'application.
 <p style="color:orange">Monétisation:</p> Disponible partout en Afrique.
 <p style="color:orange">Publications :</p> À chaque fois que tu publie une vidéo où du texte tu gagnes <u style="color:blue">150FcfA</u> pour chaque 1k de vues affligé à ta publication ; 
-<p>Musique-pub:</p> pour partager ta musique cela nécessite un montant de <u style="color:blue">5100f</u> ;
+<p>Musique-pub:</p>Disponible chaque lundi de la semaine,pour partager ta musique cela nécessite un montant de <u style="color:blue">5100f</u> ;
 <p style="color:orange">musique-pay:</p> avec ta musique tu gagnes <u style="color:blue">55FcFa</u> à chaque fois que quelqu'un écoute ta musique, tu peux gagner jusqu'à <u style="color:blue">55 000FCFa</u> pour 1k d'écoute ;
 <p style="color:orange">Certification:</p> pour être certifié tu dois répondre aux critères d'éligibilité (tes informations doivent être juste ce qui nécessite un temps précis); Dans le cas contraire pour être certifié il te faudra dépenser un montant de <u style="color:blue">18 000FcFa</u>.
 
@@ -231,7 +426,1348 @@ L'application mboa skills est disponible partout dans le monde (la monétisation
 N'oubliez pas de nous contacter sur <u style="color:blue">Facebook</u> merci.
    </div> 
 </section>
-<script type="module" src="script.js">
+<script type="module">
+
+/*──────────────────────────────────────────────────────────
+  1. IMPORTS
+──────────────────────────────────────────────────────────*/
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+import {
+  getAuth, onAuthStateChanged, signInWithPopup, signOut, GoogleAuthProvider,
+  updateProfile, createUserWithEmailAndPassword, signInWithEmailAndPassword
+} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+import {
+  getFirestore,
+  collection, addDoc, onSnapshot, query, orderBy, where,
+  doc, getDocs, getDoc, setDoc, updateDoc,
+  increment, serverTimestamp, runTransaction,
+  deleteDoc, limit
+} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+import {
+  getStorage, ref, uploadBytesResumable, getDownloadURL
+} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
+
+/*──────────────────────────────────────────────────────────
+  2. CONFIG & GLOBALS
+──────────────────────────────────────────────────────────*/
+const firebaseConfig = {
+  apiKey:            "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
+  authDomain:        "mboa-ec602.firebaseapp.com",
+  projectId:         "mboa-ec602",
+  storageBucket:     "mboa-ec602.appspot.com",
+  messagingSenderId: "498505132403",
+  appId:             "1:498505132403:web:eb46547745f8d1a77b3d06"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const stg  = getStorage(app);
+const provider = new GoogleAuthProvider();
+
+let currentUser=null, likedPosts=new Set(), followingIds=new Set();
+let boostId='', currentBalance=0;
+
+const qs=id=>document.getElementById(id);
+const fmt=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':n;
+
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const amount = parseFloat(params.get("amount"));
+  const uid = params.get("uid");
+  const ref = params.get("ref");
+
+  if (amount > 0 && uid && ref && currentUser?.uid === uid) {
+    // Empêche double ajout
+    const refDoc = doc(db, 'walletPayments', ref);
+    const existing = await getDoc(refDoc);
+    if (!existing.exists()) {
+      // Crédite le solde
+      const walletRef = doc(db, 'wallets', uid);
+      await runTransaction(db, async t => {
+        const snap = await t.get(walletRef);
+        const old = snap.exists() ? snap.data().balance : 0;
+        t.set(walletRef, { balance: old + amount }, { merge: true });
+      });
+      // Marque la transaction comme enregistrée
+      await setDoc(refDoc, { uid, amount, createdAt: serverTimestamp() });
+      alert(`Paiement réussi : ${amount} FCFA ajouté à votre solde`);
+      location.href = location.origin + location.pathname; // Nettoyer l'URL
+    }
+  }
+})();
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const amount = parseFloat(params.get("amount"));
+  const uid = params.get("uid");
+  const ref = params.get("ref");
+
+  if (amount > 0 && uid && ref && currentUser?.uid === uid) {
+    const refDoc = doc(db, 'walletPayments', ref);
+    const existing = await getDoc(refDoc);
+    if (!existing.exists()) {
+      const walletRef = doc(db, 'wallets', uid);
+      await runTransaction(db, async t => {
+        const snap = await t.get(walletRef);
+        const old = snap.exists() ? snap.data().balance : 0;
+        t.set(walletRef, { balance: old + amount }, { merge: true });
+      });
+      await setDoc(refDoc, { uid, amount, createdAt: serverTimestamp() });
+      alert(`Paiement réussi : ${amount} FCFA ajouté à votre solde`);
+      location.href = location.origin + location.pathname;
+    }
+  }
+})();
+/*──────────────────────────────────────────────────────────
+  3. DOM READY — Dépôt
+──────────────────────────────────────────────────────────*/
+document.addEventListener('DOMContentLoaded',()=>{
+  qs('deposer')?.addEventListener('click',()=>{
+    const m=parseFloat(qs('montant').value);
+    if(isNaN(m))return alert('Entrez un montant');deposit(m);qs('montant').value='';
+  });
+});
+
+/*──────────────────────────────────────────────────────────
+  4. NAVIGATION & SHUFFLE
+──────────────────────────────────────────────────────────*/
+ window.openTab = (evt, id) => {
+  const tab = document.getElementById(id);
+  const isAlreadyActive = tab.classList.contains('active');
+
+  // 🔁 Cas : on clique sur l'onglet déjà actif
+  if (isAlreadyActive) {
+    const isAtTop = window.scrollY <= 10;
+    if (isAtTop) {
+      // 🟢 Déjà en haut → recharger toute la page
+      location.reload();
+    } else {
+      // 🔼 Scroll vers le haut + shuffle si on est sur "home"
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (id === 'home') {
+        shuffleFeed();
+        renderFeed();
+      }
+    }
+    return; // ⛔️ Ne pas continuer : pas de changement d’onglet
+  }
+
+  // 🆕 Cas : on change d’onglet → juste activer le nouvel onglet
+  document.querySelectorAll('.tabcontent').forEach(t => t.classList.toggle('active', t.id === id));
+  document.querySelectorAll('.tablinks').forEach(l => l.classList.toggle('selected', l === evt.currentTarget));
+  history.pushState({ tab: id }, '', `#${id}`);
+
+
+// Ajouter l'événement popstate pour gérer le bouton retour
+window.addEventListener('popstate', (event) => {
+  if (event.state && event.state.tab) {
+    const tabId = event.state.tab;
+    document.querySelectorAll('.tabcontent').forEach(t => t.classList.toggle('active', t.id === tabId));
+    document.querySelectorAll('.tablinks').forEach(l => l.classList.toggle('selected', l.getAttribute('onclick').includes(tabId)));
+  }
+});
+
+window.addEventListener('load', () => {
+  const hash = window.location.hash.substring(1);
+  if (hash) {
+    const tab = document.getElementById(hash);
+    if (tab) {
+      document.querySelectorAll('.tabcontent').forEach(t => t.classList.toggle('active', t.id === hash));
+      document.querySelectorAll('.tablinks').forEach(l => l.classList.toggle('selected', l.getAttribute('onclick').includes(hash)));
+    }
+  }
+});
+
+  // ✅ On NE FAIT RIEN D’AUTRE ! Ni shuffle, ni render ici.
+  // Pas de renderFeed(), pas de shuffleFeed()
+  // → L’Accueil ne doit jamais être modifié juste en y revenant
+};
+function shuffleFeed() {
+  const c = qs('feed');
+  const n = [...c.children];
+  for (let i = n.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [n[i], n[j]] = [n[j], n[i]];
+  }
+  n.forEach(el => c.appendChild(el));
+}
+/*──────────────────────────────────────────────────────────
+  5. AUTH
+──────────────────────────────────────────────────────────*/
+window.signInWithGoogle=()=>signInWithPopup(auth,provider).catch(e=>alert(e.message));
+window.signOutUser=()=>signOut(auth);
+
+onAuthStateChanged(auth,async user=>{
+  currentUser=user;
+  const p=user?.photoURL||'https://ucarecdn.com/ff597083-3c69-4040-8b93-1cb2c38ac703/-/preview/1000x999/';
+  qs('homeProfilePhoto').src=p;qs('feedmeProfilePhoto').src=p;
+  qs('authStatus').textContent=user?` ${user.displayName||user.email}`:'';
+  qs('accountStatus').textContent=user?`• ${user.displayName||user.email}`:'';
+  qs('accountStatusFeed').textContent=qs('accountStatus').textContent;
+  if (user) {
+    await loadFollowing();  // fonction qui initialise followingIds
+    loadSuggestions();      // charge les suggestions
+  }
+
+if (user) {
+    showProfileLink(user.uid);
+  }
+  if(user){
+    await loadWallet(); await loadFollowing(); await loadLikedPosts();
+    renderFeed();renderMyFeed();renderVideoFeed();renderBoostFeed();
+    await loadTotalViewsAndBalance();
+  }else{
+    likedPosts.clear();followingIds.clear();
+    ['feed','myFeed','videoFeedContent','videoFeedContentBoost','userFeedContent'].forEach(id=>qs(id).innerHTML='');
+    qs('totalViewsCount').textContent='';qs('currentBalance').textContent='Solde actuel: 0 FCFA';
+  }
+});
+
+/*──────────────────────────────────────────────────────────
+  6. FOLLOW / FOLLOWERS
+──────────────────────────────────────────────────────────*/
+  
+async function loadFollowing() {
+  if (!currentUser) return;
+  const s = await getDocs(collection(db, 'follows', currentUser.uid, 'list'));
+  followingIds = new Set(s.docs.map(d => d.id));
+}
+
+function updateFollowBtn(uid, b) {
+  // Sécurité si followingIds pas encore chargé
+  if (!followingIds || typeof followingIds.has !== 'function') {
+    b.textContent = '...';
+    b.disabled = true;
+    return;
+  }
+
+  const on = followingIds.has(uid);
+  b.textContent = on ? 'Suivi(e)' : 'Suivre';
+  b.style.background = on ? '#ccc' : '#1877f2';
+  b.style.color = on ? '#000' : '#fff';
+  b.disabled = false;
+}
+
+function renderFollowBtn(uid) {
+  if (!currentUser || uid === currentUser.uid) return null;
+  const b = document.createElement('button');
+  b.className = 'follow-btn';
+  updateFollowBtn(uid, b);
+  b.onclick = () => toggleFollow(uid, b);
+  return b;
+}
+
+async function toggleFollow(uid, b) {
+  if (!currentUser) return alert('Connectez-vous');
+
+  const myRef = doc(db, 'follows', currentUser.uid, 'list', uid);
+  const hisRef = doc(db, 'follows', uid, 'list', currentUser.uid);
+  const on = followingIds.has(uid);
+
+  if (on) {
+    await Promise.all([
+      deleteDoc(myRef),
+      deleteDoc(hisRef)
+    ]);
+    followingIds.delete(uid);
+  } else {
+    await Promise.all([
+      setDoc(myRef, {}),
+      setDoc(hisRef, { uid: currentUser.uid, date: serverTimestamp() })
+    ]);
+    followingIds.add(uid);
+  }
+
+  updateFollowBtn(uid, b);
+  refreshFollowerCounters(uid);
+}
+
+async function refreshFollowerCounters(uid) {
+  const snap = await getDocs(collection(db, 'follows', uid, 'list'));
+  const n = snap.size;
+  document.querySelectorAll(`[data-followers-of="${uid}"]`)
+    .forEach(el => el.textContent = `Followers : ${fmt(n)}`);
+  }
+/*──────────────────────────────────────────────────────────
+  7. WALLET dépôt
+──────────────────────────────────────────────────────────*/
+async function loadWallet() {
+  if (!currentUser) return;
+
+  const walletRef = doc(db, "wallets", currentUser.uid);
+  const walletSnap = await getDoc(walletRef);
+
+  const balance = walletSnap.exists() ? walletSnap.data().balance : 0;
+  qs("argent").textContent = balance.toFixed(0);
+}
+
+// 🟢 Fonction de dépôt
+async function deposit(amount) {
+  if (!currentUser) return alert("Connectez-vous d'abord.");
+  if (!Number.isFinite(amount) || amount < 2000)
+    return alert("Montant minimum de dépôt : 2 000 FCFA");
+
+  const walletRef = doc(db, "wallets", currentUser.uid);
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const snap = await transaction.get(walletRef);
+      const current = snap.exists() ? snap.data().balance || 0 : 0;
+      const updated = current + amount;
+
+      transaction.set(walletRef, { balance: updated }, { merge: true });
+    });
+
+    alert("Dépôt effectué avec succès !");
+    await loadWallet();
+  } catch (e) {
+    console.error("Erreur dépôt :", e);
+    alert("Erreur lors du dépôt.");
+  }
+}
+/*──────────────────────────────────────────────────────────
+  8. PUBLISH POST
+──────────────────────────────────────────────────────────*/
+window.publishPost=async()=>{
+  if(!currentUser)return alert('Connectez-vous');
+  const text=qs('postText').value.trim(); const bg=qs('bgColor').value;
+  const file=qs('videoFile').files[0]; const tit=qs('videoTitle').value.trim();
+  if(!text&&!file)return alert('Ajoutez un texte ou une vidéo');
+  qs('status').textContent='Publication…';
+  const data={userId:currentUser.uid,userEmail:currentUser.email,userName:currentUser.displayName||currentUser.email,userPhoto:currentUser.photoURL||'https://via.placeholder.com/40',text,bgColor:bg,videoUrl:null,videoTitle:tit,views:0,likes:0,createdAt:serverTimestamp(),boosted:0};
+  const reset=()=>{['postText','videoTitle'].forEach(i=>qs(i).value='');qs('videoFile').value='';qs('status').textContent='Publié !';};
+  if(file){
+    const r=ref(stg,`videos/${Date.now()}_${file.name}`);
+    uploadBytesResumable(r,file).on('state_changed',s=>qs('status').textContent=`${Math.floor(s.bytesTransferred/s.totalBytes*100)}%`,e=>alert(e.message),async s=>{data.videoUrl=await getDownloadURL(s.ref);await addDoc(collection(db,'posts'),data);reset();});
+  }else{await addDoc(collection(db,'posts'),data);reset();}
+};
+
+/*──────────────────────────────────────────────────────────
+  9. FEED ACCUEIL (boostés + suivis)
+──────────────────────────────────────────────────────────*/
+let firstRenderDone = false;
+let cachedPosts = [];
+
+async function renderFeed() {
+  const c = qs('feed');
+  c.textContent = 'Chargement…';
+
+  const now = Date.now();
+  const sevenDays = 7 * 24 * 60 * 60 * 1000;
+  const posts = [];
+
+  if (firstRenderDone && cachedPosts.length > 0) {
+    const shuffled = [...cachedPosts];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    c.innerHTML = '';
+    shuffled.forEach(p => c.appendChild(card(p.id, p.data, false)));
+    return;
+  }
+
+  // BOOSTED POSTS (affichées même si +7 jours, tant que le boost est actif)
+  const qBoost = query(
+    collection(db, 'posts'),
+    where('boosted', '>', 0),
+    orderBy('boosted', 'desc'),
+    orderBy('createdAt', 'desc'),
+    limit(30)
+  );
+
+  const snapBoost = await getDocs(qBoost);
+
+  for (const docSnap of snapBoost.docs) {
+    const data = docSnap.data();
+    const boostAt = data.boostAt?.toMillis?.() || 0;
+    const diffBoostDays = (now - boostAt) / (1000 * 60 * 60 * 24);
+
+    if (diffBoostDays <= 5) {
+      posts.push({ id: docSnap.id, data });
+    } else {
+      // Boost expiré → nettoyage
+      await updateDoc(doc(db, 'posts', docSnap.id), {
+        boosted: 0
+      });
+    }
+  }
+
+  // FOLLOWED USERS : on affiche seulement les posts récents (-7 jours)
+  if (followingIds.size > 0) {
+    const groups = [...followingIds].reduce((a, u, i) => {
+      if (i % 10 === 0) a.push([]);
+      a[a.length - 1].push(u);
+      return a;
+    }, []);
+
+    for (const g of groups) {
+      const q = query(
+        collection(db, 'posts'),
+        where('userId', 'in', g),
+        orderBy('createdAt', 'desc'),
+        limit(30)
+      );
+      const snap = await getDocs(q);
+      snap.forEach(d => {
+        const postData = d.data();
+        const createdAt = postData.createdAt?.toMillis?.() || 0;
+        const isRecent = (now - createdAt) <= sevenDays;
+
+        const alreadyAdded = posts.find(p => p.id === d.id);
+        if (isRecent && !alreadyAdded) {
+          posts.push({ id: d.id, data: postData });
+        }
+      });
+    }
+  }
+
+  // Tri du plus récent au plus ancien
+  posts.sort((a, b) => {
+    const ta = a.data.createdAt?.toMillis?.() || 0;
+    const tb = b.data.createdAt?.toMillis?.() || 0;
+    return tb - ta;
+  });
+
+  cachedPosts = posts;
+  firstRenderDone = true;
+
+  c.innerHTML = '';
+  posts.forEach(p => c.appendChild(card(p.id, p.data, false)));
+}
+function loadFollowedPosts(c){
+  if(!followingIds.size)return;
+  const groups=[...followingIds].reduce((a,u,i)=>{if(i%10===0)a.push([]);a[a.length-1].push(u);return a;},[]);
+  groups.forEach(g=>{
+    const q=query(collection(db,'posts'),where('userId','in',g),orderBy('createdAt','desc'),limit(30));
+    onSnapshot(q,snap=>snap.forEach(d=>{if(!c.querySelector(`[data-post="${d.id}"]`))c.appendChild(card(d.id,d.data(),false));}));
+  });
+}
+
+/*──────────────────────────────────────────────────────────
+ 10. MES POSTS  (+ compteur followers)
+──────────────────────────────────────────────────────────*/
+function renderMyFeed(){
+  if(!currentUser)return;
+  const c=qs('myFeed');c.textContent='Chargement…';
+  onSnapshot(query(collection(db,'posts'),where('userId','==',currentUser.uid),orderBy('createdAt','desc')),
+    async snap=>{
+      c.innerHTML='';
+      const fol=await getDocs(collection(db,'follows',currentUser.uid,'list'));
+      const p=document.createElement('p');p.dataset.followersOf=currentUser.uid;
+      p.textContent = `Followers : ${fmt(fol.size)}`;
+      c.appendChild(p);
+      snap.forEach(d=>c.appendChild(card(d.id,d.data(),true)));
+    });
+}
+
+/*──────────────────────────────────────────────────────────
+ 11. VIDEO FEED & BOOST FEED
+──────────────────────────────────────────────────────────*/
+function renderVideoFeed() {
+  const c = qs('videoFeedContent');
+  c.textContent = 'Chargement…';
+
+  onSnapshot(
+    query(
+      collection(db, 'posts'),
+      where('videoUrl', '!=', null),
+      where('boosted', '>', 0), // 👉 Affiche uniquement les vidéos boostées
+      orderBy('createdAt', 'desc')
+    ),
+    snap => {
+      c.innerHTML = '';
+
+      const docs = Array.from(snap.docs);
+
+      // Optionnel : Mélanger aléatoirement
+      docs.sort(() => Math.random() - 0.5);
+
+      for (const d of docs) {
+        c.appendChild(card(d.id, d.data(), false));
+      }
+    }
+  );
+}
+function renderBoostFeed(){
+  if(!currentUser)return;
+  const c=qs('videoFeedContentBoost');c.textContent='Chargement…';
+  onSnapshot(query(collection(db,'posts'),where('userId','==',currentUser.uid),where('videoUrl','!=',null),orderBy('createdAt','desc')),
+    snap=>{c.innerHTML='';snap.forEach(d=>c.appendChild(card(d.id,d.data(),true)));});
+}
+
+/*──────────────────────────────────────────────────────────
+ 12. CARD (like / comments / boost)
+──────────────────────────────────────────────────────────*/
+
+function card(id, d, isMine) {
+  const w = document.createElement('div');
+  w.className = 'post';
+  w.dataset.post = id;
+
+  /* ---------- HEADER ---------- */
+  const head = document.createElement('div');
+  head.className = 'post-header';
+
+  const img = document.createElement('img');
+  img.src = d.userPhoto || 'https://via.placeholder.com/40';
+  img.alt = d.userName || d.userEmail || 'Profil';
+  img.onclick = () => openUserFeed(d.userId);
+const name = document.createElement('a');
+name.className = 'username';
+name.href = `https://mboaskill.cm/${d.userId}`;
+name.onclick = (e) => {
+  e.preventDefault();
+  openUserFeed(d.userId);
+};
+
+// Vérifie si l'utilisateur est certifié (collection 'verified')
+const verifiedRef = doc(db, 'verified', d.userId);
+getDoc(verifiedRef).then((snap) => {
+  if (snap.exists() && snap.data().status === true) {
+    name.innerHTML = `
+      ${d.userName || d.userEmail}
+      <span class="verified-badge">
+        <i class="fas fa-certificate"></i>
+        <i class="fas fa-check checkmark"></i>
+      </span>
+    `;
+  } else {
+    name.textContent = d.userName || d.userEmail;
+  }
+});
+// Temps relatif
+  const time = document.createElement('small');
+  time.style.marginLeft = '8px';
+  time.style.color = '#888';
+  if (d.createdAt?.toDate) {
+    time.textContent = `• il y a ${timeSince(d.createdAt.toDate())}`;
+  }
+
+  head.append(img, name, time);
+
+  // Bouton suivre
+  const fbtn = renderFollowBtn(d.userId);
+  if (fbtn) head.appendChild(fbtn);
+
+  // Étiquette sponsorisé si boosté
+  if ((d.boosted || 0) > 0) {
+    const tag = document.createElement('span');
+    tag.textContent = 'Sponsorisé';
+    tag.style.cssText = 'margin-left:auto;color:#ffa500;font-size:12px;font-weight:bold';
+    head.appendChild(tag);
+  }
+
+  w.appendChild(head);
+
+  /* ---------- CONTENT ---------- */
+  const cont = document.createElement('div');
+  cont.className = 'post-content';
+
+  if (d.videoUrl) {
+    // Vidéo
+    const vidHtml = `
+      <video src="${d.videoUrl}" controls></video>
+      ${d.videoTitle ? `<div style="font-weight:bold;margin-top:4px;">${linkifyText(d.videoTitle)}</div>` : ''}
+    `;
+    cont.innerHTML = vidHtml;
+  } else if (d.text) {
+    // Texte + liens
+    cont.innerHTML = `<div class="text-bg" style="background:${d.bgColor || '#1877f2'}">${linkifyText(d.text)}</div>`;
+  }
+
+  w.appendChild(cont);
+
+  /* ---------- ACTIONS ---------- */
+  const act = document.createElement('div');
+  act.className = 'post-actions';
+
+  // Like
+const like = document.createElement('i');
+like.className = 'fa-regular fa-heart'; // cœur vide au départ
+like.classList.add('like'); // ta classe perso pour styliser
+
+const lCnt = document.createElement('span');
+lCnt.textContent = fmt(d.likes || 0);
+
+// Vérifie si l'utilisateur a déjà liké
+if (currentUser) {
+  const likeRef = doc(db, 'posts', id, 'likes', currentUser.uid);
+  getDoc(likeRef).then(snap => {
+    if (snap.exists()) {
+      like.classList.remove('fa-regular');
+      like.classList.add('fa-solid', 'liked'); // plein + couleur
+    }
+  });
+}
+
+// Toggle au clic
+like.onclick = () => toggleLike(id, like, lCnt);
+// Vérifie si déjà liké depuis Firestore
+if (currentUser) {
+  const likeRef = doc(db, 'posts', id, 'likes', currentUser.uid);
+  getDoc(likeRef).then(snap => {
+    if (snap.exists()) like.classList.add('liked');
+  });
+}
+
+like.onclick = () => toggleLike(id, like, lCnt);
+
+act.append(like, lCnt);
+  // 🟡 EDIT (uniquement mes posts) — placé AVANT commentaires
+  if (isMine) {
+    const edit = document.createElement('i');
+    edit.className = 'fa-solid fa-pen-to-square';
+    edit.style.cursor = 'pointer';
+    edit.title = 'Modifier';
+    edit.onclick = () => editPost(id, d);
+    act.appendChild(edit);
+  }
+
+  // Vues (affichage combiné)
+  const vCnt = document.createElement('span');
+  const vuesAffichees = (d.views || 0) + (d.boosted || 0) + ((d.likes || 0) * 10);
+  vCnt.textContent = `👁️ ${fmt(vuesAffichees)}`;
+  act.appendChild(vCnt);
+
+  // Commentaire
+  const comI = document.createElement('i');
+  comI.className = 'fa-regular fa-comment';
+  const comCnt = document.createElement('span');
+  comCnt.textContent = ' … ';
+  act.append(comI, comCnt);
+
+  // Boost (uniquement mes posts)
+  if (isMine) {
+    const b = document.createElement('button');
+    b.className = 'boost-btn';
+    b.textContent = 'Booster';
+    b.onclick = () => selectBoostPost(id, d.text || d.videoTitle || 'Sans titre');
+    act.appendChild(b);
+  }
+
+  w.appendChild(act);
+
+  /* ---------- COMMENTS SECTION (toggle) ---------- */
+  const comSec = document.createElement('div');
+  comSec.className = 'comments-section';
+  comSec.style.display = 'none';
+
+  const comList = document.createElement('div');
+  comSec.appendChild(comList);
+
+  if (currentUser) {
+    const div = document.createElement('div');
+    div.className = 'comment-input';
+
+    const inp = document.createElement('input');
+    inp.placeholder = 'Ajouter un commentaire...';
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Envoyer';
+    btn.onclick = () => {
+      const t = inp.value.trim();
+      if (!t) return;
+      addComment(id, t);
+      inp.value = '';
+    };
+
+    div.append(inp, btn);
+    comSec.appendChild(div);
+  }
+
+  w.appendChild(comSec);
+
+  // Toggle affichage commentaires
+  comI.onclick = () => {
+    const show = comSec.style.display === 'none';
+    comSec.style.display = show ? 'block' : 'none';
+    if (show) loadComments(id, comList, comCnt);
+  };
+
+  return w;
+}
+async function editPost(postId, data) {
+  // Récup valeur actuelle
+  const currentText = data.text || '';
+  const newText = prompt('Modifiez le texte de la publication :', currentText);
+  if (newText === null) return; // Annulé
+
+  // Si rien changé, on ne fait rien
+  if (newText.trim() === currentText.trim()) return;
+
+  try {
+    await updateDoc(doc(db, 'posts', postId), { text: newText.trim() });
+    alert('Publication mise à jour.');
+  } catch (e) {
+    console.error('Erreur mise à jour post', e);
+    alert('Erreur lors de la mise à jour.');
+  }
+}
+
+/* LIKE */
+async function loadLikedPosts(){likedPosts.clear();}
+async function toggleLike(pid, icon, cnt) {
+  if (!currentUser) return alert('Connectez-vous');
+
+  const ref = doc(db, 'posts', pid);
+  const likeRef = doc(db, 'posts', pid, 'likes', currentUser.uid);
+
+  const snap = await getDoc(likeRef);
+
+  if (snap.exists()) {
+    // Déjà liké → on retire
+    await deleteDoc(likeRef);
+    icon.classList.remove('liked');
+    await updateDoc(ref, { likes: increment(-1) });
+  } else {
+    // Pas encore liké → on ajoute
+    await setDoc(likeRef, {
+      userId: currentUser.uid,
+      userName: currentUser.displayName || currentUser.email || '',
+      likedAt: serverTimestamp()
+    });
+    icon.classList.add('liked');
+    await updateDoc(ref, { likes: increment(1) });
+  }
+
+  // Actualiser le compteur
+  const postSnap = await getDoc(ref);
+  cnt.textContent = fmt(postSnap.data().likes || 0);
+}
+/* COMMENTS */
+async function loadComments(pid, container, cnt) {
+  const s = await getDocs(query(collection(db, 'posts', pid, 'comments'), orderBy('createdAt')));
+  container.innerHTML = '';
+  cnt.textContent = s.size;
+
+  s.forEach(d => {
+    const c = d.data();
+    const div = document.createElement('div');
+    div.className = 'comment';
+
+    const username = document.createElement('strong');
+    username.textContent = c.userName;
+    username.style.cursor = 'pointer';
+    username.style.color = '#FFA500';
+    username.onclick = () => openUserFeed(c.userId);
+
+    const span = document.createElement('span');
+    span.innerHTML = ' : ' + linkifyText(c.text || '');
+
+    div.appendChild(username);
+    div.appendChild(span);
+    container.appendChild(div);
+  });
+}
+async function addComment(pid,text){
+  if(!currentUser)return;
+  await addDoc(collection(db,'posts',pid,'comments'),{userId:currentUser.uid,userName:currentUser.displayName||currentUser.email,text,createdAt:serverTimestamp()});
+}
+
+/* BOOST */
+function selectBoostPost(pid,title){
+  boostId=pid;qs('boostStatus').textContent=`1 sélection : ${title}`;qs('boostPanel').style.display='block';
+  openTab({currentTarget:document.querySelector('.tablinks[onclick*="vibo"]')},'vibo');
+}
+async function prepareWallet() {
+  if (!currentUser) return;
+
+  const walletRef = doc(db, "wallets", currentUser.uid);
+  const walletSnap = await getDoc(walletRef);
+
+  if (!walletSnap.exists()) {
+    // Créer un wallet vide avec 0 FCFA
+    await setDoc(walletRef, { balance: 0 });
+    console.log("Wallet initialisé à 0 FCFA");
+  }
+}
+async function debit(cost){
+  if(!currentUser)return false;
+  const ref=doc(db,'wallets',currentUser.uid);
+  const ok=await runTransaction(db,async t=>{const s=await t.get(ref);const bal=s.exists()?s.data().balance:0;if(bal<cost)return false;t.update(ref,{balance:bal-cost});return true;});
+  if(!ok)alert('Solde insuffisant');await loadWallet();return ok;
+}
+window.boostPost=async()=>{
+  if(!boostId)return alert('Choisissez une publication');
+  const v=parseInt(qs('boostViews').value);if(isNaN(v)||v<4000)return alert('Min 4 000 vues');
+  const cost=Math.ceil(v/1000)*500;if(!(await debit(cost)))return;
+  try{
+await updateDoc(doc(db, 'posts', boostId), {
+  boosted: increment(v),
+  views: increment(v),
+  boostAt: serverTimestamp() // ← très important pour savoir quand le boost a commencé
+});
+    qs('boostStatus').textContent=`Boost succès ✔️`;qs('boostViews').value='';boostId='';renderFeed();renderMyFeed();await loadTotalViewsAndBalance();
+  }catch(e){alert('Erreur boost : '+e.message);await deposit(cost);}
+};
+
+/*──────────────────────────────────────────────────────────
+ 13. USER FEED & SEARCH
+──────────────────────────────────────────────────────────*/
+window.openUserFeed=async uid=>{
+  openTab({currentTarget:document.querySelector('.tablinks[onclick*="home"]')},'userFeed');
+  const cont=qs('userFeedContent'),title=qs('userFeedTitle');cont.textContent='Chargement…';
+  let name='Utilisateur',photo='https://via.placeholder.com/40';
+  const last=await getDocs(query(collection(db,'posts'),where('userId','==',uid),orderBy('createdAt','desc'),limit(1)));
+  if(!last.empty){const d=last.docs[0].data();name=d.userName||name;photo=d.userPhoto||photo;}
+  title.innerHTML='';title.style.cssText='display:flex;align-items:center;gap:8px';
+  const img=document.createElement('img');img.src=photo;img.style.cssText='width:40px;height:40px;border-radius:50%';
+  const str=document.createElement('strong');str.textContent=name;
+  const fol=document.createElement('span');fol.dataset.followersOf=uid;
+  const btn=renderFollowBtn(uid);
+  title.append(img,str,fol);if(btn)title.appendChild(btn);refreshFollowerCounters(uid);
+  onSnapshot(query(collection(db,'posts'),where('userId','==',uid),orderBy('createdAt','desc')),
+    snap=>{cont.innerHTML='';snap.empty?cont.textContent='Aucune publication.':snap.forEach(d=>cont.appendChild(card(d.id,d.data(),false)));});
+};
+window.searchUser=async()=>{
+const q=qs('searchUserInput').value.trim().toLowerCase();
+if(!q)return alert('Entrez un nom ou e-mail');
+const s=await getDocs(collection(db,'posts'));const map=new Map();
+s.forEach(d=>{const v=d.data();if((v.userName||'').toLowerCase().includes(q)||(v.userEmail||'').toLowerCase().includes(q))map.set(v.userId,{uid:v.userId,name:v.userName,email:v.userEmail,photo:v.userPhoto});});
+const res=qs('searchResults');res.innerHTML='';
+if(map.size===0)return res.textContent='Aucun utilisateur trouvé';
+map.forEach(u=>{
+const d=document.createElement('div');d.style.cssText='cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:8px';
+const img=document.createElement('img');img.src=u.photo||'https://via.placeholder.com/40';img.style.cssText='width:40px;height:40px;border-radius:50%';
+const span=document.createElement('span');span.textContent=u.name||u.email;span.style.cssText='color:#1877f2;font-weight:bold';
+const btn=renderFollowBtn(u.uid);
+d.append(img,span);if(btn)d.append(btn);d.onclick=()=>openUserFeed(u.uid);res.appendChild(d);
+});
+};
+
+  
+/*──────────────────────────────────────────────────────────
+ 14. VIEWS & RETRAIT
+──────────────────────────────────────────────────────────*/
+
+async function loadTotalViewsAndBalance(period = 'all') {
+  if (!currentUser) return;
+
+  const postsRef = collection(db, 'posts');
+  let q = query(postsRef, where('userId', '==', currentUser.uid));
+  // Ajoute filtre période si besoin
+
+  const snap = await getDocs(q);
+  let totalViews = 0;
+snap.forEach(d => {
+  const v = d.data();
+  const views = v.views || 0;
+  const boosted = v.boosted || 0;
+  const likes = v.likes || 0;
+  const vuesParLike = likes * 13;
+
+  totalViews += views + boosted + vuesParLike;
+});
+
+const raw = Math.floor(totalViews / 1000) * 150;
+  const withdrawalsSnap = await getDocs(
+    query(collection(db, 'withdrawals'), where('userId', '==', currentUser.uid))
+  );
+  const withdrawn = withdrawalsSnap.docs.reduce((sum, d) => sum + (d.data().amount || 0), 0);
+
+  const potential = raw - withdrawn;
+  qs('totalViewsCount').textContent = fmt(totalViews);
+  qs('currentBalance').textContent = potential + ' FCFA';
+
+  currentBalance = potential; // mise à jour interne seulement
+}
+// 🔁 Fonction de retrait
+window.withdrawBalance = async () => {
+  const a = qs("withdrawAmount").valueAsNumber;
+  const phone = qs("withdrawPhone").value.trim();
+
+  if (!currentUser || !currentUser.uid) {
+    return alert("Utilisateur non authentifié.");
+  }
+
+  if (!Number.isFinite(a) || a < 5000) {
+    return alert("Montant minimum : 5 000 FCFA");
+  }
+
+  if (!phone || phone.length < 8) {
+    return alert("Veuillez entrer un numéro valide.");
+  }
+
+  // Recalculer le solde si jamais la page n’est pas fraîche
+  await loadTotalViewsAndBalance(); // pour éviter erreurs
+
+  if (a > currentBalance) {
+    return alert("Solde insuffisant.");
+  }
+
+  try {
+    // 🔥 Enregistrer le retrait
+    await addDoc(collection(db, "withdrawals"), {
+      userId: currentUser.uid,
+      amount: a,
+      phone: phone,
+      date: new Date(),
+      status: "en attente",
+    });
+
+    // 💬 Message WhatsApp
+    const message = encodeURIComponent(
+      `Demande de retrait:\nMontant: ${a} FCFA\nTéléphone: ${phone}`
+    );
+    const whatsappAdmin = "237674073769";
+    const whatsappURL = `https://wa.me/${whatsappAdmin}?text=${message}`;
+    window.open(whatsappURL, "_blank");
+
+    // 🖥️ Réinitialiser l’UI
+    qs("withdrawAmount").value = "";
+    qs("withdrawPhone").value = "";
+
+    // 🔁 Recharger le solde à l’écran
+    await loadTotalViewsAndBalance();
+
+    alert("Demande de retrait enregistrée et transmise !");
+  } catch (err) {
+    console.error("Erreur de retrait :", err);
+    alert("Une erreur est survenue.");
+  }
+};
+
+  // SIGNUP  LOGIN EMAIL
+window.signupWithEmail = async () => {
+  const n = qs('signupName').value.trim();
+  const e = qs('signupEmail').value.trim();
+  const p = qs('signupPassword').value;
+  const age = parseInt(qs('signupAge').value, 10);
+
+  if (!n || !e || !p || isNaN(age)) return alert('Champs manquants');
+  if (age < 18) return alert('Âge min 18');
+  if (p.length < 6) return alert('Mot de passe ≥6');
+
+  try {
+    // ✅ Création du compte
+    const c = await createUserWithEmailAndPassword(auth, e, p);
+    const user = c.user;
+    await updateProfile(user, { displayName: n });
+
+    // ✅ Enregistrement dans Firestore
+    await setDoc(doc(db, "users", user.uid), {
+      uid: user.uid,
+      name: n,
+      email: e,
+      age: age,
+      createdAt: serverTimestamp()
+    });
+
+    // ✅ Suivi automatique de l'admin (mboaskill)
+    const mboaskillUID = "RyYsQko6cLSltTL0uiUYRx0guag1";
+    await Promise.all([
+      setDoc(doc(db, "follows", user.uid, "list", mboaskillUID), {}),
+      setDoc(doc(db, "follows", mboaskillUID, "list", user.uid), {
+        uid: user.uid,
+        date: serverTimestamp()
+      })
+    ]);
+
+    // ✅ Met à jour followingIds pour que les boutons soient corrects
+    await loadFollowing();
+
+    alert("Compte créé avec succès !");
+    location.reload();
+
+  } catch (err) {
+    alert(err.message);
+    console.error(err);
+  }
+};
+  const nameInput = document.getElementById("signupName");
+
+  nameInput.addEventListener("input", function () {
+    // Autorise lettres (avec accents), chiffres, et espaces
+    this.value = this.value.replace(/[^a-zA-ZÀ-ÿ0-9\s]/g, '');
+  });
+ 
+window.loginWithEmail=async()=>{
+  const e=qs('loginEmail').value.trim(),p=qs('loginPassword').value;
+  if(!e||!p)return alert('Entrez e-mail et mdp');
+  try{await signInWithEmailAndPassword(auth,e,p);location.reload();}
+  catch(err){alert(err.message);}
+};
+document.getElementById("notchpayBtn")?.addEventListener("click", async () => {
+  const m = parseFloat(qs("montant").value);
+  if (isNaN(m) || m < 500) return alert("Min 500 FCFA");
+  if (!currentUser) return alert("Connectez-vous");
+
+  await prepareWallet(); // ← ici on initialise le wallet si nécessaire
+
+  const email = currentUser.email;
+  const uid = currentUser.uid;
+  const ref = `tx_${Date.now()}`;
+  const redirectUrl = encodeURIComponent(
+    `${location.origin}${location.pathname}?amount=${m}&uid=${uid}&ref=${ref}`
+  );
+
+  const link = `https://notchpay.me/mxlU78cqX`;
+  window.location.href = link;
+});
+function openHomeTab(evt) {
+  openTab(evt, 'home'); // Ouvre la section 'home'
+  window.scrollTo({ top: 0, behavior: 'smooth' }); // Remonte en haut avec animation douce
+}
+function timeSince(date) {
+  const seconds = Math.floor((new Date() - date) / 1000);
+  const intervals = {
+    année: 31536000,
+    mois: 2592000,
+    semaine: 604800,
+    jour: 86400,
+    heure: 3600,
+    minute: 60,
+    seconde: 1,
+  };
+
+  for (const [unit, value] of Object.entries(intervals)) {
+    const amount = Math.floor(seconds / value);
+    if (amount >= 1) {
+      return `${amount} ${unit}${amount > 1 ? 's' : ''}`;
+    }
+  }
+  return 'quelques secondes';
+}
+  document.getElementById('periodSelect').addEventListener('change', (e) => {
+  const selectedPeriod = e.target.value;
+  loadTotalViewsAndBalance(selectedPeriod);
+});
+
+// Chargement initial avec la période "all"
+loadTotalViewsAndBalance('all');
+  function handleVideoVisibility() {
+  const videos = document.querySelectorAll('video[data-video]');
+
+  videos.forEach(video => {
+    const rect = video.getBoundingClientRect();
+    const inView = rect.top >= 0 && rect.bottom <= window.innerHeight;
+
+    if (inView) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  });
+}
+
+window.addEventListener('scroll', handleVideoVisibility);
+window.addEventListener('resize', handleVideoVisibility);
+window.addEventListener('load', handleVideoVisibility);
+function linkifyText(text) {
+  const urlPattern = /(\b(https?:\/\/)?([\w.-]+\.[a-z]{2,})(\/\S*)?)/gi;
+  return text.replace(urlPattern, (match) => {
+    let url = match;
+    if (!url.startsWith("http")) url = "https://" + url;
+    return `<a href="${url}" target="_blank" style="color:#1877f2;text-decoration:underline;">${match}</a>`;
+  });
+}
+// Fonction pour afficher le lien de profil
+function showProfileLink(uid) {
+  const link = `https://mboaskill.cm/u/${uid}`;
+  const input = document.getElementById('profile-link');
+  if (input) input.value = link;
+
+  const box = document.getElementById('profile-link-box');
+  if (box) box.style.display = 'block';
+}
+
+// Fonction pour copier le lien
+function profil_link() {
+  const input = document.getElementById('profile-link');
+  if (!input) return;
+  input.select();
+  navigator.clipboard.writeText(input.value).then(() => {
+    alert('Lien copié !');
+  });
+}
+
+// Attendre que l'utilisateur soit connecté
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    showProfileLink(user.uid);
+  } else {
+    console.warn("Utilisateur non connecté");
+  }
+});
+
+// Attacher l'événement au bouton
+document.getElementById('copy-link-btn')?.addEventListener('click', profil_link);
+// Vérifie si l’URL est de la forme https://mboaskill.cm/u/<uid>
+window.addEventListener('DOMContentLoaded', () => {
+  const path = window.location.pathname;
+  const match = path.match(/^\/u\/([^\/]+)/);
+
+  if (match && match[1]) {
+    const uid = match[1];
+    if (typeof window.openUserFeed === 'function') {
+      window.openUserFeed(uid);
+    } else {
+      // Si openUserFeed n'est pas encore dispo, on attend
+      const check = setInterval(() => {
+        if (typeof window.openUserFeed === 'function') {
+          clearInterval(check);
+          window.openUserFeed(uid);
+        }
+      }, 200);
+    }
+
+    // Nettoyer l’URL visuellement
+    history.replaceState({}, '', '/');
+  }
+});
+let suggestionInterval; // à placer en global
+
+async function loadSuggestions() {
+  const currentUser = auth.currentUser;
+  if (!currentUser) return;
+
+  const suggestionsList = document.getElementById('suggestionsList');
+  suggestionsList.textContent = 'Chargement…';
+
+  const allUsersSnap = await getDocs(collection(db, 'users'));
+  let suggestions = [];
+
+  allUsersSnap.forEach(docSnap => {
+    const user = docSnap.data();
+    const uid = docSnap.id;
+    if (uid !== currentUser.uid && !followingIds.has(uid)) {
+      suggestions.push({ uid, ...user });
+    }
+  });
+
+  if (suggestions.length === 0) {
+    suggestionsList.textContent = 'Aucune suggestion pour le moment.';
+    return;
+  }
+
+  // Fonction pour mélanger et afficher
+  function updateSuggestions() {
+    // Mélange
+    for (let i = suggestions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [suggestions[i], suggestions[j]] = [suggestions[j], suggestions[i]];
+    }
+
+    // Affichage
+    suggestionsList.innerHTML = '<hr>';
+    suggestions.forEach(user => {
+      const div = document.createElement('div');
+      div.className = 'suggestion-item';
+      div.style = 'display:flex;align-items:center;gap:10px;margin:5px 0';
+
+      const img = document.createElement('img');
+      img.src = user.photo || 'https://via.placeholder.com/40';
+      img.style = 'width:40px;height:40px;border-radius:50%';
+
+      const name = document.createElement('span');
+      name.textContent = user.name || user.email || 'Utilisateur';
+
+      const btn = renderFollowBtn(user.uid);
+
+      div.append(img, name);
+      if (btn) div.appendChild(btn);
+      suggestionsList.appendChild(div);
+    });
+  }
+
+  updateSuggestions(); // affiche une fois immédiatement
+  clearInterval(suggestionInterval);
+  suggestionInterval = setInterval(updateSuggestions, 60000); // toutes les 1 min
+}
+window.certifyUser = async function () {
+  const userId = currentUser?.uid;
+  if (!userId) return alert("Utilisateur non connecté");
+
+  const walletRef = doc(db, 'wallets', userId);  // <-- collection wallets
+  const verifiedRef = doc(db, 'verified', userId);
+
+  try {
+    const snap = await getDoc(walletRef);
+    const balance = snap.exists() ? snap.data().balance || 0 : 0;
+
+    if (balance >= 18000) {
+      // Déduction de 18 000 Fcfa
+      await updateDoc(walletRef, {
+        balance: balance - 18000
+      });
+
+      // Mise à jour du statut certifié
+      await setDoc(verifiedRef, {
+        status: true
+      });
+
+      alert("✅ Vous êtes maintenant certifié !");
+    } else {
+      // Ne pas déduire, mettre status à false
+      await setDoc(verifiedRef, {
+        status: false
+      });
+
+      alert("💸 Solde insuffisant. Le montant requis est de 18 000 Fcfa.");
+    }
+  } catch (error) {
+    console.error("Erreur de certification :", error);
+    alert("❌ Une erreur est survenue. Veuillez réessayer.");
+  }
+};
+window.publishMusic = publishMusic;
+async function publishMusic() {
+  const nom = document.getElementById('nom').value.trim();
+  const titre = document.getElementById('titre').value.trim();
+  const audioFile = document.getElementById('audioFile').files[0];
+  const statusMsg = document.getElementById('statusMsg');
+  statusMsg.textContent = '';
+
+  if (!currentUser) {
+    return alert("Vous devez être connecté.");
+  }
+
+  if (!nom || !titre || !audioFile) {
+    return alert("Tous les champs sont requis.");
+  }
+
+  try {
+    const walletRef = doc(db, 'wallets', currentUser.uid);
+    const walletSnap = await getDoc(walletRef);
+
+    if (!walletSnap.exists()) {
+      return alert("Aucun portefeuille trouvé.");
+    }
+
+    const walletData = walletSnap.data();
+    const currentBalance = typeof walletData.balance === 'number' ? walletData.balance : 0;
+
+    if (currentBalance < 5100) {
+      return alert("Solde insuffisant (minimum requis : 5100).");
+    }
+
+    // ✅ Déduire 5100
+    await updateDoc(walletRef, {
+      balance: currentBalance - 5100
+    });
+
+    statusMsg.textContent = "Téléchargement du fichier audio...";
+
+    const fileName = `${Date.now()}_${audioFile.name}`;
+    const storageRef = ref(storage, 'musics/' + fileName);
+    await uploadBytes(storageRef, audioFile);
+    const audioUrl = await getDownloadURL(storageRef);
+
+    statusMsg.textContent = "Publication en cours...";
+
+    await addDoc(collection(db, 'musfeed'), {
+      userId: currentUser.uid,
+      nom,
+      titre,
+      audioUrl,
+      createdAt: new Date()
+    });
+
+    statusMsg.textContent = "✅ Musique publiée avec succès.";
+    document.getElementById('nom').value = '';
+    document.getElementById('titre').value = '';
+    document.getElementById('audioFile').value = '';
+  } catch (err) {
+    console.error("Erreur lors de la publication :", err);
+    statusMsg.textContent = "❌ Erreur lors de la publication.";
+  }
+}
+async function renderMusicFeed() {
+  const container = document.getElementById('musicFeed');
+  container.textContent = 'Chargement…';
+
+  try {
+    const q = query(collection(db, 'musfeed'), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    container.innerHTML = '';
+    const user = currentUser;
+
+    for (const docSnap of snapshot.docs) {
+      const d = docSnap.data();
+      const musicId = docSnap.id;
+
+      // 🎯 1. Ne pas afficher les musiques expirées (10 jours)
+      const createdAt = d.createdAt?.toDate?.() || new Date();
+      const now = new Date();
+      const ageInMs = now - createdAt;
+      const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
+      if (ageInDays > 10) continue;
+
+      // 🎯 2. Vérifie si l’utilisateur a déjà écouté
+      let alreadyViewed = false;
+      if (user) {
+        const viewDocRef = doc(db, 'views', `${musicId}_${user.uid}`);
+        const viewDocSnap = await getDoc(viewDocRef);
+        alreadyViewed = viewDocSnap.exists();
+      }
+
+      // 🎯 3. Si première écoute : déduction + ajout des vues
+      if (user && !alreadyViewed && user.uid !== d.userId) {
+        const walletRef = doc(db, 'wallets', user.uid);
+        const walletSnap = await getDoc(walletRef);
+        const balance = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
+
+        if (balance >= 55) {
+          // ➖ Déduire 55
+          await updateDoc(walletRef, {
+            balance: increment(-55)
+          });
+
+          // ✅ Marquer comme écouté
+          const viewDocRef = doc(db, 'views', `${musicId}_${user.uid}`);
+          await setDoc(viewDocRef, {
+            userId: user.uid,
+            musicId,
+            playedAt: now
+          });
+
+          // ➕ Ajouter 340 vues dans totalviewcontent
+          const statsRef = doc(db, 'totalviewcontent', d.userId);
+          await setDoc(statsRef, { views: increment(340) }, { merge: true });
+
+          // ➕ Ajouter 340 vues dans totalviews (global)
+          const globalViewsRef = doc(db, 'totalviews', d.userId);
+          await setDoc(globalViewsRef, { views: increment(340) }, { merge: true });
+        } else {
+          alert("Solde insuffisant pour écouter cette musique.");
+        }
+      }
+
+      // 🎯 4. Affiche le bloc de musique
+      const div = document.createElement('div');
+      div.style.border = '1px solid #ccc';
+      div.style.borderRadius = '10px';
+      div.style.padding = '1rem';
+      div.style.marginBottom = '1rem';
+
+      div.innerHTML = `
+        <strong>${d.nom} - ${d.titre}</strong><br/>
+        <audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>
+      `;
+
+      container.appendChild(div);
+    }
+  } catch (err) {
+    console.error(err);
+    container.textContent = 'Erreur de chargement des musiques.';
+  }
+}
+
+// Appel automatique au chargement
+onAuthStateChanged(auth, (user) => {
+  currentUser = user;
+  renderMusicFeed();
+});
+const boutonLundi = document.getElementById('bouton-lundi');
+    const maintenant = new Date();
+    const jour = maintenant.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
+
+    if (jour === 1) { // Si c'est lundi
+        boutonLundi.style.display = 'block'; // Afficher le bouton
+    }
+
 </script>
 </body>
 </html>
