@@ -396,6 +396,7 @@
 </section>
 <section id="music" class="tabcontent">
  <button onclick="openTab(event,'mus')" id="bouton-lundi">importer ma musique <i class="fas fa-download"></i></button>  
+  <p id='s'></p>
  <h2>Musiques expire dans 10 jours 🎧</h2>
 <div id="musicFeed"></div>
 </section>
@@ -1767,7 +1768,10 @@ const boutonLundi = document.getElementById('bouton-lundi');
     if (jour === 1) { // Si c'est lundi
         boutonLundi.style.display = 'block'; // Afficher le bouton
     }
-
+else {
+  const sms = document.getElementById('s');
+  sms.innerText = 'Revenez lundi pour partager votre musique';
+  }
 </script>
 </body>
 </html>
