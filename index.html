@@ -204,6 +204,22 @@
         #bouton-lundi {
             display: none; /* Masquer le bouton par défaut */
         }
+        .row-info {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-family: sans-serif;
+  font-size: 16px;
+  border-bottom: 1px solid #ddd;
+}
+
+.label {
+  font-weight: bold;
+}
+
+.value {
+  color: #333;
+}
   </style>
 </head>
 <body>
@@ -233,12 +249,13 @@
 
 <!-- ============ POST ============ -->
 <section id="post" class="tabcontent">
-  <h3>Créer une publication</h3>
+  <h3>Créer une publication texte</h3>
   <textarea id="postText" placeholder="Exprimez-vous..."></textarea>
   <input type="color" id="bgColor" value="#FFA500"/>
   <hr/>
-  <input type="text" id="videoTitle" placeholder="Titre de la vidéo" />
-  <input type="file" id="videoFile" accept="video/*" />
+  <h2>image</h2>
+<input type="file" id="imageFile" accept="image/*" />
+<input type="text" id="imageTitle" placeholder="Titre de l'image" />
   <button onclick="publishPost()">Publier</button>
   <p id="status"></p>
 </section>
@@ -250,7 +267,7 @@
 </section>
 
 <!-- ============ TOTAL VIEWS ============ -->
-<section id="totalViewsSection" class="tabcontent">
+<section id="totalViewsSection" class="tabcontent" style="background-color:white">
   <h3>Total des vues</h3>
   <label for="periodSelect">Période :</label>
 <select id="periodSelect">
@@ -259,19 +276,30 @@
   <option value="month">Dernier mois</option>
   <option value="year">Dernière année</option>
 </select>
-  Vues: <p id="totalViewsCount" style="background-color:orange">Chargement...</p>
-  <p id="currentBalance">Solde actuel: 0 FCFA</p>
-
-  <label for="withdrawAmount">Montant à retirer :</label><br>
-  <input type="number" id="withdrawAmount" placeholder="Ex: 10000" min="5000" required style="width: 100%; margin-bottom: 10px;"><br>
-
-  <label for="withdrawPhone">Numéro de téléphone :</label><br>
-  <input type="tel" id="withdrawPhone" placeholder="Ex: 0700000000" required style="width: 100%; margin-bottom: 15px;"><br>
-
-  <button onclick="withdrawBalance()" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px;">
-    Retirer
-  </button>
-  <p id="withdrawStatus"></p>
+<div class="row-info">
+  <span class="label">Vues:</span>
+  <span class="value"><p id="totalViewsCount" style="background-color:orange">Chargement...</p>
+</span>
+</div>
+<div class="row-info">
+  <span class="label">solde:</span>
+  <span class="value">  <p id="currentBalance">FCFA</p>
+</span>
+</div>
+<div class="row-info">
+  <span class="label">texte+image:</span>
+  <span class="value"><i class="fas fa-check-circle" style="color:#1877f2;"></i></span>
+</div>
+<div class="row-info">
+    <span>musique:</span>
+    <span><i class="fas fa-check-circle" style="color:#1877f2;"></i></span>
+</div>
+<div class="row-info">
+    <span>soutient:</span>
+    <span><p id="verificationIcon"></p>
+</span>
+</div>
+  <button onclick="openTab(event,'retrait')">retirer</button>
 </section>
 
 <!-- ============ SEARCH ============ -->
@@ -281,7 +309,18 @@
   <button onclick="searchUser()">Rechercher</button>
   <div id="searchResults"></div>
 </section>
+<section id="retrait" class="tabcontent">
+  <label for="withdrawAmount">Montant à retirer :</label><br>
+  <input type="number" id="withdrawAmount" placeholder="min: 5000" min="5000" required style="width: 100%; margin-bottom: 10px;"><br>
 
+  <label for="withdrawPhone">Numéro de téléphone :</label><br>
+  <input type="tel" id="withdrawPhone" placeholder="Ex: +2376xxxxxxx" required style="width: 100%; margin-bottom: 15px;"><br>
+
+  <button onclick="withdrawBalance()" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px;">
+    Retirer
+  </button>
+  <p id="withdrawStatus"></p>
+</section>
 <!-- ============ ACCOUNT ============ -->
 <section id="account" class="tabcontent">
   <div class="post-header">
@@ -318,7 +357,7 @@
   </div>
   <div class="boutons">
   <button onclick="openTab(event,'vibo')">Deposer</button>    
-  <button onclick="certifyUser()">Certifier</button>
+  <button id="certify-btn" onclick="certifyUser()">Se certifier</button>
   <button onclick="openTab(event,'totalViewsSection')">Retirer</button>
   </div>
   <div id="myFeed"></div>
@@ -605,6 +644,31 @@ onAuthStateChanged(auth,async user=>{
   qs('authStatus').textContent=user?` ${user.displayName||user.email}`:'';
   qs('accountStatus').textContent=user?`• ${user.displayName||user.email}`:'';
   qs('accountStatusFeed').textContent=qs('accountStatus').textContent;
+  const btn = document.getElementById("certify-btn");
+  if (!btn) return; // Sécurité : bouton pas encore dans le DOM
+
+  if (!user) {
+    btn.style.display = "none";
+    return;
+  }
+
+  const verifiedRef = doc(db, 'verified', user.uid);
+
+  try {
+    const snap = await getDoc(verifiedRef);
+    const isVerified = snap.exists() && snap.data().status === true;
+
+    if (isVerified) {
+      btn.style.display = "none"; // ✅ Masquer si certifié
+    } else {
+      btn.style.display = "block"; // ✅ Montrer si NON certifié
+    }
+  } catch (error) {
+    console.error("Erreur lors de la vérification du statut :", error);
+    // Par sécurité, on masque si erreur
+    btn.style.display = "none";
+  }
+
   if (user) {
     await loadFollowing();  // fonction qui initialise followingIds
     loadSuggestions();      // charge les suggestions
@@ -729,20 +793,56 @@ async function deposit(amount) {
 /*──────────────────────────────────────────────────────────
   8. PUBLISH POST
 ──────────────────────────────────────────────────────────*/
-window.publishPost=async()=>{
-  if(!currentUser)return alert('Connectez-vous');
-  const text=qs('postText').value.trim(); const bg=qs('bgColor').value;
-  const file=qs('videoFile').files[0]; const tit=qs('videoTitle').value.trim();
-  if(!text&&!file)return alert('Ajoutez un texte ou une vidéo');
-  qs('status').textContent='Publication…';
-  const data={userId:currentUser.uid,userEmail:currentUser.email,userName:currentUser.displayName||currentUser.email,userPhoto:currentUser.photoURL||'https://via.placeholder.com/40',text,bgColor:bg,videoUrl:null,videoTitle:tit,views:0,likes:0,createdAt:serverTimestamp(),boosted:0};
-  const reset=()=>{['postText','videoTitle'].forEach(i=>qs(i).value='');qs('videoFile').value='';qs('status').textContent='Publié !';};
-  if(file){
-    const r=ref(stg,`videos/${Date.now()}_${file.name}`);
-    uploadBytesResumable(r,file).on('state_changed',s=>qs('status').textContent=`${Math.floor(s.bytesTransferred/s.totalBytes*100)}%`,e=>alert(e.message),async s=>{data.videoUrl=await getDownloadURL(s.ref);await addDoc(collection(db,'posts'),data);reset();});
-  }else{await addDoc(collection(db,'posts'),data);reset();}
-};
+window.publishPost = async () => {
+  if (!currentUser) return alert('Connectez-vous');
 
+  const text = qs('postText').value.trim();
+  const bg = qs('bgColor').value;
+  const file = qs('imageFile').files[0];  // <-- input pour image
+  const tit = qs('imageTitle').value.trim(); // <-- titre de l'image
+
+  if (!text && !file) return alert('Ajoutez un texte ou une image');
+
+  qs('status').textContent = 'Publication…';
+
+  const data = {
+    userId: currentUser.uid,
+    userEmail: currentUser.email,
+    userName: currentUser.displayName || currentUser.email,
+    userPhoto: currentUser.photoURL || 'https://via.placeholder.com/40',
+    text,
+    bgColor: bg,
+    imageUrl: null,
+    imageTitle: tit,
+    views: 0,
+    likes: 0,
+    createdAt: serverTimestamp(),
+    boosted: 0
+  };
+
+  const reset = () => {
+    ['postText', 'imageTitle'].forEach(i => qs(i).value = '');
+    qs('imageFile').value = '';
+    qs('status').textContent = 'Publié !';
+  };
+
+  if (file) {
+    const r = ref(stg, `images/${Date.now()}_${file.name}`);
+    uploadBytesResumable(r, file).on(
+      'state_changed',
+      s => qs('status').textContent = `${Math.floor(s.bytesTransferred / s.totalBytes * 100)}%`,
+      e => alert(e.message),
+      async s => {
+        data.imageUrl = await getDownloadURL(s.ref);
+        await addDoc(collection(db, 'posts'), data);
+        reset();
+      }
+    );
+  } else {
+    await addDoc(collection(db, 'posts'), data);
+    reset();
+  }
+};
 /*──────────────────────────────────────────────────────────
   9. FEED ACCUEIL (boostés + suivis)
 ──────────────────────────────────────────────────────────*/
@@ -873,16 +973,16 @@ function renderVideoFeed() {
   onSnapshot(
     query(
       collection(db, 'posts'),
-      where('videoUrl', '!=', null),
-      where('boosted', '>', 0), // 👉 Affiche uniquement les vidéos boostées
-      orderBy('createdAt', 'desc')
+      where('imageUrl', '!=', null),     // ✅ On filtre sur imageUrl
+      where('boosted', '>', 0),          // ✅ Boosté uniquement
+      orderBy('createdAt', 'desc')       // ✅ Par date de création
     ),
     snap => {
       c.innerHTML = '';
 
       const docs = Array.from(snap.docs);
 
-      // Optionnel : Mélanger aléatoirement
+      // Optionnel : Mélanger les publications
       docs.sort(() => Math.random() - 0.5);
 
       for (const d of docs) {
@@ -891,13 +991,25 @@ function renderVideoFeed() {
     }
   );
 }
-function renderBoostFeed(){
-  if(!currentUser)return;
-  const c=qs('videoFeedContentBoost');c.textContent='Chargement…';
-  onSnapshot(query(collection(db,'posts'),where('userId','==',currentUser.uid),where('videoUrl','!=',null),orderBy('createdAt','desc')),
-    snap=>{c.innerHTML='';snap.forEach(d=>c.appendChild(card(d.id,d.data(),true)));});
-}
+function renderBoostFeed() {
+  if (!currentUser) return;
 
+  const c = qs('videoFeedContentBoost');
+  c.textContent = 'Chargement…';
+
+  onSnapshot(
+    query(
+      collection(db, 'posts'),
+      where('userId', '==', currentUser.uid),
+      where('imageUrl', '!=', null), // ✅ Affiche uniquement les images
+      orderBy('createdAt', 'desc')
+    ),
+    snap => {
+      c.innerHTML = '';
+      snap.forEach(d => c.appendChild(card(d.id, d.data(), true)));
+    }
+  );
+}
 /*──────────────────────────────────────────────────────────
  12. CARD (like / comments / boost)
 ──────────────────────────────────────────────────────────*/
@@ -964,22 +1076,22 @@ getDoc(verifiedRef).then((snap) => {
 
   /* ---------- CONTENT ---------- */
   const cont = document.createElement('div');
-  cont.className = 'post-content';
+cont.className = 'post-content';
 
-  if (d.videoUrl) {
-    // Vidéo
-    const vidHtml = `
-      <video src="${d.videoUrl}" controls></video>
-      ${d.videoTitle ? `<div style="font-weight:bold;margin-top:4px;">${linkifyText(d.videoTitle)}</div>` : ''}
-    `;
-    cont.innerHTML = vidHtml;
-  } else if (d.text) {
-    // Texte + liens
-    cont.innerHTML = `<div class="text-bg" style="background:${d.bgColor || '#1877f2'}">${linkifyText(d.text)}</div>`;
-  }
+if (d.imageUrl) {
+  // 🖼️ Image uniquement (remplace la vidéo)
+  const imgHtml = `
+    <img src="${d.imageUrl}" style="max-width:100%;border-radius:8px;" />
+    ${d.imageTitle ? `<div style="font-weight:bold;margin-top:4px;">${linkifyText(d.imageTitle)}</div>` : ''}
+  `;
+  cont.innerHTML = imgHtml;
 
-  w.appendChild(cont);
+} else if (d.text) {
+  // 📝 Texte seul si pas d'image
+  cont.innerHTML = `<div class="text-bg" style="background:${d.bgColor || '#1877f2'}">${linkifyText(d.text)}</div>`;
+}
 
+w.appendChild(cont);
   /* ---------- ACTIONS ---------- */
   const act = document.createElement('div');
   act.className = 'post-actions';
@@ -1207,20 +1319,123 @@ await updateDoc(doc(db, 'posts', boostId), {
 /*──────────────────────────────────────────────────────────
  13. USER FEED & SEARCH
 ──────────────────────────────────────────────────────────*/
-window.openUserFeed=async uid=>{
-  openTab({currentTarget:document.querySelector('.tablinks[onclick*="home"]')},'userFeed');
-  const cont=qs('userFeedContent'),title=qs('userFeedTitle');cont.textContent='Chargement…';
-  let name='Utilisateur',photo='https://via.placeholder.com/40';
-  const last=await getDocs(query(collection(db,'posts'),where('userId','==',uid),orderBy('createdAt','desc'),limit(1)));
-  if(!last.empty){const d=last.docs[0].data();name=d.userName||name;photo=d.userPhoto||photo;}
-  title.innerHTML='';title.style.cssText='display:flex;align-items:center;gap:8px';
-  const img=document.createElement('img');img.src=photo;img.style.cssText='width:40px;height:40px;border-radius:50%';
-  const str=document.createElement('strong');str.textContent=name;
-  const fol=document.createElement('span');fol.dataset.followersOf=uid;
-  const btn=renderFollowBtn(uid);
-  title.append(img,str,fol);if(btn)title.appendChild(btn);refreshFollowerCounters(uid);
-  onSnapshot(query(collection(db,'posts'),where('userId','==',uid),orderBy('createdAt','desc')),
-    snap=>{cont.innerHTML='';snap.empty?cont.textContent='Aucune publication.':snap.forEach(d=>cont.appendChild(card(d.id,d.data(),false)));});
+window.openUserFeed = async uid => {
+  openTab(
+    { currentTarget: document.querySelector('.tablinks[onclick*="home"]') },
+    'userFeed'
+  );
+
+  const cont = qs('userFeedContent'),
+        title = qs('userFeedTitle');
+
+  cont.textContent = 'Chargement…';
+
+  let name = 'Utilisateur',
+      photo = 'https://via.placeholder.com/40';
+
+  // Récupère la dernière publication pour nom et photo
+  const last = await getDocs(
+    query(
+      collection(db, 'posts'),
+      where('userId', '==', uid),
+      orderBy('createdAt', 'desc'),
+      limit(1)
+    )
+  );
+  if (!last.empty) {
+    const d = last.docs[0].data();
+    name = d.userName || name;
+    photo = d.userPhoto || photo;
+  }
+
+  // Header
+  title.innerHTML = '';
+  title.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;gap:4px';
+
+  const headerTop = document.createElement('div');
+  headerTop.style.cssText = 'display:flex;align-items:center;gap:8px';
+
+  const img = document.createElement('img');
+  img.src = photo;
+  img.style.cssText = 'width:40px;height:40px;border-radius:50%';
+
+  const str = document.createElement('strong');
+  str.textContent = name;
+
+  const fol = document.createElement('span');
+  fol.dataset.followersOf = uid;
+
+  const btn = renderFollowBtn(uid);
+
+  headerTop.append(img, str, fol);
+  if (btn) headerTop.appendChild(btn);
+  title.appendChild(headerTop);
+
+  // Vérifie si utilisateur du feed est certifié
+  const verifiedRef = doc(db, 'verified', uid);
+  const verifiedSnap = await getDoc(verifiedRef);
+  const isVerified = verifiedSnap.exists() && verifiedSnap.data().status === true;
+
+  if (isVerified) {
+    const supportBtn = document.createElement('button');
+    supportBtn.innerHTML = '<i class="fa-solid fa-star"></i> Soutenir(450F)';
+    supportBtn.style.cssText = 'margin-top:6px;background:#ffd700;color:black;padding:4px 8px;border:none;border-radius:4px;cursor:pointer';
+
+    supportBtn.onclick = async () => {
+      try {
+        // Vérifier le wallet de l'utilisateur connecté
+        const walletRef = doc(db, 'wallets', currentUser.uid);
+        const walletSnap = await getDoc(walletRef);
+
+        if (!walletSnap.exists()) {
+          alert('💸 Solde insuffisant pour soutenir');
+          return;
+        }
+
+        const balance = walletSnap.data().balance || 0;
+        if (balance < 450) {
+          alert('💸 Solde insuffisant pour soutenir');
+          return;
+        }
+
+        // Déduire 450 FCFA
+        await updateDoc(walletRef, {
+          balance: balance - 450
+        });
+
+        // Ajouter 3000 vues dans "soutienvues" du propriétaire du feed
+        await setDoc(
+          doc(db, 'users', uid),
+          { soutienvues: increment(3000) },
+          { merge: true }
+        );
+
+        alert('✅ Soutien envoyé avec succès !');
+      } catch (err) {
+        console.error('Erreur lors du soutien :', err);
+        alert('❌ Une erreur est survenue');
+      }
+    };
+
+    title.appendChild(supportBtn);
+  }
+
+  refreshFollowerCounters(uid);
+
+  // Flux des publications
+  onSnapshot(
+    query(
+      collection(db, 'posts'),
+      where('userId', '==', uid),
+      orderBy('createdAt', 'desc')
+    ),
+    snap => {
+      cont.innerHTML = '';
+      snap.empty
+        ? cont.textContent = 'Aucune publication.'
+        : snap.forEach(d => cont.appendChild(card(d.id, d.data(), false)));
+    }
+  );
 };
 window.searchUser=async()=>{
 const q=qs('searchUserInput').value.trim().toLowerCase();
@@ -1258,10 +1473,11 @@ snap.forEach(d => {
   const boosted = v.boosted || 0;
   const likes = v.likes || 0;
   const vuesParLike = likes * 13;
+  const soutienvues = v.soutienvues || 0;
+  const totalviewcontent = v.totalviewcontent || 0;
 
-  totalViews += views + boosted + vuesParLike;
+  totalViews += views + boosted + vuesParLike + soutienvues + totalviewcontent;
 });
-
 const raw = Math.floor(totalViews / 1000) * 150;
   const withdrawalsSnap = await getDocs(
     query(collection(db, 'withdrawals'), where('userId', '==', currentUser.uid))
@@ -1577,6 +1793,7 @@ async function loadSuggestions() {
   clearInterval(suggestionInterval);
   suggestionInterval = setInterval(updateSuggestions, 60000); // toutes les 1 min
 }
+
 window.certifyUser = async function () {
   const userId = currentUser?.uid;
   if (!userId) return alert("Utilisateur non connecté");
@@ -1598,6 +1815,10 @@ window.certifyUser = async function () {
       await setDoc(verifiedRef, {
         status: true
       });
+
+      // Cacher le bouton après certification
+      const btn = document.getElementById("certify-btn");
+      if (btn) btn.style.display = "none";
 
       alert("✅ Vous êtes maintenant certifié !");
     } else {
@@ -1640,13 +1861,13 @@ async function publishMusic() {
     const walletData = walletSnap.data();
     const currentBalance = typeof walletData.balance === 'number' ? walletData.balance : 0;
 
-    if (currentBalance < 5100) {
+    if (currentBalance < 1500) {
       return alert("Solde insuffisant (minimum requis : 5100).");
     }
 
     // ✅ Déduire 5100
     await updateDoc(walletRef, {
-      balance: currentBalance - 5100
+      balance: currentBalance - 1500
     });
 
     statusMsg.textContent = "Téléchargement du fichier audio...";
@@ -1728,34 +1949,36 @@ async function renderMusicFeed() {
           const statsRef = doc(db, 'totalviewcontent', d.userId);
           await setDoc(statsRef, { views: increment(340) }, { merge: true });
 
-          // ➕ Ajouter 340 vues dans totalviews (global)
-          const globalViewsRef = doc(db, 'totalviews', d.userId);
-          await setDoc(globalViewsRef, { views: increment(340) }, { merge: true });
+          // Suppression de la mise à jour de totalviews, car on calcule tout depuis totalviewcontent
+          // Donc plus de code ici pour totalviews
         } else {
           alert("Solde insuffisant pour écouter cette musique.");
         }
       }
 
       // 🎯 4. Affiche le bloc de musique
-      const div = document.createElement('div');
-      div.style.border = '1px solid #ccc';
-      div.style.borderRadius = '10px';
-      div.style.padding = '1rem';
-      div.style.marginBottom = '1rem';
+  const div = document.createElement('div');
+div.style.border = '1px solid #ccc';
+div.style.borderRadius = '10px';
+div.style.padding = '1rem';
+div.style.marginBottom = '1rem';
 
-      div.innerHTML = `
-        <strong>${d.nom} - ${d.titre}</strong><br/>
-        <audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>
-      `;
+div.innerHTML = `
+  <strong>${d.nom} - ${d.titre}</strong><br/>
+  <audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>
+  <div style="margin-top: 10px; font-size: 14px; color: #555; display: flex; align-items: center;">
+    <i class="fa-solid fa-headphone" style="margin-right: 6px;"></i>
+    <span>${d.views || 0}</span>
+  </div>
+`;
 
-      container.appendChild(div);
+container.appendChild(div);
     }
   } catch (err) {
     console.error(err);
     container.textContent = 'Erreur de chargement des musiques.';
   }
 }
-
 // Appel automatique au chargement
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
