@@ -699,7 +699,6 @@ async function loadFollowing() {
 }
 
 function updateFollowBtn(uid, b) {
-  // Sécurité si followingIds pas encore chargé
   if (!followingIds || typeof followingIds.has !== 'function') {
     b.textContent = '...';
     b.disabled = true;
@@ -726,21 +725,41 @@ async function toggleFollow(uid, b) {
   if (!currentUser) return alert('Connectez-vous');
 
   const myRef = doc(db, 'follows', currentUser.uid, 'list', uid);
-  const hisRef = doc(db, 'follows', uid, 'list', currentUser.uid);
+  const hisDocRef = doc(db, 'follows', uid);
+
   const on = followingIds.has(uid);
 
-  if (on) {
-    await Promise.all([
-      deleteDoc(myRef),
-      deleteDoc(hisRef)
-    ]);
-    followingIds.delete(uid);
-  } else {
-    await Promise.all([
-      setDoc(myRef, {}),
-      setDoc(hisRef, { uid: currentUser.uid, date: serverTimestamp() })
-    ]);
-    followingIds.add(uid);
+  try {
+    if (!on) {
+      // Crée le doc utilisateur suivi s'il n'existe pas, avec filo=0
+      await setDoc(hisDocRef, { filo: 0 }, { merge: true });
+    }
+  } catch (e) {
+    console.error('Erreur lors de la création du doc suivi:', e);
+    alert('Erreur interne, merci de réessayer plus tard.');
+    return;
+  }
+
+  try {
+    if (on) {
+      // Unfollow : supprime dans ta liste, décrémente filo
+      await Promise.all([
+        deleteDoc(myRef),
+        updateDoc(hisDocRef, { filo: increment(-1) }),
+      ]);
+      followingIds.delete(uid);
+    } else {
+      // Follow : ajoute dans ta liste, incrémente filo
+      await Promise.all([
+        setDoc(myRef, { date: serverTimestamp() }),
+        updateDoc(hisDocRef, { filo: increment(1) }),
+      ]);
+      followingIds.add(uid);
+    }
+  } catch (e) {
+    console.error('Erreur lors de la mise à jour du suivi:', e);
+    alert('Erreur lors de la mise à jour, merci de réessayer.');
+    return;
   }
 
   updateFollowBtn(uid, b);
@@ -748,11 +767,17 @@ async function toggleFollow(uid, b) {
 }
 
 async function refreshFollowerCounters(uid) {
-  const snap = await getDocs(collection(db, 'follows', uid, 'list'));
-  const n = snap.size;
-  document.querySelectorAll(`[data-followers-of="${uid}"]`)
-    .forEach(el => el.textContent = `Followers : ${fmt(n)}`);
+  const hisDocRef = doc(db, 'follows', uid);
+  try {
+    const docSnap = await getDoc(hisDocRef);
+    const n = docSnap.exists() && docSnap.data().filo ? docSnap.data().filo : 0;
+    document.querySelectorAll(`[data-followers-of="${uid}"]`)
+      .forEach(el => el.textContent = `Followers : ${fmt(n)}`);
+  } catch (e) {
+    console.error('Erreur lors de la récupération des followers:', e);
   }
+}
+
 /*──────────────────────────────────────────────────────────
   7. WALLET dépôt
 ──────────────────────────────────────────────────────────*/
