@@ -1488,21 +1488,34 @@ async function loadTotalViewsAndBalance(period = 'all') {
 
   const postsRef = collection(db, 'posts');
   let q = query(postsRef, where('userId', '==', currentUser.uid));
-  // Ajoute filtre période si besoin
+  // TODO : ajouter filtre période si besoin
 
   const snap = await getDocs(q);
   let totalViews = 0;
-snap.forEach(d => {
-  const v = d.data();
-  const views = v.views || 0;
-  const boosted = v.boosted || 0;
-  const likes = v.likes || 0;
-  const vuesParLike = likes * 13;
-  const soutienvues = v.soutienvues || 0;
-  const totalviewcontent = v.totalviewcontent || 0;
 
-  totalViews += views + boosted + vuesParLike + soutienvues + totalviewcontent;
-});
+  snap.forEach(d => {
+    const v = d.data();
+    const views = v.views || 0;
+    const boosted = v.boosted || 0;
+    const likes = v.likes || 0;
+    const vuesParLike = likes * 13;
+    const totalviewcontent = v.totalviewcontent || 0;
+
+    totalViews += views + boosted + vuesParLike + totalviewcontent;
+  });
+
+  // Récupérer soutienvues depuis users/{uid}
+  const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+  const soutienvues = userDoc.exists() ? (userDoc.data().soutienvues || 0) : 0;
+
+  totalViews += soutienvues;
+
+  // Affichage direct dans un élément HTML
+  const el = document.getElementById('totalViewsCounter');
+  if (el) {
+    el.textContent = `Total vues + soutienvues: ${totalViews}`;
+  }
+
 const raw = Math.floor(totalViews / 1000) * 150;
   const withdrawalsSnap = await getDocs(
     query(collection(db, 'withdrawals'), where('userId', '==', currentUser.uid))
@@ -1744,7 +1757,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (match && match[1]) {
     const uid = match[1];
     if (typeof window.openUserFeed === 'function') {
-      window.openUserFeed(uid);
+ window.openUserFeed(uid);
     } else {
       // Si openUserFeed n'est pas encore dispo, on attend
       const check = setInterval(() => {
