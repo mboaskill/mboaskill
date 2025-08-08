@@ -639,7 +639,7 @@ window.signOutUser=()=>signOut(auth);
 
 onAuthStateChanged(auth,async user=>{
   currentUser=user;
-  const p=user?.photoURL||'https://ucarecdn.com/ff597083-3c69-4040-8b93-1cb2c38ac703/-/preview/1000x999/';
+  const p=user?.photoURL||'https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/1000x999/';
   qs('homeProfilePhoto').src=p;qs('feedmeProfilePhoto').src=p;
   qs('authStatus').textContent=user?` ${user.displayName||user.email}`:'';
   qs('accountStatus').textContent=user?`• ${user.displayName||user.email}`:'';
