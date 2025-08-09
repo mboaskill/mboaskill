@@ -1771,47 +1771,50 @@ document.getElementById('copy-link-btn')?.addEventListener('click', profil_link)
 window.addEventListener('DOMContentLoaded', () => {
   const path = window.location.pathname;
 
-  // Fonction pour attendre qu'une fonction soit dispo avant de l'appeler
-  function waitForFunction(fnName, callback) {
-    if (typeof window[fnName] === 'function') {
-      callback();
-    } else {
+  // Création d'une fonction globale pour ouvrir une section
+  window.openSection = function(tabName) {
+    const tryOpen = () => {
+      const el = document.querySelector(`.tablinks[onclick*="${tabName}"]`);
+      if (el && typeof window.openTab === 'function') {
+        openTab({ currentTarget: el }, tabName);
+        return true;
+      }
+      return false;
+    };
+
+    if (!tryOpen()) {
       const check = setInterval(() => {
-        if (typeof window[fnName] === 'function') {
-          clearInterval(check);
-          callback();
-        }
+        if (tryOpen()) clearInterval(check);
       }, 200);
     }
-  }
+  };
 
-  // Fonction pour ouvrir une section (attend openTab)
-  function openSection(tabName) {
-    waitForFunction('openTab', () => {
-      const el = document.querySelector(`.tablinks[onclick*="${tabName}"]`);
-      if (el) {
-        openTab({ currentTarget: el }, tabName);
-      }
-    });
-  }
-
-  // Route /u/:uid
+  // Gestion de la route /u/:uid
   const matchUser = path.match(/^\/u\/([^\/]+)/);
   if (matchUser && matchUser[1]) {
     const uid = matchUser[1];
-    waitForFunction('openUserFeed', () => window.openUserFeed(uid));
+    if (typeof window.openUserFeed === 'function') {
+      window.openUserFeed(uid);
+    } else {
+      const check = setInterval(() => {
+        if (typeof window.openUserFeed === 'function') {
+          clearInterval(check);
+          window.openUserFeed(uid);
+        }
+      }, 200);
+    }
   } 
-  // Autres routes simples
+  // Autres routes
   else {
     switch (path) {
       case '/music':
-        openSection('music');
+        window.openSection('music');
         break;
       case '/image':
-        openSection('videoFeed');
+        window.openSection('videoFeed');
         break;
       case '/monprofil':
-        openSection('feedme');
+        window.openSection('feedme');
         break;
     }
   }
