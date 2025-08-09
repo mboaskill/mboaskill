@@ -271,7 +271,7 @@ hr {
 
 <!-- ============ VIDEO FEED ============ -->
 <section id="videoFeed" class="tabcontent">
-  <h3>Publications avec vidéos</h3>
+  <h3>Publications avec images</h3>
   <div id="videoFeedContent"></div>
 </section>
 
@@ -1770,25 +1770,54 @@ document.getElementById('copy-link-btn')?.addEventListener('click', profil_link)
 // Vérifie si l’URL est de la forme https://mboaskill.cm/u/<uid>
 window.addEventListener('DOMContentLoaded', () => {
   const path = window.location.pathname;
-  const match = path.match(/^\/u\/([^\/]+)/);
 
-  if (match && match[1]) {
-    const uid = match[1];
-    if (typeof window.openUserFeed === 'function') {
- window.openUserFeed(uid);
+  // Fonction pour attendre qu'une fonction soit dispo avant de l'appeler
+  function waitForFunction(fnName, callback) {
+    if (typeof window[fnName] === 'function') {
+      callback();
     } else {
-      // Si openUserFeed n'est pas encore dispo, on attend
       const check = setInterval(() => {
-        if (typeof window.openUserFeed === 'function') {
+        if (typeof window[fnName] === 'function') {
           clearInterval(check);
-          window.openUserFeed(uid);
+          callback();
         }
       }, 200);
     }
-
-    // Nettoyer l’URL visuellement
-    history.replaceState({}, '', '/');
   }
+
+  // Fonction pour ouvrir une section (attend openTab)
+  function openSection(tabName) {
+    waitForFunction('openTab', () => {
+      const el = document.querySelector(`.tablinks[onclick*="${tabName}"]`);
+      if (el) {
+        openTab({ currentTarget: el }, tabName);
+      }
+    });
+  }
+
+  // Route /u/:uid
+  const matchUser = path.match(/^\/u\/([^\/]+)/);
+  if (matchUser && matchUser[1]) {
+    const uid = matchUser[1];
+    waitForFunction('openUserFeed', () => window.openUserFeed(uid));
+  } 
+  // Autres routes simples
+  else {
+    switch (path) {
+      case '/music':
+        openSection('music');
+        break;
+      case '/image':
+        openSection('videoFeed');
+        break;
+      case '/monprofil':
+        openSection('feedme');
+        break;
+    }
+  }
+
+  // Nettoyer l’URL visuellement
+  history.replaceState({}, '', '/');
 });
 let suggestionInterval; // à placer en global
 
