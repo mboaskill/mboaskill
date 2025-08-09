@@ -1382,7 +1382,6 @@ window.boostPost=async()=>{
   try{
 await updateDoc(doc(db, 'posts', boostId), {
   boosted: increment(v),
-  views: increment(v),
   boostAt: serverTimestamp() // ← très important pour savoir quand le boost a commencé
 });
     qs('boostStatus').textContent=`Boost succès ✔️`;qs('boostViews').value='';boostId='';renderFeed();renderMyFeed();await loadTotalViewsAndBalance();
