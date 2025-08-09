@@ -1807,14 +1807,14 @@ window.addEventListener('DOMContentLoaded', () => {
   // Autres routes
   else {
     switch (path) {
-      case '/music':
-        window.openSection('music');
+      case '/#music':
+        window.openTab('music');
         break;
-      case '/image':
-        window.openSection('videoFeed');
+      case '/#image':
+        window.openTab('videoFeed');
         break;
-      case '/monprofil':
-        window.openSection('feedme');
+      case '/#feedme':
+        window.openTab('feedme');
         break;
     }
   }
