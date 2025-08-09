@@ -1771,25 +1771,56 @@ document.getElementById('copy-link-btn')?.addEventListener('click', profil_link)
 window.addEventListener('DOMContentLoaded', () => {
   const path = window.location.pathname;
 
-  // Création d'une fonction globale pour ouvrir une section
-  window.openSection = function(tabName) {
-    const tryOpen = () => {
-      const el = document.querySelector(`.tablinks[onclick*="${tabName}"]`);
-      if (el && typeof window.openTab === 'function') {
-        openTab({ currentTarget: el }, tabName);
-        return true;
-      }
-      return false;
-    };
+  // Sélecteurs candidats pour trouver le bouton/onglet
+  const makeSelectors = (tabName) => [
+    `.tablinks[onclick*="${tabName}"]`,
+    `.tablinks[data-tab="${tabName}"]`,
+    `.tablinks.${tabName}`
+  ];
 
-    if (!tryOpen()) {
-      const check = setInterval(() => {
-        if (tryOpen()) clearInterval(check);
-      }, 200);
+  // Essaie d'ouvrir l'onglet en simulant un click (préféré), fallback vers openTab()
+  const tryOpenTabByName = (tabName) => {
+    const selectors = makeSelectors(tabName);
+    let el = null;
+    for (const s of selectors) {
+      el = document.querySelector(s);
+      if (el) break;
     }
+    if (!el) return false;
+
+    // 1) tenter de simuler un clic normal (inline onclick recevra event)
+    try {
+      const ev = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
+      el.dispatchEvent(ev);
+      return true;
+    } catch (err) {
+      // ignore, on essaiera le fallback
+    }
+
+    // 2) fallback : appeler openTab si dispo (avec objet currentTarget)
+    if (typeof window.openTab === 'function') {
+      try {
+        window.openTab({ currentTarget: el }, tabName);
+        return true;
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    return false;
   };
 
-  // Gestion de la route /u/:uid
+  // Attend que l'élément ou la fonction soit prête, puis ouvre
+  const openWhenReady = (tabName) => {
+    if (tryOpenTabByName(tabName)) return;
+    const check = setInterval(() => {
+      if (tryOpenTabByName(tabName)) {
+        clearInterval(check);
+      }
+    }, 200);
+  };
+
+  // route /u/:uid (comme avant)
   const matchUser = path.match(/^\/u\/([^\/]+)/);
   if (matchUser && matchUser[1]) {
     const uid = matchUser[1];
@@ -1803,18 +1834,16 @@ window.addEventListener('DOMContentLoaded', () => {
         }
       }, 200);
     }
-  } 
-  // Autres routes
-  else {
+  } else {
     switch (path) {
-      case '/#music':
-        window.openTab('music');
+      case '/music':
+        openWhenReady('music');
         break;
-      case '/#image':
-        window.openTab('videoFeed');
+      case '/image':
+        openWhenReady('videoFeed');
         break;
-      case '/#feedme':
-        window.openTab('feedme');
+      case '/monprofil':
+        openWhenReady('feedme');
         break;
     }
   }
