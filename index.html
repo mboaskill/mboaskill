@@ -220,13 +220,19 @@
 .value {
   color: #333;
 }
+hr {
+   background-color: #888;
+   height: 0.5%;
+   width: 100%;
+   border-radius: 15px;
+}
   </style>
 </head>
 <body>
 <header>
 <i class="fas fa-home tablinks selected" onclick="openTab(event,'home'); window.scrollTo({ top: 0, behavior: 'smooth' });"></i>
   <i class="fas fa-music tablinks"           onclick="openTab(event,'music')"></i>
-  <i class="fas fa-video tablinks"           onclick="openTab(event,'videoFeed')"></i>
+  <i class="fas fa-image tablinks"           onclick="openTab(event,'videoFeed')"></i>
   <i class="fas fa-plus tablinks"            onclick="openTab(event,'post')"></i>
   <i class="fas fa-search tablinks"          onclick="openTab(event,'search')"></i>
   <i class="fas fa-user tablinks"            onclick="openTab(event,'account')"></i>
@@ -251,7 +257,10 @@
 <section id="post" class="tabcontent">
   <h3>Créer une publication texte</h3>
   <textarea id="postText" placeholder="Exprimez-vous..."></textarea>
-  <input type="color" id="bgColor" value="#FFA500"/>
+    <div class="">   
+        <label><i class="fas fa-palette" style="color: orange;"></i>   <input type="color" id="bgColor" value="#FFA500"/>
+        </label>
+        </div>
   <hr/>
   <h2>image</h2>
 <input type="file" id="imageFile" accept="image/*" />
@@ -588,6 +597,15 @@ document.addEventListener('DOMContentLoaded',()=>{
         shuffleFeed();
         renderFeed();
       }
+            if (id === 'music') {
+        shuffleFeed();
+        renderMusicFeed();
+      }
+      if (id === 'videoFeed') {
+        shuffleFeed();
+        renderVideoFeed();
+      }
+
     }
     return; // ⛔️ Ne pas continuer : pas de changement d’onglet
   }
@@ -1903,7 +1921,7 @@ async function publishMusic() {
       return alert("Solde insuffisant (minimum requis : 5100).");
     }
 
-    // ✅ Déduire 5100
+    // ✅ Déduire 1500
     await updateDoc(walletRef, {
       balance: currentBalance - 1500
     });
