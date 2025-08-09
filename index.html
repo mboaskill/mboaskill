@@ -641,14 +641,20 @@ window.addEventListener('load', () => {
   // → L’Accueil ne doit jamais être modifié juste en y revenant
 };
 function shuffleFeed() {
-  const c = qs('feed');
-  const n = [...c.children];
-  for (let i = n.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [n[i], n[j]] = [n[j], n[i]];
-  }
-  n.forEach(el => c.appendChild(el));
+  ['feed', 'videoFeed', 'content', 'musicFeed'].forEach(feedId => {
+    const c = document.getElementById(feedId);
+    if (!c) return; // si le feed n'existe pas
+    const n = [...c.children];
+    for (let i = n.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [n[i], n[j]] = [n[j], n[i]];
+    }
+    n.forEach(el => c.appendChild(el));
+  });
 }
+
+// Lancer le mélange au chargement
+window.addEventListener('load', shuffleFeed);
 /*──────────────────────────────────────────────────────────
   5. AUTH
 ──────────────────────────────────────────────────────────*/
@@ -1367,12 +1373,12 @@ async function debit(cost){
   if(!currentUser)return false;
   const ref=doc(db,'wallets',currentUser.uid);
   const ok=await runTransaction(db,async t=>{const s=await t.get(ref);const bal=s.exists()?s.data().balance:0;if(bal<cost)return false;t.update(ref,{balance:bal-cost});return true;});
-  if(!ok)alert('Solde insuffisant');await loadWallet();return ok;
+  if(!ok)alert('Solde insuffisant(min 2100F)');await loadWallet();return ok;
 }
 window.boostPost=async()=>{
   if(!boostId)return alert('Choisissez une publication');
   const v=parseInt(qs('boostViews').value);if(isNaN(v)||v<4000)return alert('Min 4 000 vues');
-  const cost=Math.ceil(v/1000)*500;if(!(await debit(cost)))return;
+  const cost=Math.ceil(v/1000)*525;if(!(await debit(cost)))return;
   try{
 await updateDoc(doc(db, 'posts', boostId), {
   boosted: increment(v),
