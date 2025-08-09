@@ -1345,6 +1345,9 @@ async function loadComments(pid, container, cnt) {
     div.appendChild(name);
     div.appendChild(span);
     container.appendChild(div);
+
+    // Ajout d'un saut de ligne entre les commentaires
+    container.appendChild(document.createElement('br'));
   }
 }
 async function addComment(pid,text){
