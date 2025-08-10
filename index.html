@@ -1513,32 +1513,32 @@ window.openUserFeed = async uid => {
     }
   );
 };
-window.renderFollowBtn = function(uid) {
-  if (!currentUser || currentUser.uid === uid) return null; // pas de bouton pour soi-même
-
-  const btn = document.createElement('button');
-  btn.style.cssText = 'padding:4px 8px;border:none;border-radius:4px;cursor:pointer;background:#0084ff;color:white';
-
-  const followDocRef = doc(db, 'follows', `${currentUser.uid}_${uid}`);
-
-  // Écoute en direct pour basculer l'état du bouton
-  onSnapshot(followDocRef, snap => {
-    if (snap.exists()) {
-      btn.textContent = 'Ne plus suivre';
-      btn.style.background = '#ccc';
-      btn.onclick = () => deleteDoc(followDocRef);
-    } else {
-      btn.textContent = 'Suivre';
-      btn.style.background = '#0084ff';
-      btn.onclick = () => setDoc(followDocRef, {
-        followerId: currentUser.uid,
-        followedId: uid,
-        createdAt: serverTimestamp()
-      });
-    }
-  });
-
-  return btn;
+window.renderFollowBtn = function(uid) {  
+  if (!currentUser || currentUser.uid === uid) return null; // pas de bouton pour soi-même  
+  
+  const btn = document.createElement('button');  
+  btn.style.cssText = 'padding:4px 8px;border:none;border-radius:4px;cursor:pointer;background:#0084ff;color:white';  
+  
+  // référence dans la sous-collection du "suivi"
+  const followDocRef = doc(db, 'follows', uid, 'list', currentUser.uid);  
+  
+  // Écoute en direct pour basculer l'état du bouton  
+  onSnapshot(followDocRef, snap => {  
+    if (snap.exists()) {  
+      btn.textContent = 'Ne plus suivre';  
+      btn.style.background = '#ccc';  
+      btn.onclick = () => deleteDoc(followDocRef);  
+    } else {  
+      btn.textContent = 'Suivre';  
+      btn.style.background = '#0084ff';  
+      btn.onclick = () => setDoc(followDocRef, {  
+        followerId: currentUser.uid,  
+        createdAt: serverTimestamp()  
+      });  
+    }  
+  });  
+  
+  return btn;  
 };
 window.searchUser=async()=>{
 const q=qs('searchUserInput').value.trim().toLowerCase();
