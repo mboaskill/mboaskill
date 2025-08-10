@@ -1395,6 +1395,7 @@ await updateDoc(doc(db, 'posts', boostId), {
  13. USER FEED & SEARCH
 ──────────────────────────────────────────────────────────*/
 window.openUserFeed = async uid => {
+  // Ouvrir l'onglet userFeed
   openTab(
     { currentTarget: document.querySelector('.tablinks[onclick*="home"]') },
     'userFeed'
@@ -1408,7 +1409,7 @@ window.openUserFeed = async uid => {
   let name = 'Utilisateur',
       photo = 'https://via.placeholder.com/40';
 
-  // Récupère la dernière publication pour nom et photo
+  // Récupération des infos depuis la dernière publication
   const last = await getDocs(
     query(
       collection(db, 'posts'),
@@ -1423,7 +1424,7 @@ window.openUserFeed = async uid => {
     photo = d.userPhoto || photo;
   }
 
-  // Header
+  // HEADER
   title.innerHTML = '';
   title.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;gap:4px';
 
@@ -1440,13 +1441,31 @@ window.openUserFeed = async uid => {
   const fol = document.createElement('span');
   fol.dataset.followersOf = uid;
 
-  const btn = renderFollowBtn(uid);
+  // Bouton suivre / ne plus suivre (collection plate)
+  const btn = document.createElement('button');
+  btn.style.cssText = 'padding:4px 8px;border:none;border-radius:4px;cursor:pointer;background:#0084ff;color:white';
 
-  headerTop.append(img, str, fol);
-  if (btn) headerTop.appendChild(btn);
+  const followDocRef = doc(db, 'follows', `${currentUser.uid}_${uid}`);
+  onSnapshot(followDocRef, snap => {
+    if (snap.exists()) {
+      btn.textContent = 'Ne plus suivre';
+      btn.style.background = '#ccc';
+      btn.onclick = () => deleteDoc(followDocRef);
+    } else {
+      btn.textContent = 'Suivre';
+      btn.style.background = '#0084ff';
+      btn.onclick = () => setDoc(followDocRef, {
+        followerId: currentUser.uid,
+        followedId: uid,
+        createdAt: serverTimestamp()
+      });
+    }
+  });
+
+  headerTop.append(img, str, fol, btn);
   title.appendChild(headerTop);
 
-  // Vérifie si utilisateur du feed est certifié
+  // Vérifie si utilisateur est certifié
   const verifiedRef = doc(db, 'verified', uid);
   const verifiedSnap = await getDoc(verifiedRef);
   const isVerified = verifiedSnap.exists() && verifiedSnap.data().status === true;
@@ -1458,27 +1477,16 @@ window.openUserFeed = async uid => {
 
     supportBtn.onclick = async () => {
       try {
-        // Vérifier le wallet de l'utilisateur connecté
         const walletRef = doc(db, 'wallets', currentUser.uid);
         const walletSnap = await getDoc(walletRef);
 
-        if (!walletSnap.exists()) {
+        if (!walletSnap.exists() || (walletSnap.data().balance || 0) < 450) {
           alert('💸 Solde insuffisant pour soutenir');
           return;
         }
 
-        const balance = walletSnap.data().balance || 0;
-        if (balance < 450) {
-          alert('💸 Solde insuffisant pour soutenir');
-          return;
-        }
+        await updateDoc(walletRef, { balance: walletSnap.data().balance - 450 });
 
-        // Déduire 450 FCFA
-        await updateDoc(walletRef, {
-          balance: balance - 450
-        });
-
-        // Ajouter 3000 vues dans "soutienvues" du propriétaire du feed
         await setDoc(
           doc(db, 'users', uid),
           { soutienvues: increment(3000) },
@@ -1495,7 +1503,16 @@ window.openUserFeed = async uid => {
     title.appendChild(supportBtn);
   }
 
-  refreshFollowerCounters(uid);
+  // COMPTEUR DE FOLLOWERS (collection plate)
+  onSnapshot(
+    query(
+      collection(db, 'follows'),
+      where('followedId', '==', uid)
+    ),
+    snap => {
+      fol.textContent = `${snap.size} followers`;
+    }
+  );
 
   // Flux des publications
   onSnapshot(
@@ -1506,9 +1523,11 @@ window.openUserFeed = async uid => {
     ),
     snap => {
       cont.innerHTML = '';
-      snap.empty
-        ? cont.textContent = 'Aucune publication.'
-        : snap.forEach(d => cont.appendChild(card(d.id, d.data(), false)));
+      if (snap.empty) {
+        cont.textContent = 'Aucune publication.';
+      } else {
+        snap.forEach(d => cont.appendChild(card(d.id, d.data(), false)));
+      }
     }
   );
 };
