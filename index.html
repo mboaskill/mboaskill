@@ -1395,7 +1395,6 @@ await updateDoc(doc(db, 'posts', boostId), {
  13. USER FEED & SEARCH
 ──────────────────────────────────────────────────────────*/
 window.openUserFeed = async uid => {
-  // Ouvrir l'onglet userFeed
   openTab(
     { currentTarget: document.querySelector('.tablinks[onclick*="home"]') },
     'userFeed'
@@ -1409,7 +1408,7 @@ window.openUserFeed = async uid => {
   let name = 'Utilisateur',
       photo = 'https://via.placeholder.com/40';
 
-  // Récupération des infos depuis la dernière publication
+  // Récupère la dernière publication pour nom et photo
   const last = await getDocs(
     query(
       collection(db, 'posts'),
@@ -1441,31 +1440,14 @@ window.openUserFeed = async uid => {
   const fol = document.createElement('span');
   fol.dataset.followersOf = uid;
 
-  // Bouton suivre / ne plus suivre (collection plate)
-  const btn = document.createElement('button');
-  btn.style.cssText = 'padding:4px 8px;border:none;border-radius:4px;cursor:pointer;background:#0084ff;color:white';
+  // Bouton suivre/désuivre (via renderFollowBtn)
+  const btn = renderFollowBtn(uid);
+  if (btn) headerTop.appendChild(btn);
 
-  const followDocRef = doc(db, 'follows', `${currentUser.uid}_${uid}`);
-  onSnapshot(followDocRef, snap => {
-    if (snap.exists()) {
-      btn.textContent = 'Ne plus suivre';
-      btn.style.background = '#ccc';
-      btn.onclick = () => deleteDoc(followDocRef);
-    } else {
-      btn.textContent = 'Suivre';
-      btn.style.background = '#0084ff';
-      btn.onclick = () => setDoc(followDocRef, {
-        followerId: currentUser.uid,
-        followedId: uid,
-        createdAt: serverTimestamp()
-      });
-    }
-  });
-
-  headerTop.append(img, str, fol, btn);
+  headerTop.prepend(img, str, fol); // image + nom + compteur + bouton
   title.appendChild(headerTop);
 
-  // Vérifie si utilisateur est certifié
+  // Vérifie si utilisateur du feed est certifié
   const verifiedRef = doc(db, 'verified', uid);
   const verifiedSnap = await getDoc(verifiedRef);
   const isVerified = verifiedSnap.exists() && verifiedSnap.data().status === true;
@@ -1530,6 +1512,33 @@ window.openUserFeed = async uid => {
       }
     }
   );
+};
+window.renderFollowBtn = function(uid) {
+  if (!currentUser || currentUser.uid === uid) return null; // pas de bouton pour soi-même
+
+  const btn = document.createElement('button');
+  btn.style.cssText = 'padding:4px 8px;border:none;border-radius:4px;cursor:pointer;background:#0084ff;color:white';
+
+  const followDocRef = doc(db, 'follows', `${currentUser.uid}_${uid}`);
+
+  // Écoute en direct pour basculer l'état du bouton
+  onSnapshot(followDocRef, snap => {
+    if (snap.exists()) {
+      btn.textContent = 'Ne plus suivre';
+      btn.style.background = '#ccc';
+      btn.onclick = () => deleteDoc(followDocRef);
+    } else {
+      btn.textContent = 'Suivre';
+      btn.style.background = '#0084ff';
+      btn.onclick = () => setDoc(followDocRef, {
+        followerId: currentUser.uid,
+        followedId: uid,
+        createdAt: serverTimestamp()
+      });
+    }
+  });
+
+  return btn;
 };
 window.searchUser=async()=>{
 const q=qs('searchUserInput').value.trim().toLowerCase();
