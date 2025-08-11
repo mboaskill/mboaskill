@@ -142,7 +142,7 @@
   cursor: pointer;
 }
     /* === COMMENTS ===================================== */
-    .comments-section{margin-top:30px;border-top:1px solid #ccc;padding-top:10px;max-height:150px;overflow-y:auto;direction:ltr}
+    .comments-section{margin-top:30px;border-top:1px solid #ccc;padding-top:10px;max-height:250px;overflow-y:auto;direction:ltr}
     .comment{direction:ltr;unicode-bidi:plaintext;text-align:left;word-break:break-word}
     .comment strong{color:#1877f2}
     .comment-input{display:flex;gap:14px;margin-top:14px}
@@ -1009,14 +1009,10 @@ function renderMyFeed() {
   c.appendChild(fol);
 
   // 🔹 Lecture en temps réel du compteur
-  const folRef = doc(db, 'follows', currentUser.uid);
-onSnapshot(folRef, snap => {
-  if (snap.exists()) {
-    fol.textContent = `Followers : ${snap.data().filo || 0}`;
-  } else {
-    fol.textContent = `Followers : 0`;
-  }
-});
+  onSnapshot(doc(db, 'follows', currentUser.uid), snap => {
+    fol.textContent = `Followers : ${snap.data()?.count || 0}`;
+  });
+
   // 🔹 Publications
   onSnapshot(
     query(
@@ -1142,7 +1138,7 @@ getDoc(verifiedRef).then((snap) => {
   // Étiquette sponsorisé si boosté
   if ((d.boosted || 0) > 0) {
     const tag = document.createElement('span');
-    tag.textContent = 'Sponsorisé';
+tag.innerHTML = '<i class="fa-solid fa-trophy" style="color:gold"></i> Sponsorisé';
     tag.style.cssText = 'margin-left:auto;color:#ffa500;font-size:12px;font-weight:bold';
     head.appendChild(tag);
   }
@@ -1538,8 +1534,9 @@ window.renderFollowBtn = function (uid) {
   if (!currentUser || currentUser.uid === uid) return null;
 
   const btn = document.createElement('button');
-  const followRef = doc(db, `follows/${uid}/followers`, currentUser.uid);
-  const counterRef = doc(db, 'follows', uid);
+  const followDocId = `${currentUser.uid}_${uid}`;
+  const followRef = doc(db, 'followsData', followDocId); // nouvelle collection pour relations individuelles
+  const counterRef = doc(db, 'follows', uid);            // compteur global
 
   onSnapshot(followRef, snap => {
     if (snap.exists()) {
@@ -1555,6 +1552,7 @@ window.renderFollowBtn = function (uid) {
       btn.onclick = async () => {
         await setDoc(followRef, {
           followerId: currentUser.uid,
+          followedId: uid,
           createdAt: serverTimestamp()
         });
         await setDoc(counterRef, { filo: increment(1) }, { merge: true });
