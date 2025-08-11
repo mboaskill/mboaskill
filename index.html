@@ -1567,7 +1567,8 @@ window.renderFollowBtn = function (uid) {
         try {
           await updateDoc(counterRef, { count: increment(1) });
         } catch (err) {
-          await setDoc(counterRef, { count: 1 });
+          // Si le doc n'existe pas encore, le créer à 1 sans écraser les autres champs
+          await setDoc(counterRef, { count: 1 }, { merge: true });
         }
       };
     }
@@ -1698,7 +1699,7 @@ window.withdrawBalance = async () => {
 };
 
   // SIGNUP  LOGIN EMAIL
-window.signupWithEmail = async () => {
+ window.signupWithEmail = async () => {
   const n = qs('signupName').value.trim();
   const e = qs('signupEmail').value.trim();
   const p = qs('signupPassword').value;
@@ -1725,13 +1726,22 @@ window.signupWithEmail = async () => {
 
     // ✅ Suivi automatique de l'admin (mboaskill)
     const mboaskillUID = "RyYsQko6cLSltTL0uiUYRx0guag1";
-    await Promise.all([
-      setDoc(doc(db, "follows", user.uid, "list", mboaskillUID), {}),
-      setDoc(doc(db, "follows", mboaskillUID, "list", user.uid), {
-        uid: user.uid,
-        date: serverTimestamp()
-      })
-    ]);
+
+    // Relation individuelle (comme dans renderFollowBtn)
+    const followRef = doc(db, "faces", `${user.uid}_${mboaskillUID}`);
+    await setDoc(followRef, {
+      followerId: user.uid,
+      followedId: mboaskillUID,
+      createdAt: serverTimestamp()
+    });
+
+    // Incrémente le compteur followers de l’admin
+    const counterRef = doc(db, "follows", mboaskillUID);
+    try {
+      await updateDoc(counterRef, { count: increment(1) });
+    } catch {
+      await setDoc(counterRef, { count: 1 });
+    }
 
     // ✅ Met à jour followingIds pour que les boutons soient corrects
     await loadFollowing();
@@ -1744,13 +1754,13 @@ window.signupWithEmail = async () => {
     console.error(err);
   }
 };
-  const nameInput = document.getElementById("signupName");
 
-  nameInput.addEventListener("input", function () {
-    // Autorise lettres (avec accents), chiffres, et espaces
-    this.value = this.value.replace(/[^a-zA-ZÀ-ÿ0-9\s]/g, '');
-  });
- 
+// Filtrage du nom
+const nameInput = document.getElementById("signupName");
+nameInput.addEventListener("input", function () {
+  // Autorise lettres (avec accents), chiffres, et espaces
+  this.value = this.value.replace(/[^a-zA-ZÀ-ÿ0-9\s]/g, '');
+});
 window.loginWithEmail=async()=>{
   const e=qs('loginEmail').value.trim(),p=qs('loginPassword').value;
   if(!e||!p)return alert('Entrez e-mail et mdp');
