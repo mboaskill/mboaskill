@@ -1009,10 +1009,14 @@ function renderMyFeed() {
   c.appendChild(fol);
 
   // 🔹 Lecture en temps réel du compteur
-  onSnapshot(doc(db, 'follows', currentUser.uid), snap => {
-    fol.textContent = `Followers : ${snap.data()?.count || 0}`;
-  });
-
+  const folRef = doc(db, 'follows', currentUser.uid);
+onSnapshot(folRef, snap => {
+  if (snap.exists()) {
+    fol.textContent = `Followers : ${snap.data().filo || 0}`;
+  } else {
+    fol.textContent = `Followers : 0`;
+  }
+});
   // 🔹 Publications
   onSnapshot(
     query(
@@ -1508,9 +1512,9 @@ window.openUserFeed = async uid => {
     title.appendChild(supportBtn);
   }
 
-  // 🔹 Compteur de followers depuis follows/{uid}
+  // 🔹 Compteur de followers depuis follows/{uid} -> champ filo
   onSnapshot(doc(db, 'follows', uid), snap => {
-    fol.textContent = `${snap.data()?.count || 0} followers`;
+    fol.textContent = `${snap.exists() ? snap.data()?.filo || 0 : 0} followers`;
   });
 
   // 🔹 Flux des publications
@@ -1534,9 +1538,8 @@ window.renderFollowBtn = function (uid) {
   if (!currentUser || currentUser.uid === uid) return null;
 
   const btn = document.createElement('button');
-  const followDocId = `${currentUser.uid}_${uid}`;
-  const followRef = doc(db, 'faces', followDocId); // pour la relation individuelle
-  const counterRef = doc(db, 'follows', uid);      // compteur global
+  const followRef = doc(db, `follows/${uid}/followers`, currentUser.uid);
+  const counterRef = doc(db, 'follows', uid);
 
   onSnapshot(followRef, snap => {
     if (snap.exists()) {
@@ -1544,7 +1547,7 @@ window.renderFollowBtn = function (uid) {
       btn.style.background = '#ccc';
       btn.onclick = async () => {
         await deleteDoc(followRef);
-        await updateDoc(counterRef, { count: increment(-1) });
+        await updateDoc(counterRef, { filo: increment(-1) });
       };
     } else {
       btn.textContent = 'Suivre';
@@ -1552,10 +1555,9 @@ window.renderFollowBtn = function (uid) {
       btn.onclick = async () => {
         await setDoc(followRef, {
           followerId: currentUser.uid,
-          followedId: uid,
           createdAt: serverTimestamp()
         });
-        await setDoc(counterRef, { count: increment(1) }, { merge: true });
+        await setDoc(counterRef, { filo: increment(1) }, { merge: true });
       };
     }
   });
