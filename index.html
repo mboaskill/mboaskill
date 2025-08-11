@@ -1008,9 +1008,10 @@ function renderMyFeed() {
   fol.dataset.followersOf = currentUser.uid;
   c.appendChild(fol);
 
-  // 🔹 Lecture en temps réel du compteur
+  // 🔹 Lecture en temps réel du compteur de followers
   onSnapshot(doc(db, 'follows', currentUser.uid), snap => {
-    fol.textContent = `Followers : ${snap.data()?.count || 0}`;
+    const nbFollowers = snap.exists() ? snap.data()?.filo || 0 : 0;
+    fol.textContent = `${fmt(nbFollowers)} followers`;
   });
 
   // 🔹 Publications
@@ -1509,10 +1510,10 @@ window.openUserFeed = async uid => {
   }
 
   // 🔹 Compteur de followers depuis follows/{uid} -> champ filo
-  onSnapshot(doc(db, 'follows', uid), snap => {
-    fol.textContent = `${snap.exists() ? snap.data()?.filo || 0 : 0} followers`;
-  });
-
+onSnapshot(doc(db, 'follows', uid), snap => {
+  const nbFollowers = snap.exists() ? snap.data()?.filo || 0 : 0;
+  fol.textContent = `${fmt(nbFollowers)} followers`;
+});
   // 🔹 Flux des publications
   onSnapshot(
     query(
