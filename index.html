@@ -1535,27 +1535,40 @@ window.renderFollowBtn = function (uid) {
 
   const btn = document.createElement('button');
   const followDocId = `${currentUser.uid}_${uid}`;
-  const followRef = doc(db, 'followsData', followDocId); // nouvelle collection pour relations individuelles
-  const counterRef = doc(db, 'follows', uid);            // compteur global
+  const followRef = doc(db, 'faces', followDocId); // relation individuelle
+  const counterRef = doc(db, 'follows', uid);      // compteur global
 
   onSnapshot(followRef, snap => {
     if (snap.exists()) {
+      // Déjà suivi
       btn.textContent = 'Ne plus suivre';
       btn.style.background = '#ccc';
       btn.onclick = async () => {
         await deleteDoc(followRef);
-        await updateDoc(counterRef, { filo: increment(-1) });
+        try {
+          await updateDoc(counterRef, { count: increment(-1) });
+        } catch (err) {
+          console.error('Erreur décrémentation :', err);
+        }
       };
     } else {
+      // Pas encore suivi
       btn.textContent = 'Suivre';
       btn.style.background = '#0084ff';
       btn.onclick = async () => {
+        // Ajoute la relation de suivi
         await setDoc(followRef, {
           followerId: currentUser.uid,
           followedId: uid,
           createdAt: serverTimestamp()
         });
-        await setDoc(counterRef, { filo: increment(1) }, { merge: true });
+
+        // Incrémente ou crée le compteur
+        try {
+          await updateDoc(counterRef, { count: increment(1) });
+        } catch (err) {
+          await setDoc(counterRef, { count: 1 });
+        }
       };
     }
   });
@@ -1713,8 +1726,8 @@ window.signupWithEmail = async () => {
     // ✅ Suivi automatique de l'admin (mboaskill)
     const mboaskillUID = "RyYsQko6cLSltTL0uiUYRx0guag1";
     await Promise.all([
-      setDoc(doc(db, "faces", user.uid, "list", mboaskillUID), {}),
-      setDoc(doc(db, "faces", mboaskillUID, "list", user.uid), {
+      setDoc(doc(db, "follows", user.uid, "list", mboaskillUID), {}),
+      setDoc(doc(db, "follows", mboaskillUID, "list", user.uid), {
         uid: user.uid,
         date: serverTimestamp()
       })
