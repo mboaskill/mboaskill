@@ -998,20 +998,42 @@ function loadFollowedPosts(c){
 /*──────────────────────────────────────────────────────────
  10. MES POSTS  (+ compteur followers)
 ──────────────────────────────────────────────────────────*/
-function renderMyFeed(){
-  if(!currentUser)return;
-  const c=qs('myFeed');c.textContent='Chargement…';
-  onSnapshot(query(collection(db,'posts'),where('userId','==',currentUser.uid),orderBy('createdAt','desc')),
-    async snap=>{
-      c.innerHTML='';
-      const fol=await getDocs(collection(db,'follows',currentUser.uid,'list'));
-      const p=document.createElement('p');p.dataset.followersOf=currentUser.uid;
-      p.textContent = `Followers : ${fmt(fol.size)}`;
-      c.appendChild(p);
-      snap.forEach(d=>c.appendChild(card(d.id,d.data(),true)));
-    });
-}
+function renderMyFeed() {
+  if (!currentUser) return;
 
+  const c = qs('myFeed');
+  c.textContent = 'Chargement…';
+
+  const fol = document.createElement('p');
+  fol.dataset.followersOf = currentUser.uid;
+  c.appendChild(fol);
+
+  // 🔹 Lecture en temps réel du compteur
+  onSnapshot(doc(db, 'follows', currentUser.uid), snap => {
+    fol.textContent = `Followers : ${snap.data()?.count || 0}`;
+  });
+
+  // 🔹 Publications
+  onSnapshot(
+    query(
+      collection(db, 'posts'),
+      where('userId', '==', currentUser.uid),
+      orderBy('createdAt', 'desc')
+    ),
+    snap => {
+      c.innerHTML = '';
+      c.appendChild(fol);
+
+      if (snap.empty) {
+        const p = document.createElement('p');
+        p.textContent = 'Aucune publication.';
+        c.appendChild(p);
+      } else {
+        snap.forEach(d => c.appendChild(card(d.id, d.data(), true)));
+      }
+    }
+  );
+}
 /*──────────────────────────────────────────────────────────
  11. VIDEO FEED & BOOST FEED
 ──────────────────────────────────────────────────────────*/
@@ -1394,6 +1416,7 @@ await updateDoc(doc(db, 'posts', boostId), {
 /*──────────────────────────────────────────────────────────
  13. USER FEED & SEARCH
 ──────────────────────────────────────────────────────────*/
+// Feed d'un utilisateur
 window.openUserFeed = async uid => {
   openTab(
     { currentTarget: document.querySelector('.tablinks[onclick*="home"]') },
@@ -1408,7 +1431,7 @@ window.openUserFeed = async uid => {
   let name = 'Utilisateur',
       photo = 'https://via.placeholder.com/40';
 
-  // Récupère la dernière publication pour nom et photo
+  // 🔹 Récupère la dernière publication pour nom & photo
   const last = await getDocs(
     query(
       collection(db, 'posts'),
@@ -1440,14 +1463,14 @@ window.openUserFeed = async uid => {
   const fol = document.createElement('span');
   fol.dataset.followersOf = uid;
 
-  // Bouton suivre/désuivre (via renderFollowBtn)
+  // 🔹 Bouton suivre/désuivre
   const btn = renderFollowBtn(uid);
   if (btn) headerTop.appendChild(btn);
 
-  headerTop.prepend(img, str, fol); // image + nom + compteur + bouton
+  headerTop.prepend(img, str, fol);
   title.appendChild(headerTop);
 
-  // Vérifie si utilisateur du feed est certifié
+  // 🔹 Bouton "soutenir" si certifié
   const verifiedRef = doc(db, 'verified', uid);
   const verifiedSnap = await getDoc(verifiedRef);
   const isVerified = verifiedSnap.exists() && verifiedSnap.data().status === true;
@@ -1485,18 +1508,12 @@ window.openUserFeed = async uid => {
     title.appendChild(supportBtn);
   }
 
-  // COMPTEUR DE FOLLOWERS (collection plate)
-  onSnapshot(
-    query(
-      collection(db, 'follows'),
-      where('followedId', '==', uid)
-    ),
-    snap => {
-      fol.textContent = `${snap.size} followers`;
-    }
-  );
+  // 🔹 Compteur de followers depuis follows/{uid}
+  onSnapshot(doc(db, 'follows', uid), snap => {
+    fol.textContent = `${snap.data()?.count || 0} followers`;
+  });
 
-  // Flux des publications
+  // 🔹 Flux des publications
   onSnapshot(
     query(
       collection(db, 'posts'),
@@ -1513,32 +1530,37 @@ window.openUserFeed = async uid => {
     }
   );
 };
-window.renderFollowBtn = function(uid) {  
-  if (!currentUser || currentUser.uid === uid) return null; // pas de bouton pour soi-même  
-  
-  const btn = document.createElement('button');  
-  btn.style.cssText = 'padding:4px 8px;border:none;border-radius:4px;cursor:pointer;background:#0084ff;color:white';  
-  
-  // référence dans la sous-collection du "suivi"
-  const followDocRef = doc(db, 'follows', uid, 'list', currentUser.uid);  
-  
-  // Écoute en direct pour basculer l'état du bouton  
-  onSnapshot(followDocRef, snap => {  
-    if (snap.exists()) {  
-      btn.textContent = 'Ne plus suivre';  
-      btn.style.background = '#ccc';  
-      btn.onclick = () => deleteDoc(followDocRef);  
-    } else {  
-      btn.textContent = 'Suivre';  
-      btn.style.background = '#0084ff';  
-      btn.onclick = () => setDoc(followDocRef, {  
-        followerId: currentUser.uid,  
-        createdAt: serverTimestamp()  
-      });  
-    }  
-  });  
-  
-  return btn;  
+window.renderFollowBtn = function (uid) {
+  if (!currentUser || currentUser.uid === uid) return null;
+
+  const btn = document.createElement('button');
+  const followDocId = `${currentUser.uid}_${uid}`;
+  const followRef = doc(db, 'faces', followDocId); // pour la relation individuelle
+  const counterRef = doc(db, 'follows', uid);      // compteur global
+
+  onSnapshot(followRef, snap => {
+    if (snap.exists()) {
+      btn.textContent = 'Ne plus suivre';
+      btn.style.background = '#ccc';
+      btn.onclick = async () => {
+        await deleteDoc(followRef);
+        await updateDoc(counterRef, { count: increment(-1) });
+      };
+    } else {
+      btn.textContent = 'Suivre';
+      btn.style.background = '#0084ff';
+      btn.onclick = async () => {
+        await setDoc(followRef, {
+          followerId: currentUser.uid,
+          followedId: uid,
+          createdAt: serverTimestamp()
+        });
+        await setDoc(counterRef, { count: increment(1) }, { merge: true });
+      };
+    }
+  });
+
+  return btn;
 };
 window.searchUser=async()=>{
 const q=qs('searchUserInput').value.trim().toLowerCase();
@@ -1691,8 +1713,8 @@ window.signupWithEmail = async () => {
     // ✅ Suivi automatique de l'admin (mboaskill)
     const mboaskillUID = "RyYsQko6cLSltTL0uiUYRx0guag1";
     await Promise.all([
-      setDoc(doc(db, "follows", user.uid, "list", mboaskillUID), {}),
-      setDoc(doc(db, "follows", mboaskillUID, "list", user.uid), {
+      setDoc(doc(db, "faces", user.uid, "list", mboaskillUID), {}),
+      setDoc(doc(db, "faces", mboaskillUID, "list", user.uid), {
         uid: user.uid,
         date: serverTimestamp()
       })
