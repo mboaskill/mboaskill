@@ -226,6 +226,29 @@ hr {
    width: 100%;
    border-radius: 15px;
 }
+  /* Style du modal */
+  .modal {
+    display: none; /* caché par défaut */
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+  }
+  .modal-content {
+    background: white;
+    margin: 15% auto;
+    padding: 20px;
+    width: 300px;
+    border-radius: 8px;
+    text-align: center;
+  }
+  .close {
+    float: right;
+    cursor: pointer;
+    font-size: 20px;
+  }
+
   </style>
 </head>
 <body>
@@ -406,10 +429,19 @@ hr {
   <div id="emailLoginBox">
     <input type="email"    id="loginEmail"    placeholder="Email" />
     <input type="password" id="loginPassword" placeholder="Mot de passe" />
+   <p>
+  <a href="#" onclick="openTab(event,'oublie')">Mot de passe oublié ?</a>
+</p> 
     <button onclick="loginWithEmail()">Se connecter</button>
   </div>
 </section>
-
+<section id="oublie" class="tabcontent">
+  <h3>Réinitialiser le mot de passe</h3>
+  
+  <input type="email" id="resetEmail" placeholder="Votre email" />
+  
+  <button onclick="sendResetLink()">Envoyer le lien</button>
+</section>
 <!-- ============ SIGNUP FORM ============ -->
 <section id="inscrip" class="tabcontent">
   <h3>Inscription</h3>
@@ -497,6 +529,7 @@ import {
 import {
   getStorage, ref, uploadBytesResumable, getDownloadURL
 } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
+import { sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 /*──────────────────────────────────────────────────────────
   2. CONFIG & GLOBALS
@@ -2121,6 +2154,18 @@ else {
   const sms = document.getElementById('s');
   sms.innerText = 'Revenez lundi pour partager votre musique';
   }
+window.sendResetLink = async () => {
+  const email = document.getElementById('resetEmail').value.trim();
+  if (!email) return alert("Veuillez entrer votre email");
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    alert("📩 Un lien de réinitialisation a été envoyé à votre email");
+  } catch (err) {
+    console.error("Erreur:", err);
+    alert("❌ " + err.message);
+  }
+};
 </script>
 </body>
 </html>
