@@ -305,7 +305,7 @@ hr {
 </div>
 <div class="row-info">
     <span>soutient:</span>
-    <span><p id="verificationIcon"></p>
+    <span><p id="gagne" style="font-size:18px;display:inline-block;margin-left:6px;"></p>
 </span>
 </div>
   <button onclick="openTab(event,'retrait')">retirer</button>
@@ -465,6 +465,8 @@ hr {
 En créant votre compte sur mboa skills vous acceptez les conditions d'utilisation de l'application.
 <p style="color:orange">Monétisation:</p> Disponible partout en Afrique.
 <p style="color:orange">Publications :</p> À chaque fois que tu publie une vidéo où du texte tu gagnes <u style="color:blue">150FcfA</u> pour chaque 1k de vues affligé à ta publication ; 
+<p style="color:orange">soutient:</p>
+pour avoir cet outil vous devez avoir au moins 100 followers;
 <p>Musique-pub:</p>Disponible chaque lundi de la semaine,pour partager ta musique cela nécessite un montant de <u style="color:blue">5100f</u> ;
 <p style="color:orange">musique-pay:</p> avec ta musique tu gagnes <u style="color:blue">55FcFa</u> à chaque fois que quelqu'un écoute ta musique, tu peux gagner jusqu'à <u style="color:blue">55 000FCFa</u> pour 1k d'écoute ;
 <p style="color:orange">Certification:</p> pour être certifié tu dois répondre aux critères d'éligibilité (tes informations doivent être juste ce qui nécessite un temps précis); Dans le cas contraire pour être certifié il te faudra dépenser un montant de <u style="color:blue">18 000FcFa</u>.
@@ -1440,45 +1442,56 @@ fol.style.color = '#fff'; // texte blanc pour que ça reste lisible
   headerTop.prepend(img, str, fol);
   title.appendChild(headerTop);
 
-  // 🔹 Bouton "soutenir" si certifié
-  const verifiedRef = doc(db, 'verified', uid);
-  const verifiedSnap = await getDoc(verifiedRef);
-  const isVerified = verifiedSnap.exists() && verifiedSnap.data().status === true;
+// 🔹 Bouton "soutenir" si +100 followers
+// 🔹 Vérifie followers
+const followsRef = doc(db, 'follows', uid);
+const followsSnap = await getDoc(followsRef);
+const followerCount = followsSnap.exists() ? (followsSnap.data().filo || 0) : 0;
 
-  if (isVerified) {
-    const supportBtn = document.createElement('button');
-    supportBtn.innerHTML = '<i class="fa-solid fa-star"></i> Soutenir(450F)';
-    supportBtn.style.cssText = 'margin-top:6px;background:#ffd700;color:black;padding:4px 8px;border:none;border-radius:4px;cursor:pointer';
-
-    supportBtn.onclick = async () => {
-      try {
-        const walletRef = doc(db, 'wallets', currentUser.uid);
-        const walletSnap = await getDoc(walletRef);
-
-        if (!walletSnap.exists() || (walletSnap.data().balance || 0) < 450) {
-          alert('💸 Solde insuffisant pour soutenir');
-          return;
-        }
-
-        await updateDoc(walletRef, { balance: walletSnap.data().balance - 450 });
-
-        await setDoc(
-          doc(db, 'users', uid),
-          { soutienvues: increment(3000) },
-          { merge: true }
-        );
-
-        alert('✅ Soutien envoyé avec succès !');
-      } catch (err) {
-        console.error('Erreur lors du soutien :', err);
-        alert('❌ Une erreur est survenue');
-      }
-    };
-
-    title.appendChild(supportBtn);
+// 🔹 Met à jour l'icône dans #gagne
+const gagneEl = document.getElementById('gagne');
+if (gagneEl) {
+  if (followerCount >= 100) {
+    gagneEl.innerHTML = '<i class="fas fa-check-circle" style="color:green;"></i>';
+  } else {
+    gagneEl.innerHTML = '<i class="fa-solid fa-xmark" style="color:red;"></i>';
   }
+}
 
-  // 🔹 Compteur de followers depuis follows/{uid} -> champ filo
+// 🔹 Bouton "soutenir" si +100 followers
+if (followerCount > 100) {
+  const supportBtn = document.createElement('button');
+  supportBtn.innerHTML = '<i class="fa-solid fa-star"></i> Soutenir (450F)';
+  supportBtn.style.cssText = 'margin-top:6px;background:#ffd700;color:black;padding:4px 8px;border:none;border-radius:4px;cursor:pointer';
+
+  supportBtn.onclick = async () => {
+    try {
+      const walletRef = doc(db, 'wallets', currentUser.uid);
+      const walletSnap = await getDoc(walletRef);
+
+      if (!walletSnap.exists() || (walletSnap.data().balance || 0) < 450) {
+        alert('💸 Solde insuffisant pour soutenir');
+        return;
+      }
+
+      await updateDoc(walletRef, { balance: walletSnap.data().balance - 450 });
+
+      await setDoc(
+        doc(db, 'users', uid),
+        { soutienvues: increment(3000) },
+        { merge: true }
+      );
+
+      alert('✅ Soutien envoyé avec succès !');
+    } catch (err) {
+      console.error('Erreur lors du soutien :', err);
+      alert('❌ Une erreur est survenue');
+    }
+  };
+
+  title.appendChild(supportBtn);
+}
+// 🔹 Compteur de followers depuis follows/{uid} -> champ filo
 onSnapshot(doc(db, 'follows', uid), snap => {
   const nbFollowers = snap.exists() ? snap.data()?.filo || 0 : 0;
   fol.textContent = `${fmt(nbFollowers)} followers`;
