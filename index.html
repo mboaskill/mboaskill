@@ -971,9 +971,11 @@ function renderMyFeed() {
   c.textContent = 'Chargement…';
 
   const fol = document.createElement('p');
-  fol.dataset.followersOf = currentUser.uid;
-  c.appendChild(fol);
-
+fol.dataset.followersOf = currentUser.uid;
+fol.style.backgroundColor = '#050505';
+fol.style.color = '#fff';
+// texte blanc pour que ça reste lisible
+c.appendChild(fol);
   // 🔹 Lecture en temps réel du compteur de followers
   onSnapshot(doc(db, 'follows', currentUser.uid), snap => {
     const nbFollowers = snap.exists() ? snap.data()?.filo || 0 : 0;
@@ -1429,7 +1431,8 @@ window.openUserFeed = async uid => {
 
   const fol = document.createElement('span');
   fol.dataset.followersOf = uid;
-
+fol.style.backgroundColor = '#050505';
+fol.style.color = '#fff'; // texte blanc pour que ça reste lisible
   // 🔹 Bouton suivre/désuivre
   const btn = renderFollowBtn(uid);
   if (btn) headerTop.appendChild(btn);
