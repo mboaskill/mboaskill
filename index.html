@@ -1680,12 +1680,12 @@ window.signupWithEmail = async () => {
   if (p.length < 6) return alert('Mot de passe ≥6');
 
   try {
-    // ✅ Création du compte
+    // 1) Crée le compte auth
     const c = await createUserWithEmailAndPassword(auth, e, p);
     const user = c.user;
     await updateProfile(user, { displayName: n });
 
-    // ✅ Enregistrement dans Firestore
+    // 2) Enregistre l'utilisateur dans Firestore
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       name: n,
@@ -1694,33 +1694,52 @@ window.signupWithEmail = async () => {
       createdAt: serverTimestamp()
     });
 
-    // ✅ Suivi automatique de l'admin
-    const mboaskillUID = "RyYsQko6cLSltTL0uiUYRx0guag1";
+    // 3) Suivi automatique de l'admin
+    // **REMPLACE** cette valeur par l'UID réel du compte admin présent dans ta collection "follows"
+    const ADMIN_UID = "810T1WLrysRxELoiYO7hSHywwRA3";
 
-    // Ajoute l'utilisateur dans la sous-collection list de l’admin
-    const listRef = doc(db, "follows", mboaskillUID, "list", user.uid);
-    await setDoc(listRef, {
-      uid: user.uid,
-      name: n,
-      createdAt: serverTimestamp()
-    });
+    const listRef = doc(db, "follows", ADMIN_UID, "list", user.uid);
+    const counterRef = doc(db, "follows", ADMIN_UID);
 
-    // Incrémente le compteur 'filo'
-    const counterRef = doc(db, "follows", mboaskillUID);
+    // Essaye d'abord une transaction (atomique) : increment + création de la doc list
     try {
-      await updateDoc(counterRef, { filo: increment(1) });
-    } catch {
-      await setDoc(counterRef, { filo: 1 }, { merge: true });
+      await runTransaction(db, async (tx) => {
+        const counterSnap = await tx.get(counterRef);
+
+        if (!counterSnap.exists()) {
+          // crée le doc compteur avec filo:1 (merge-like)
+          tx.set(counterRef, { filo: 1 }, { merge: true });
+        } else {
+          // incrémente atomiquement
+          tx.update(counterRef, { filo: increment(1) });
+        }
+
+        // crée la doc dans la sous-collection list (trace du follow)
+        tx.set(listRef, { uid: user.uid, name: n, date: serverTimestamp() });
+      });
+    } catch (tranErr) {
+      // si la transaction échoue, fallback : écrire la liste puis updateDoc/incrémenter
+      console.warn('Transaction follow admin failed, using fallback:', tranErr);
+      await setDoc(listRef, { uid: user.uid, name: n, date: serverTimestamp() });
+      try {
+        await updateDoc(counterRef, { filo: increment(1) });
+      } catch (upErr) {
+        // si le doc n'existe pas encore, crée-le à 1 (merge pour ne pas écraser)
+        await setDoc(counterRef, { filo: 1 }, { merge: true });
+      }
     }
+
+    // 4) Met à jour le cache local des follows si tu utilises loadFollowing()
+    try { await loadFollowing(); } catch (e) { /* ignore */ }
 
     alert("Compte créé avec succès !");
     location.reload();
 
   } catch (err) {
-    alert(err.message);
-    console.error(err);
+    console.error('Signup error:', err);
+    alert(err.message || 'Erreur lors de la création du compte');
   }
-}; 
+};
  // Filtrage du nom
 const nameInput = document.getElementById("signupName");
 nameInput.addEventListener("input", function () {
