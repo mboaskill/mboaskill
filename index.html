@@ -457,7 +457,7 @@ hr {
 
   <div id="statusMsg"></div>
 </section>
-<section id="condis" class="tabcontent">
+<section id="condis" class="tabcontent" style="background-color:white">
   <h2>       Conditions d'utilisation générales :
 
 </h2> 
@@ -713,94 +713,60 @@ if (user) {
 });
 
 /*──────────────────────────────────────────────────────────
-  6. FOLLOW / FOLLOWERS
+/*  6. FOLLOW / FOLLOWERS (collection : faces)
 ──────────────────────────────────────────────────────────*/
-  
+
+/*  6. FOLLOW / FOLLOWERS
+──────────────────────────────────────────────────────────*/
 async function loadFollowing() {
   if (!currentUser) return;
   const s = await getDocs(collection(db, 'follows', currentUser.uid, 'list'));
   followingIds = new Set(s.docs.map(d => d.id));
 }
+window.renderFollowBtn = function (uid) {
+  if (!currentUser || currentUser.uid === uid) return null;
 
-function updateFollowBtn(uid, b) {
-  if (!followingIds || typeof followingIds.has !== 'function') {
-    b.textContent = '...';
-    b.disabled = true;
-    return;
-  }
+  const btn = document.createElement('button');
+  btn.className = 'follow-btn';
 
-  const on = followingIds.has(uid);
-  b.textContent = on ? 'Suivi(e)' : 'Suivre';
-  b.style.background = on ? '#ccc' : '#1877f2';
-  b.style.color = on ? '#000' : '#fff';
-  b.disabled = false;
-}
+  const myListRef = doc(db, 'follows', currentUser.uid, 'list', uid); // relation individuelle
+  const counterRef = doc(db, 'follows', uid); // compteur global
 
-function renderFollowBtn(uid) {
-  if (!currentUser || uid === currentUser.uid) return null;
-  const b = document.createElement('button');
-  b.className = 'follow-btn';
-  updateFollowBtn(uid, b);
-  b.onclick = () => toggleFollow(uid, b);
-  return b;
-}
+  // 🔹 Synchronisation temps réel pour savoir si je suis déjà ce user
+  onSnapshot(myListRef, snap => {
+    const isFollowing = snap.exists();
 
-async function toggleFollow(uid, b) {
-  if (!currentUser) return alert('Connectez-vous');
-
-  const myRef = doc(db, 'follows', currentUser.uid, 'list', uid);
-  const hisDocRef = doc(db, 'follows', uid);
-
-  const on = followingIds.has(uid);
-
-  try {
-    if (!on) {
-      // Crée le doc utilisateur suivi s'il n'existe pas, avec filo=0
-      await setDoc(hisDocRef, { filo: 0 }, { merge: true });
-    }
-  } catch (e) {
-    console.error('Erreur lors de la création du doc suivi:', e);
-    alert('Erreur interne, merci de réessayer plus tard.');
-    return;
-  }
-
-  try {
-    if (on) {
-      // Unfollow : supprime dans ta liste, décrémente filo
-      await Promise.all([
-        deleteDoc(myRef),
-        updateDoc(hisDocRef, { filo: increment(-1) }),
-      ]);
-      followingIds.delete(uid);
+    if (isFollowing) {
+      btn.textContent = 'Ne plus suivre';
+      btn.style.background = '#ccc';
+      btn.style.color = '#000';
+      btn.onclick = async () => {
+        await deleteDoc(myListRef);
+        try {
+          await updateDoc(counterRef, { filo: increment(-1) });
+        } catch (err) {
+          console.error('Erreur décrémentation :', err);
+        }
+        followingIds.delete(uid);
+      };
     } else {
-      // Follow : ajoute dans ta liste, incrémente filo
-      await Promise.all([
-        setDoc(myRef, { date: serverTimestamp() }),
-        updateDoc(hisDocRef, { filo: increment(1) }),
-      ]);
-      followingIds.add(uid);
+      btn.textContent = 'Suivre';
+      btn.style.background = '#1877f2';
+      btn.style.color = '#fff';
+      btn.onclick = async () => {
+        await setDoc(myListRef, { date: serverTimestamp() });
+        try {
+          await updateDoc(counterRef, { filo: increment(1) });
+        } catch {
+          await setDoc(counterRef, { filo: 1 }, { merge: true });
+        }
+        followingIds.add(uid);
+      };
     }
-  } catch (e) {
-    console.error('Erreur lors de la mise à jour du suivi:', e);
-    alert('Erreur lors de la mise à jour, merci de réessayer.');
-    return;
-  }
+  });
 
-  updateFollowBtn(uid, b);
-  refreshFollowerCounters(uid);
-}
-
-async function refreshFollowerCounters(uid) {
-  const hisDocRef = doc(db, 'follows', uid);
-  try {
-    const docSnap = await getDoc(hisDocRef);
-    const n = docSnap.exists() && docSnap.data().filo ? docSnap.data().filo : 0;
-    document.querySelectorAll(`[data-followers-of="${uid}"]`)
-      .forEach(el => el.textContent = `Followers : ${fmt(n)}`);
-  } catch (e) {
-    console.error('Erreur lors de la récupération des followers:', e);
-  }
-}
+  return btn;
+};
 
 /*──────────────────────────────────────────────────────────
   7. WALLET dépôt
@@ -1531,52 +1497,6 @@ onSnapshot(doc(db, 'follows', uid), snap => {
     }
   );
 };
-window.renderFollowBtn = function (uid) {
-  if (!currentUser || currentUser.uid === uid) return null;
-
-  const btn = document.createElement('button');
-  const followDocId = `${currentUser.uid}_${uid}`;
-  const followRef = doc(db, 'faces', followDocId); // relation individuelle
-  const counterRef = doc(db, 'follows', uid);      // compteur global
-
-  onSnapshot(followRef, snap => {
-    if (snap.exists()) {
-      // Déjà suivi
-      btn.textContent = 'Ne plus suivre';
-      btn.style.background = '#ccc';
-      btn.onclick = async () => {
-        await deleteDoc(followRef);
-        try {
-          await updateDoc(counterRef, { count: increment(-1) });
-        } catch (err) {
-          console.error('Erreur décrémentation :', err);
-        }
-      };
-    } else {
-      // Pas encore suivi
-      btn.textContent = 'Suivre';
-      btn.style.background = '#0084ff';
-      btn.onclick = async () => {
-        // Ajoute la relation de suivi
-        await setDoc(followRef, {
-          followerId: currentUser.uid,
-          followedId: uid,
-          createdAt: serverTimestamp()
-        });
-
-        // Incrémente ou crée le compteur
-        try {
-          await updateDoc(counterRef, { count: increment(1) });
-        } catch (err) {
-          // Si le doc n'existe pas encore, le créer à 1 sans écraser les autres champs
-          await setDoc(counterRef, { count: 1 }, { merge: true });
-        }
-      };
-    }
-  });
-
-  return btn;
-};
 window.searchUser=async()=>{
 const q=qs('searchUserInput').value.trim().toLowerCase();
 if(!q)return alert('Entrez un nom ou e-mail');
@@ -1700,7 +1620,7 @@ window.withdrawBalance = async () => {
 };
 
   // SIGNUP  LOGIN EMAIL
- window.signupWithEmail = async () => {
+window.signupWithEmail = async () => {
   const n = qs('signupName').value.trim();
   const e = qs('signupEmail').value.trim();
   const p = qs('signupPassword').value;
@@ -1725,27 +1645,24 @@ window.withdrawBalance = async () => {
       createdAt: serverTimestamp()
     });
 
-    // ✅ Suivi automatique de l'admin (mboaskill)
+    // ✅ Suivi automatique de l'admin
     const mboaskillUID = "RyYsQko6cLSltTL0uiUYRx0guag1";
 
-    // Relation individuelle (comme dans renderFollowBtn)
-    const followRef = doc(db, "faces", `${user.uid}_${mboaskillUID}`);
-    await setDoc(followRef, {
-      followerId: user.uid,
-      followedId: mboaskillUID,
+    // Ajoute l'utilisateur dans la sous-collection list de l’admin
+    const listRef = doc(db, "follows", mboaskillUID, "list", user.uid);
+    await setDoc(listRef, {
+      uid: user.uid,
+      name: n,
       createdAt: serverTimestamp()
     });
 
-    // Incrémente le compteur followers de l’admin
+    // Incrémente le compteur 'filo'
     const counterRef = doc(db, "follows", mboaskillUID);
     try {
-      await updateDoc(counterRef, { count: increment(1) });
+      await updateDoc(counterRef, { filo: increment(1) });
     } catch {
-      await setDoc(counterRef, { count: 1 });
+      await setDoc(counterRef, { filo: 1 }, { merge: true });
     }
-
-    // ✅ Met à jour followingIds pour que les boutons soient corrects
-    await loadFollowing();
 
     alert("Compte créé avec succès !");
     location.reload();
@@ -1754,9 +1671,8 @@ window.withdrawBalance = async () => {
     alert(err.message);
     console.error(err);
   }
-};
-
-// Filtrage du nom
+}; 
+ // Filtrage du nom
 const nameInput = document.getElementById("signupName");
 nameInput.addEventListener("input", function () {
   // Autorise lettres (avec accents), chiffres, et espaces
