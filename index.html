@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mboa Skills</title>
+  <script src="https://checkout.notchpay.co/v1/checkout.js"></script>
 
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -13,8 +14,8 @@
     body{
       margin:0;
       font-family:Arial,Helvetica,sans-serif;
-      background-image:url('https://ucarecdn.com/ff597083-3c69-4040-8b93-1cb2c38ac703/-/preview/1000x999/');
-    }
+     background-color: #888; 
+          }
     header{
       position:fixed;top:0;left:0;right:0;
       display:flex;justify-content:space-around;align-items:center;
@@ -48,8 +49,8 @@
 }
 
 .post-header img {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   object-fit: cover;
   cursor: pointer;
@@ -59,7 +60,7 @@
   display: flex;
   align-items: center;
   font-weight: bold;
-  color: black;
+  color: gold;
   text-decoration: none;
 }
 
@@ -156,7 +157,7 @@
     #emailLoginBox input,#emailSignupBox input{margin-bottom:10px}
     #emailLoginBox button,#emailSignupBox button{background:#1877f2;color:#fff;border:none;padding:10px;font-weight:bold;border-radius:6px;cursor:pointer;width:100%}
     #emailLoginBox button:hover,#emailSignupBox button:hover{background:#145ec1}
-    #accountStatus{margin-top:10px;font-weight:bold;color:#555}
+    #accountStatus{margin-top:10px;font-weight:bold;color:gold}
     #authStatus{margin-top:10px;font-weight:bold;color:#555}
 
     /* === USER FEED ==================================== */
@@ -221,7 +222,7 @@
   color: #333;
 }
 hr {
-   background-color: #888;
+   background-color: #fff;
    height: 0.5%;
    width: 100%;
    border-radius: 15px;
@@ -252,15 +253,14 @@ hr {
   </style>
 </head>
 <body>
-<header>
-<i class="fas fa-home tablinks selected" onclick="openTab(event,'home'); window.scrollTo({ top: 0, behavior: 'smooth' });"></i>
-  <i class="fas fa-music tablinks"           onclick="openTab(event,'music')"></i>
-  <i class="fas fa-image tablinks"           onclick="openTab(event,'videoFeed')"></i>
-  <i class="fas fa-plus tablinks"            onclick="openTab(event,'post')"></i>
-  <i class="fas fa-search tablinks"          onclick="openTab(event,'search')"></i>
-  <i class="fas fa-user tablinks"            onclick="openTab(event,'account')"></i>
+<header>  
+  <i class="fas fa-home tablinks selected" onclick="openTab(event,'home'); window.scrollTo({ top: 0, behavior: 'smooth' });"></i>  
+  <i class="fas fa-music tablinks"           onclick="openTab(event,'music')"></i>  
+  <i class="far fa-image tablinks"           onclick="openTab(event,'videoFeed')"></i>  
+  <i class="fas fa-plus tablinks"            onclick="openTab(event,'post')"></i>  
+  <i class="fas fa-search tablinks"          onclick="openTab(event,'search')"></i>  
+  <i class="fas fa-user tablinks"            onclick="openTab(event,'account')"></i>  
 </header>
-
 <!-- ============ HOME ============ -->
 <section id="home" class="tabcontent active">
   <div class="post-header">
@@ -270,7 +270,7 @@ hr {
   </div>
   <hr>
     <div class="post-header">
-    <img class="circle" src="https://ucarecdn.com/02df5bb7-ff27-4d7c-ae62-a7b468c119e6/-/preview/1000x1000/" onclick="window.open('https://directs.netlify.app')">   <button onclick="openTab(event,'amis')">Ajouter +<i class="fa-solid fa-user-group"></i></button>
+    <img class="circle" src="https://ucarecdn.com/02df5bb7-ff27-4d7c-ae62-a7b468c119e6/-/preview/1000x1000/">   <button onclick="openTab(event,'amis')">Ajouter +<i class="fa-solid fa-user-group"></i></button>
 </div>
   <hr>
   <div id="feed"></div>
@@ -299,7 +299,7 @@ hr {
 </section>
 
 <!-- ============ TOTAL VIEWS ============ -->
-<section id="totalViewsSection" class="tabcontent" style="background-color:white">
+<section id="totalViewsSection" class="tabcontent">
   <h3>Total des vues</h3>
   <label for="periodSelect">Période :</label>
 <select id="periodSelect">
@@ -323,14 +323,19 @@ hr {
   <span class="value"><i class="fas fa-check-circle" style="color:#1877f2;"></i></span>
 </div>
 <div class="row-info">
-    <span>musique:</span>
+    <span class="label">musique:</span>
     <span><i class="fas fa-check-circle" style="color:#1877f2;"></i></span>
 </div>
 <div class="row-info">
-    <span>soutient:</span>
+    <span class="label">soutient:</span>
     <span><p id="gagne" style="font-size:18px;display:inline-block;margin-left:6px;"></p>
 </span>
 </div>
+<div class="row-info">
+    <span class="label">Bonus:</span>
+    <span><i class="fas fa-check-circle" style="color:#1877f2;"></i></span>
+</div>
+
   <button onclick="openTab(event,'retrait')">retirer</button>
 </section>
 
@@ -343,12 +348,12 @@ hr {
 </section>
 <section id="retrait" class="tabcontent">
   <label for="withdrawAmount">Montant à retirer :</label><br>
-  <input type="number" id="withdrawAmount" placeholder="min: 5000" min="5000" required style="width: 100%; margin-bottom: 10px;"><br>
+  <input type="number" id="withdrawAmount" placeholder="min: 3000" min="3000" required style="width: 100%; margin-bottom: 10px;"><br>
 
   <label for="withdrawPhone">Numéro de téléphone :</label><br>
   <input type="tel" id="withdrawPhone" placeholder="Ex: +2376xxxxxxx" required style="width: 100%; margin-bottom: 15px;"><br>
 
-  <button onclick="withdrawBalance()" style="padding: 10px 20px; background-color: green; color: white; border: none; border-radius: 5px;">
+  <button onclick="withdrawBalance()" style="padding: 10px 20px; background-color: #1877f2; color: white; border: none; border-radius: 5px;">
     Retirer
   </button>
   <p id="withdrawStatus"></p>
@@ -376,11 +381,11 @@ hr {
 
 <!-- ============ FEEDME (MY FEED) ============ -->
 <section id="feedme" class="tabcontent">
-  <h3>Mes publications</h3>
+  <h3>Mon profile</h3>
   <div class="post-header">
-    <img id="feedmeProfilePhoto" src="https://via.placeholder.com/40" />
-    <p id="accountStatusFeed"></p>
-    <label for="profilePhotoInput" title="Changer la photo"><i class="fas fa-plus" style="cursor:pointer"></i></label>
+    <img id="feedmeProfilePhoto" src="https://via.placeholder.com/40"  onclick="openTab(event,'profilimg')"/>
+    <p style="color:gold" id="accountStatusFeed"></p>
+    <label for="profilePhotoInput" title="Changer la photo"><i class="fas fa-camera" style="cursor:pointer;font-size:150%;color:#fff"></i></label>
     <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" />
     </div>
       <div class="post-header">
@@ -394,7 +399,11 @@ hr {
   </div>
   <div id="myFeed"></div>
 </section>
-
+<section id="profilimg" class="tabcontent">
+     <i style="font-size:200%" class="fas fa-arrow-left" onclick="openTab(event,'feedme')"></i>
+   <br> <br/> 
+  <img width="100%" height="400px" id="feedmeProfilePhoto" src="https://via.placeholder.com/40" />
+</section>
 <!-- ============ BOOST VIDEO LIST ============ -->
 <section id="video" class="tabcontent">
   <div class="post-header">
@@ -418,9 +427,10 @@ hr {
 
   <div id="boostPanel" style="display:none;margin-bottom:10px">
     <span id="boostStatus" style="font-weight:bold"></span>
-    <input type="number" id="boostViews" placeholder="Nombre de vues à acheter" min="1" />
+    <input type="number" id="boostViews" placeholder="Nombres de personnes/jour" min="4000"/>
     <button onclick="boostPost()">Booster</button>
-  </div>
+  </div><br>
+  <p><i class="fas fa-info-circle" style="color:#fff"></i> Le nombre de personnes à entrer est une estimation du nombres de vues par jour. minimum 4000 (4K pour 2300 XAF)</p>
 </section>
 
 <!-- ============ LOGIN FORM ============ -->
@@ -466,7 +476,7 @@ hr {
 <section id="amis" class="tabcontent">
  <i class="fas fa-arrow-left" onclick="openTab(event,'home')"></i>
    <div class="post-header">
-    talent D'Afrik   <img class="circle"  src="https://ucarecdn.com/04a9cc78-e2a1-4e71-baa0-b83b5de179ed/-/preview/417x417/" onclick="window.open('https://oscardumboa.netlify.app')"/>
+    promotion social ➡️ <img class="circle"  src="https://ucarecdn.com/04a9cc78-e2a1-4e71-baa0-b83b5de179ed/-/preview/417x417/" onclick="window.open('https://followersmanager.netlify.app')"/>
     
    </div>
   <div id="suggestions">
@@ -489,25 +499,27 @@ hr {
 
   <div id="statusMsg"></div>
 </section>
-<section id="condis" class="tabcontent" style="background-color:white">
-  <h2>       Conditions d'utilisation générales :
+<section id="condis" class="tabcontent">
+  <h2> Critères generales de monetisation :
 
 </h2> 
    <div>
 En créant votre compte sur mboa skills vous acceptez les conditions d'utilisation de l'application.
-<p style="color:orange">Monétisation:</p> Disponible partout en Afrique.
-<p style="color:orange">Publications :</p> À chaque fois que tu publie une vidéo où du texte tu gagnes <u style="color:blue">150FcfA</u> pour chaque 1k de vues affligé à ta publication ; 
-<p style="color:orange">soutient:</p>
+<p style="color:gold">Outils de Monétisation:</p> Disponible partout en Afrique. <u style="color:blue">texte+image</u> , <u style="color:blue">soutient</u> , <u style="color:blue">musique</u> , <u style="color:blue">Bonus</u>
+<hr>
+<p style="color:gold">Publications :</p> À chaque fois que tu publie une image où du texte tu gagnes <u style="color:blue">RPM: 350XAF</u> pour chaque 1k de vues affligé à ta publication ; 
+<p style="color:gold">soutient:</p>
 pour avoir cet outil vous devez avoir au moins 100 followers;
-<p>Musique-pub:</p>Disponible chaque lundi de la semaine,pour partager ta musique cela nécessite un montant de <u style="color:blue">5100f</u> ;
-<p style="color:orange">musique-pay:</p> avec ta musique tu gagnes <u style="color:blue">55FcFa</u> à chaque fois que quelqu'un écoute ta musique, tu peux gagner jusqu'à <u style="color:blue">55 000FCFa</u> pour 1k d'écoute ;
-<p style="color:orange">Certification:</p> pour être certifié tu dois répondre aux critères d'éligibilité (tes informations doivent être juste ce qui nécessite un temps précis); Dans le cas contraire pour être certifié il te faudra dépenser un montant de <u style="color:blue">18 000FcFa</u>.
+<p style="color:gold">Musique-pub:</p>Disponible chaque lundi de la semaine,pour partager ta musique cela nécessite un montant de <u style="color:blue">1500XAF</u> ;
+<p style="color:gold">musique-pay:</p> avec ta musique tu gagnes <u style="color:blue">55XAF</u> à chaque fois que quelqu'un écoute ta musique, tu peux gagner jusqu'à <u style="color:blue">55 000XAF</u> pour 1k d'écoute ;
+<p style="color:gold">Certification:</p> pour être certifié tu dois répondre aux critères d'éligibilité (tes informations doivent être juste ce qui nécessite un temps précis); Dans le cas contraire pour être certifié il te faudra dépenser un montant de <u style="color:blue">18 000XAF</u>.
 
 L'application mboa skills est disponible partout dans le monde (la monétisation est Disponible) Le système du dépôt fonctionne sans problème ainsi que celui du retrait ;
-<p style="color:orange">Retrait/Dépôt :</p> Disponible <u style="color:blue">24h/24 7j/7 du lundi au dimanche</u>. MTN et orange Money uniquement (pour le cas du Cameroun)
+<p style="color:gold">Retrait/Dépôt :</p> Disponible <u style="color:blue">24h/24 </u> & <u style="color:blue">7j/7</u>. MTN et orange Money uniquement (pour le cas du Cameroun)
 <br><br/>
-N'oubliez pas de nous contacter sur <u style="color:blue">Facebook</u> merci.
+  <p><i class="fas fa-info-circle" style="color:#fff"></i> N'oubliez pas de nous suivre sur <u style="color:blue">Facebook</u> merci.
    </div> 
+   <hr>
 </section>
 <script type="module">
 
@@ -819,8 +831,8 @@ async function loadWallet() {
 // 🟢 Fonction de dépôt
 async function deposit(amount) {
   if (!currentUser) return alert("Connectez-vous d'abord.");
-  if (!Number.isFinite(amount) || amount < 2000)
-    return alert("Montant minimum de dépôt : 2 000 FCFA");
+  if (!Number.isFinite(amount) || amount < 500)
+    return alert("Montant minimum de dépôt : 500 XAF");
 
   const walletRef = doc(db, "wallets", currentUser.uid);
 
@@ -935,7 +947,7 @@ async function renderFeed() {
     const boostAt = data.boostAt?.toMillis?.() || 0;
     const diffBoostDays = (now - boostAt) / (1000 * 60 * 60 * 24);
 
-    if (diffBoostDays <= 5) {
+    if (diffBoostDays <= 2) {
       posts.push({ id: docSnap.id, data });
     } else {
       // Boost expiré → nettoyage
@@ -973,19 +985,17 @@ async function renderFeed() {
       });
     }
   }
+// Mélange aléatoire pur
+for (let i = posts.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [posts[i], posts[j]] = [posts[j], posts[i]];
+}
 
-  // Tri du plus récent au plus ancien
-  posts.sort((a, b) => {
-    const ta = a.data.createdAt?.toMillis?.() || 0;
-    const tb = b.data.createdAt?.toMillis?.() || 0;
-    return tb - ta;
-  });
+cachedPosts = posts;
+firstRenderDone = true;
 
-  cachedPosts = posts;
-  firstRenderDone = true;
-
-  c.innerHTML = '';
-  posts.forEach(p => c.appendChild(card(p.id, p.data, false)));
+c.innerHTML = '';
+posts.forEach(p => c.appendChild(card(p.id, p.data, false)));
 }
 function loadFollowedPosts(c){
   if(!followingIds.size)return;
@@ -1049,16 +1059,19 @@ function renderVideoFeed() {
     query(
       collection(db, 'posts'),
       where('imageUrl', '!=', null),     // ✅ On filtre sur imageUrl
-      where('boosted', '>', 0),          // ✅ Boosté uniquement
-      orderBy('createdAt', 'desc')       // ✅ Par date de création
+      where('boosted', '>', 0)           // ✅ Boosté uniquement
+      // ❌ pas besoin de orderBy ici si on veut du hasard
     ),
     snap => {
       c.innerHTML = '';
 
       const docs = Array.from(snap.docs);
 
-      // Optionnel : Mélanger les publications
-      docs.sort(() => Math.random() - 0.5);
+      // Shuffle Fisher-Yates (meilleur que sort(() => Math.random() - 0.5))
+      for (let i = docs.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [docs[i], docs[j]] = [docs[j], docs[i]];
+      }
 
       for (const d of docs) {
         c.appendChild(card(d.id, d.data(), false));
@@ -1342,7 +1355,7 @@ async function loadComments(pid, container, cnt) {
     name.className = 'username';
     name.href = `https://mboaskill.cm/${c.userId}`;
     name.style.cursor = 'pointer';
-    name.style.color = 'black';
+    name.style.color = 'gold';
 
     name.onclick = (e) => {
       e.preventDefault();
@@ -1402,12 +1415,12 @@ async function debit(cost){
   if(!currentUser)return false;
   const ref=doc(db,'wallets',currentUser.uid);
   const ok=await runTransaction(db,async t=>{const s=await t.get(ref);const bal=s.exists()?s.data().balance:0;if(bal<cost)return false;t.update(ref,{balance:bal-cost});return true;});
-  if(!ok)alert('Solde insuffisant(min 2100F)');await loadWallet();return ok;
+  if(!ok)alert('Solde insuffisant(min 500F)');await loadWallet();return ok;
 }
 window.boostPost=async()=>{
   if(!boostId)return alert('Choisissez une publication');
-  const v=parseInt(qs('boostViews').value);if(isNaN(v)||v<4000)return alert('Min 4 000 vues');
-  const cost=Math.ceil(v/1000)*525;if(!(await debit(cost)))return;
+  const v=parseInt(qs('boostViews').value);if(isNaN(v)||v<4000)return alert('Min 4 000 vues (2300 XAF)');
+  const cost=Math.ceil(v/1000)*575;if(!(await debit(cost)))return;
   try{
 await updateDoc(doc(db, 'posts', boostId), {
   boosted: increment(v),
@@ -1494,7 +1507,7 @@ if (gagneEl) {
 // 🔹 Bouton "soutenir" si +100 followers
 if (followerCount > 100) {
   const supportBtn = document.createElement('button');
-  supportBtn.innerHTML = '<i class="fa-solid fa-star"></i> Soutenir (450F)';
+  supportBtn.innerHTML = '<i class="fa-solid fa-star"></i> Soutenir (600 XAF)';
   supportBtn.style.cssText = 'margin-top:6px;background:#ffd700;color:black;padding:4px 8px;border:none;border-radius:4px;cursor:pointer';
 
   supportBtn.onclick = async () => {
@@ -1502,16 +1515,16 @@ if (followerCount > 100) {
       const walletRef = doc(db, 'wallets', currentUser.uid);
       const walletSnap = await getDoc(walletRef);
 
-      if (!walletSnap.exists() || (walletSnap.data().balance || 0) < 450) {
+      if (!walletSnap.exists() || (walletSnap.data().balance || 0) < 300) {
         alert('💸 Solde insuffisant pour soutenir');
         return;
       }
 
-      await updateDoc(walletRef, { balance: walletSnap.data().balance - 450 });
+      await updateDoc(walletRef, { balance: walletSnap.data().balance - 300 });
 
       await setDoc(
         doc(db, 'users', uid),
-        { soutienvues: increment(3000) },
+        { soutienvues: increment(2000) },
         { merge: true }
       );
 
@@ -1567,6 +1580,7 @@ d.append(img,span);if(btn)d.append(btn);d.onclick=()=>openUserFeed(u.uid);res.ap
  14. VIEWS & RETRAIT
 ──────────────────────────────────────────────────────────*/
 
+// 🔄 Charger le solde et les vues totales
 async function loadTotalViewsAndBalance(period = 'all') {
   if (!currentUser) return;
 
@@ -1588,30 +1602,40 @@ async function loadTotalViewsAndBalance(period = 'all') {
     totalViews += views + boosted + vuesParLike + totalviewcontent;
   });
 
-  // Récupérer soutienvues depuis users/{uid}
+  // ➕ Ajouter soutienvues depuis users/{uid}
   const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
   const soutienvues = userDoc.exists() ? (userDoc.data().soutienvues || 0) : 0;
-
   totalViews += soutienvues;
 
-  // Affichage direct dans un élément HTML
+  // 🖥️ Affichage direct compteur total
   const el = document.getElementById('totalViewsCounter');
   if (el) {
     el.textContent = `Total vues + soutienvues: ${totalViews}`;
   }
 
-const raw = Math.floor(totalViews / 1000) * 150;
+  // 💰 Calcul du solde potentiel
+  const raw = Math.floor(totalViews / 1000) * 350;
+
+  // 🔎 Vérifier retraits déjà faits
   const withdrawalsSnap = await getDocs(
     query(collection(db, 'withdrawals'), where('userId', '==', currentUser.uid))
   );
-  const withdrawn = withdrawalsSnap.docs.reduce((sum, d) => sum + (d.data().amount || 0), 0);
+  const withdrawn = withdrawalsSnap.docs.reduce(
+    (sum, d) => sum + (d.data().amount || 0),
+    0
+  );
 
-  const potential = raw - withdrawn;
+  // ✅ Solde réel (jamais négatif)
+  const potential = Math.max(0, raw - withdrawn);
+
+  // 🖥️ Mise à jour interface
   qs('totalViewsCount').textContent = fmt(totalViews);
   qs('currentBalance').textContent = potential + ' FCFA';
 
-  currentBalance = potential; // mise à jour interne seulement
+  // 💾 Variable globale
+  currentBalance = potential;
 }
+
 // 🔁 Fonction de retrait
 window.withdrawBalance = async () => {
   const a = qs("withdrawAmount").valueAsNumber;
@@ -1621,23 +1645,23 @@ window.withdrawBalance = async () => {
     return alert("Utilisateur non authentifié.");
   }
 
-  if (!Number.isFinite(a) || a < 5000) {
-    return alert("Montant minimum : 5 000 FCFA");
+  if (!Number.isFinite(a) || a < 3000) {
+    return alert("Montant minimum : 3 000 XAF");
   }
 
   if (!phone || phone.length < 8) {
     return alert("Veuillez entrer un numéro valide.");
   }
 
-  // Recalculer le solde si jamais la page n’est pas fraîche
-  await loadTotalViewsAndBalance(); // pour éviter erreurs
+  // 🔄 Toujours recalculer le solde à jour
+  await loadTotalViewsAndBalance();
 
   if (a > currentBalance) {
-    return alert("Solde insuffisant.");
+    return alert("Solde insuffisant. Votre solde actuel est " + currentBalance + " FCFA");
   }
 
   try {
-    // 🔥 Enregistrer le retrait
+    // 💾 Enregistrer le retrait
     await addDoc(collection(db, "withdrawals"), {
       userId: currentUser.uid,
       amount: a,
@@ -1646,28 +1670,54 @@ window.withdrawBalance = async () => {
       status: "en attente",
     });
 
-    // 💬 Message WhatsApp
-    const message = encodeURIComponent(
-      `Demande de retrait:\nMontant: ${a} FCFA\nTéléphone: ${phone}`
-    );
-    const whatsappAdmin = "237674073769";
-    const whatsappURL = `https://wa.me/${whatsappAdmin}?text=${message}`;
-    window.open(whatsappURL, "_blank");
-
     // 🖥️ Réinitialiser l’UI
     qs("withdrawAmount").value = "";
     qs("withdrawPhone").value = "";
 
-    // 🔁 Recharger le solde à l’écran
+    // 🔁 Recharger le solde affiché
     await loadTotalViewsAndBalance();
 
-    alert("Demande de retrait enregistrée et transmise !");
+    alert("✅ Demande de retrait enregistrée et transmise !");
   } catch (err) {
     console.error("Erreur de retrait :", err);
-    alert("Une erreur est survenue.");
+    alert("❌ Une erreur est survenue lors du retrait.");
   }
 };
 
+window.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("notchpayBtn");
+  if (!btn) {
+    console.error("⚠️ Bouton notchpayBtn introuvable dans le DOM !");
+    return;
+  }
+
+  btn.addEventListener("click", async () => {
+    const m = parseFloat(qs("montant").value);
+    if (isNaN(m) || m < 500) return alert("Montant min 500 XAF");
+    if (!currentUser) return alert("Connectez-vous");
+
+    NotchPayCheckout({
+      public_key: "pk.azYHHFMqVKLHlDNxzCbiqKlOfDh9oULJ6HQ52MPqgytU7dHwoODNkxKvV1xBECeeHxTBZ0Og31aCrJ11nDGI7iNtBcXD42ctowdIDyFbGG6KEeoiXCOjZJy5yg2PW",
+      amount: m,
+      currency: "XAF",
+      email: currentUser.email,
+      reference: `tx_${Date.now()}`,
+      description: "Recharge Wallet",
+      onSuccess: async (trx) => {
+        console.log("✅ Paiement réussi", trx);
+        await prepareWallet();
+        await updateDoc(doc(db, "wallets", currentUser.uid), {
+          balance: increment(m)
+        });
+        alert("Paiement validé et solde crédité !");
+      },
+      onFailure: (err) => {
+        console.error("❌ Paiement échoué", err);
+        alert("Échec du paiement");
+      }
+    });
+  });
+});
   // SIGNUP  LOGIN EMAIL
 window.signupWithEmail = async () => {
   const n = qs('signupName').value.trim();
@@ -1752,23 +1802,7 @@ window.loginWithEmail=async()=>{
   try{await signInWithEmailAndPassword(auth,e,p);location.reload();}
   catch(err){alert(err.message);}
 };
-document.getElementById("notchpayBtn")?.addEventListener("click", async () => {
-  const m = parseFloat(qs("montant").value);
-  if (isNaN(m) || m < 500) return alert("Min 500 FCFA");
-  if (!currentUser) return alert("Connectez-vous");
 
-  await prepareWallet(); // ← ici on initialise le wallet si nécessaire
-
-  const email = currentUser.email;
-  const uid = currentUser.uid;
-  const ref = `tx_${Date.now()}`;
-  const redirectUrl = encodeURIComponent(
-    `${location.origin}${location.pathname}?amount=${m}&uid=${uid}&ref=${ref}`
-  );
-
-  const link = `https://notchpay.me/mxlU78cqX`;
-  window.location.href = link;
-});
 function openHomeTab(evt) {
   openTab(evt, 'home'); // Ouvre la section 'home'
   window.scrollTo({ top: 0, behavior: 'smooth' }); // Remonte en haut avec animation douce
@@ -2040,7 +2074,7 @@ async function publishMusic() {
     const currentBalance = typeof walletData.balance === 'number' ? walletData.balance : 0;
 
     if (currentBalance < 1500) {
-      return alert("Solde insuffisant (minimum requis : 5100).");
+      return alert("Solde insuffisant (minimum requis : 1500 FCFA).");
     }
 
     // ✅ Déduire 1500
@@ -2123,9 +2157,9 @@ async function renderMusicFeed() {
             playedAt: now
           });
 
-          // ➕ Ajouter 340 vues dans totalviewcontent
+          // ➕ Ajoutes 360 vues  totalviewcontent
           const statsRef = doc(db, 'totalviewcontent', d.userId);
-          await setDoc(statsRef, { views: increment(340) }, { merge: true });
+          await setDoc(statsRef, { views: increment(360) }, { merge: true });
 
           // Suppression de la mise à jour de totalviews, car on calcule tout depuis totalviewcontent
           // Donc plus de code ici pour totalviews
