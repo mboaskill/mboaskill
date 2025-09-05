@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mboa Skills</title>
-  <script src="https://checkout.notchpay.co/v1/checkout.js"></script>
+<script src="https://js.notchpay.co/v1/checkout.js"></script>
 
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -1696,28 +1696,43 @@ window.addEventListener("DOMContentLoaded", () => {
     if (isNaN(m) || m < 500) return alert("Montant min 500 XAF");
     if (!currentUser) return alert("Connectez-vous");
 
-    NotchPayCheckout({
-      public_key: "pk.azYHHFMqVKLHlDNxzCbiqKlOfDh9oULJ6HQ52MPqgytU7dHwoODNkxKvV1xBECeeHxTBZ0Og31aCrJ11nDGI7iNtBcXD42ctowdIDyFbGG6KEeoiXCOjZJy5yg2PW",
-      amount: m,
-      currency: "XAF",
-      email: currentUser.email,
-      reference: `tx_${Date.now()}`,
-      description: "Recharge Wallet",
-      onSuccess: async (trx) => {
-        console.log("✅ Paiement réussi", trx);
-        await prepareWallet();
-        await updateDoc(doc(db, "wallets", currentUser.uid), {
-          balance: increment(m)
-        });
-        alert("Paiement validé et solde crédité !");
-      },
-      onFailure: (err) => {
-        console.error("❌ Paiement échoué", err);
-        alert("Échec du paiement");
+    try {
+      // Créer une transaction côté NotchPay
+      const res = await fetch("https://api.notchpay.co/payments", {
+        method: "POST",
+        headers: {
+          "Authorization": "pk.azYHHFMqVKLHlDNxzCbiqKlOfDh9oULJ6HQ52MPqgytU7dHwoODNkxKvV1xBECeeHxTBZ0Og31aCrJ11nDGI7iNtBcXD42ctowdIDyFbGG6KEeoiXCOjZJy5yg2PW", 
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          amount: m,
+          currency: "XAF",
+          description: "Recharge Wallet",
+          reference: `tx_${Date.now()}`,
+          customer: {
+            email: currentUser.email,
+            name: currentUser.displayName || "Utilisateur"
+          },
+          callback: window.location.origin + "/?payment=callback"
+        })
+      });
+
+      const data = await res.json();
+      console.log("Réponse NotchPay:", data);
+
+      if (data && data.authorization_url) {
+        // Rediriger l’utilisateur vers la page de paiement NotchPay
+        window.location.href = data.authorization_url;
+      } else {
+        alert("⚠️ Erreur : impossible de démarrer le paiement.");
       }
-    });
+    } catch (err) {
+      console.error("Erreur NotchPay:", err);
+      alert("Erreur de connexion à NotchPay.");
+    }
   });
 });
+
   // SIGNUP  LOGIN EMAIL
 window.signupWithEmail = async () => {
   const n = qs('signupName').value.trim();
