@@ -618,6 +618,28 @@ const fmt=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':n;
     }
   }
 })();
+let seenPosts = new Set();
+
+async function incrementView(postId) {
+  if (seenPosts.has(postId)) return; // déjà compté
+  seenPosts.add(postId);
+
+  try {
+    const ref = doc(db, "posts", postId);
+    await updateDoc(ref, { views: increment(1) });
+  } catch (e) {
+    console.error("Erreur incrément vue:", e);
+  }
+}
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const postId = entry.target.dataset.post;
+      incrementView(postId);
+      observer.unobserve(entry.target); // une seule fois par post
+    }
+  });
+}, { threshold: 0.5 }); // 50% visible à l'écran
 /*──────────────────────────────────────────────────────────
   3. DOM READY — Dépôt
 ──────────────────────────────────────────────────────────*/
@@ -1001,7 +1023,12 @@ cachedPosts = posts;
 firstRenderDone = true;
 
 c.innerHTML = '';
-posts.forEach(p => c.appendChild(card(p.id, p.data, false)));
+
+ posts.forEach(p => {
+  const el = card(p.id, p.data, false);
+  c.appendChild(el);
+  observer.observe(el); // 🔥 surveille le post pour incrémenter la vue
+});   
 }
 function loadFollowedPosts(c){
   if(!followingIds.size)return;
@@ -1073,14 +1100,18 @@ function renderVideoFeed() {
 
       const docs = Array.from(snap.docs);
 
-      // Shuffle Fisher-Yates (meilleur que sort(() => Math.random() - 0.5))
+      // Shuffle Fisher-Yates
       for (let i = docs.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [docs[i], docs[j]] = [docs[j], docs[i]];
       }
 
       for (const d of docs) {
-        c.appendChild(card(d.id, d.data(), false));
+        const el = card(d.id, d.data(), false);
+        c.appendChild(el);
+
+        // 🔥 Observe chaque post pour incrémenter 1 vue quand il est à l’écran
+        observer.observe(el);
       }
     }
   );
