@@ -270,8 +270,7 @@ hr {
   </div>
   <hr>
     <div class="post-header">
-    <img class="circle" src="https://ucarecdn.com/02df5bb7-ff27-4d7c-ae62-a7b468c119e6/-/preview/1000x1000/">   <button onclick="openTab(event,'amis')">Ajouter +<i class="fa-solid fa-user-group"></i></button>
-</div>
+    <img class="circle" src="https://ucarecdn.com/02df5bb7-ff27-4d7c-ae62-a7b468c119e6/-/preview/1000x1000/"><button onclick="openTab(event,'amis')">Ajouter + <i class="fa-solid fa-user-group"></i></button>
   <hr>
   <div id="feed"></div>
 </section>
@@ -336,7 +335,7 @@ hr {
     <span><i class="fas fa-check-circle" style="color:#1877f2;"></i></span>
 </div>
 
-  <button onclick="openTab(event,'retrait')">retirer</button>
+  <button onclick="openTab(event,'choises')">retirer</button>
 </section>
 
 <!-- ============ SEARCH ============ -->
@@ -359,9 +358,18 @@ hr {
   <p id="withdrawStatus"></p>
   <p><i class="fas fa-info-circle" style="color:#fff"></i>NB: n'oubliez pas l'indicatif du pays (Ex: +237)</p>
 </section>
+<section id="choises" class="tabcontent">
+ <img src="https://ucarecdn.com/9e557b3e-8112-4472-9858-129187eb3749/-/preview/300x168/" style="width:100%;height:100px" onclick="openTab(event,'retrait')">MTN Momo
+ <br><br/>
+ <img src="https://ucarecdn.com/8213fd5f-4a33-4603-8bc3-98bb69e55ac0/-/preview/258x195/" style="width:100%;height:100px" onclick="openTab(event,'retrait')">Orange Money
+ <br><br/>
+ <img src="https://ucarecdn.com/b69beeaa-28fc-4b35-940e-fdb83daf5a1d/-/preview/417x417/" style="width:100%;height:100px">Carte Visa/Mastercard
+</section>
 <!-- ============ ACCOUNT ============ -->
 <section id="account" class="tabcontent">
   <div class="post-header">
+<button onclick="openTab(event,'profilimg')">mon pays <i class="fas fa-flag"></i></button></div>
+
       <div class="boutons">
     <button onclick="openTab(event,'conect')">Connexion</button>
     <button onclick="openTab(event,'inscrip')">Inscription</button>
@@ -406,8 +414,21 @@ hr {
   <div id="myFeed"></div>
 </section>
 <section id="profilimg" class="tabcontent">
-    
+  <label for="userCountry">Votre pays :</label>
+  <select id="userCountry">
+    <option value="1">Cameroun 🇨🇲</option>
+    <option value="2">Côte d’Ivoire 🇨🇮</option>
+    <option value="3">Gabon 🇬🇦</option>
+    <option value="4">Sénégal 🇸🇳</option>
+    <option value="5">Bénin 🇧🇯</option>
+    <option value="6">RDC Congo 🇨🇩</option>
+  </select>
+  <p>
+    <i class="fas fa-info-circle" style="color:white"></i>
+    Vous verrez plus de publications dans ce pays. NB : il s'enregistre selon votre choix.
+  </p>
 </section>
+
 <!-- ============ BOOST VIDEO LIST ============ -->
 <section id="video" class="tabcontent">
   <div class="post-header">
@@ -429,12 +450,20 @@ hr {
 </div> 
   <p>Argent: <span id="argent">0</span> XAF</p>
 <hr>
-  <div id="boostPanel" style="display:none;margin-bottom:10px">
-    <span id="boostStatus" style="font-weight:bold"></span>
-    <input type="number" id="boostViews" placeholder="Nombres de personnes/jour" min="4000"/>
-    <button onclick="boostPost()">Booster</button>
-  </div><br>
-  <p><i class="fas fa-info-circle" style="color:#fff"></i> Le nombre de personnes à entrer est une estimation du nombres de vues par jour. minimum 4000 (4K pour 2300 XAF)</p>
+ <div id="boostPanel" style="display:none;margin-bottom:10px">
+  <span id="boostStatus" style="font-weight:bold"></span>
+  <input type="number" id="boostViews" placeholder="Nombres de personnes/jour" min="4000"/>
+  <select id="boostCountry">
+    <option value="1">Cameroun</option>
+    <option value="2">Côte d’Ivoire</option>
+    <option value="3">Gabon</option>
+    <option value="4">Sénégal</option>
+    <option value="5">Benin</option>
+    <option value="6">RDC Congo</option>
+  </select>
+  <button onclick="boostPost()">Booster</button>
+</div>  <br>
+  <p><i class="fas fa-info-circle" style="color:#fff"></i> Le nombre de personnes à entrer est une estimation du nombres de vues par jour. minimum 4000 (4K pour 3800 XAF)</p>
 </section>
 
 <!-- ============ LOGIN FORM ============ -->
@@ -767,6 +796,13 @@ try {
   btn.style.display = "none";
   iconPara.style.display = "none"; // Masquer le paragraphe en cas d'erreur
 }
+    if (user) {
+      currentUser = user;
+      await loadUserCountry();
+    } else {
+      currentUser = null;
+    }
+  
 
   if (user) {
     await loadFollowing();  // fonction qui initialise followingIds
@@ -943,10 +979,16 @@ async function renderFeed() {
   const c = qs('feed');
   c.textContent = 'Chargement…';
 
+  if (!currentUser) return;
+
+  const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+  const userCountry = userSnap.exists() ? userSnap.data().countryIndex || 1 : 1;
+
   const now = Date.now();
   const sevenDays = 7 * 24 * 60 * 60 * 1000;
   const posts = [];
 
+  // --- Utiliser le cache si dispo ---
   if (firstRenderDone && cachedPosts.length > 0) {
     const shuffled = [...cachedPosts];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -955,21 +997,25 @@ async function renderFeed() {
     }
 
     c.innerHTML = '';
-    shuffled.forEach(p => c.appendChild(card(p.id, p.data, false)));
+    shuffled.forEach(p => {
+      const el = card(p.id, p.data, false);
+      c.appendChild(el);
+      observer.observe(el);
+    });
     return;
   }
 
-  // BOOSTED POSTS (affichées même si +7 jours, tant que le boost est actif)
+  // --- BOOSTED POSTS filtrés par pays ---
   const qBoost = query(
     collection(db, 'posts'),
     where('boosted', '>', 0),
+    where('boostIndex', '==', userCountry),
     orderBy('boosted', 'desc'),
     orderBy('createdAt', 'desc'),
     limit(30)
   );
 
   const snapBoost = await getDocs(qBoost);
-
   for (const docSnap of snapBoost.docs) {
     const data = docSnap.data();
     const boostAt = data.boostAt?.toMillis?.() || 0;
@@ -978,14 +1024,11 @@ async function renderFeed() {
     if (diffBoostDays <= 2) {
       posts.push({ id: docSnap.id, data });
     } else {
-      // Boost expiré → nettoyage
-      await updateDoc(doc(db, 'posts', docSnap.id), {
-        boosted: 0
-      });
+      await updateDoc(doc(db, 'posts', docSnap.id), { boosted: 0 });
     }
   }
 
-  // FOLLOWED USERS : on affiche seulement les posts récents (-7 jours)
+  // --- POSTS DES UTILISATEURS SUIVIS ---
   if (followingIds.size > 0) {
     const groups = [...followingIds].reduce((a, u, i) => {
       if (i % 10 === 0) a.push([]);
@@ -1005,30 +1048,31 @@ async function renderFeed() {
         const postData = d.data();
         const createdAt = postData.createdAt?.toMillis?.() || 0;
         const isRecent = (now - createdAt) <= sevenDays;
-
         const alreadyAdded = posts.find(p => p.id === d.id);
+
         if (isRecent && !alreadyAdded) {
           posts.push({ id: d.id, data: postData });
         }
       });
     }
   }
-// Mélange aléatoire pur
-for (let i = posts.length - 1; i > 0; i--) {
-  const j = Math.floor(Math.random() * (i + 1));
-  [posts[i], posts[j]] = [posts[j], posts[i]];
-}
 
-cachedPosts = posts;
-firstRenderDone = true;
+  // --- Mélange aléatoire ---
+  for (let i = posts.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [posts[i], posts[j]] = [posts[j], posts[i]];
+  }
 
-c.innerHTML = '';
+  cachedPosts = posts;
+  firstRenderDone = true;
 
- posts.forEach(p => {
-  const el = card(p.id, p.data, false);
-  c.appendChild(el);
-  observer.observe(el); // 🔥 surveille le post pour incrémenter la vue
-});   
+  // --- Affichage ---
+  c.innerHTML = '';
+  posts.forEach(p => {
+    const el = card(p.id, p.data, false);
+    c.appendChild(el);
+    observer.observe(el);
+  });
 }
 function loadFollowedPosts(c){
   if(!followingIds.size)return;
@@ -1084,23 +1128,27 @@ c.appendChild(fol);
 /*──────────────────────────────────────────────────────────
  11. VIDEO FEED & BOOST FEED
 ──────────────────────────────────────────────────────────*/
-function renderVideoFeed() {
+async function renderVideoFeed() {
   const c = qs('videoFeedContent');
   c.textContent = 'Chargement…';
+
+  if (!currentUser) return;
+
+  const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+  const userCountry = userSnap.exists() ? userSnap.data().countryIndex || 1 : 1;
 
   onSnapshot(
     query(
       collection(db, 'posts'),
-      where('imageUrl', '!=', null),     // ✅ On filtre sur imageUrl
-      where('boosted', '>', 0)           // ✅ Boosté uniquement
-      // ❌ pas besoin de orderBy ici si on veut du hasard
+      where('imageUrl', '!=', null),
+      where('boosted', '>', 0),
+      where('boostIndex', '==', userCountry)
     ),
     snap => {
       c.innerHTML = '';
-
       const docs = Array.from(snap.docs);
 
-      // Shuffle Fisher-Yates
+      // Shuffle
       for (let i = docs.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [docs[i], docs[j]] = [docs[j], docs[i]];
@@ -1109,8 +1157,6 @@ function renderVideoFeed() {
       for (const d of docs) {
         const el = card(d.id, d.data(), false);
         c.appendChild(el);
-
-        // 🔥 Observe chaque post pour incrémenter 1 vue quand il est à l’écran
         observer.observe(el);
       }
     }
@@ -1126,7 +1172,8 @@ function renderBoostFeed() {
     query(
       collection(db, 'posts'),
       where('userId', '==', currentUser.uid),
-      where('imageUrl', '!=', null), // ✅ Affiche uniquement les images
+      where('imageUrl', '!=', null),
+      where('boosted', '>', 0), // 👈 seulement mes posts boostés
       orderBy('createdAt', 'desc')
     ),
     snap => {
@@ -1454,18 +1501,67 @@ async function debit(cost){
   const ok=await runTransaction(db,async t=>{const s=await t.get(ref);const bal=s.exists()?s.data().balance:0;if(bal<cost)return false;t.update(ref,{balance:bal-cost});return true;});
   if(!ok)alert('Solde insuffisant(min 500F)');await loadWallet();return ok;
 }
-window.boostPost=async()=>{
-  if(!boostId)return alert('Choisissez une publication');
-  const v=parseInt(qs('boostViews').value);if(isNaN(v)||v<4000)return alert('Min 4 000 vues (2300 XAF)');
-  const cost=Math.ceil(v/1000)*575;if(!(await debit(cost)))return;
-  try{
-await updateDoc(doc(db, 'posts', boostId), {
-  boosted: increment(v),
-  boostAt: serverTimestamp() // ← très important pour savoir quand le boost a commencé
-});
-    qs('boostStatus').textContent=`Boost succès ✔️`;qs('boostViews').value='';boostId='';renderFeed();renderMyFeed();await loadTotalViewsAndBalance();
-  }catch(e){alert('Erreur boost : '+e.message);await deposit(cost);}
+window.boostPost = async () => {
+  if (!boostId) return alert('Choisissez une publication');
+  const v = parseInt(qs('boostViews').value);
+  if (isNaN(v) || v < 4000) return alert('Min 4 000 vues (4600 XAF)');
+
+  const cost = Math.ceil(v / 1000) * 1150;
+  if (!(await debit(cost))) return;
+
+  const countryIndex = parseInt(qs('boostCountry').value);
+  if (isNaN(countryIndex)) return alert("Choisissez un pays pour booster");
+
+  try {
+    await updateDoc(doc(db, 'posts', boostId), {
+      boosted: increment(v),
+      boostAt: serverTimestamp(),
+      boostIndex: countryIndex
+    });
+    qs('boostStatus').textContent = `Boost succès ✔️`;
+    qs('boostViews').value = '';
+    qs('boostCountry').value = '';
+    boostId = '';
+    renderFeed();
+    renderMyFeed();
+    await loadTotalViewsAndBalance();
+  } catch (e) {
+    alert('Erreur boost : ' + e.message);
+    await deposit(cost);
+  }
 };
+  // rendre la fonction accessible globalement pour l'inline handler
+  window.saveUserCountry = async function(index) {
+    if (!currentUser) return alert("Connectez-vous d'abord");
+    let countryIndex = parseInt(index, 10);
+    if (isNaN(countryIndex)) countryIndex = 1; // fallback
+    await updateDoc(doc(db, "users", currentUser.uid), { countryIndex });
+    alert("Pays enregistré ✔️");
+  };
+
+  // loadUserCountry reste normale
+  async function loadUserCountry() {
+    if (!currentUser) return;
+    const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+    const countryIndex = userSnap.exists() ? userSnap.data().countryIndex || 1 : 1;
+    const select = document.getElementById("userCountry");
+    if (select) select.value = countryIndex;
+  }
+  // Attacher l'évènement "change" via JS au lieu d'onchange inline
+  document.addEventListener('DOMContentLoaded', () => {
+    const select = document.getElementById('userCountry');
+    if (!select) return;
+
+    select.addEventListener('change', async (e) => {
+      if (!currentUser) return alert("Connectez-vous d'abord");
+
+      let countryIndex = parseInt(e.target.value, 10);
+      if (isNaN(countryIndex)) countryIndex = 1; // Cameroun par défaut
+
+      await updateDoc(doc(db, "users", currentUser.uid), { countryIndex });
+      alert("Pays enregistré ✔️");
+    });
+  });
 
 /*──────────────────────────────────────────────────────────
  13. USER FEED & SEARCH
@@ -1552,16 +1648,16 @@ if (followerCount > 100) {
       const walletRef = doc(db, 'wallets', currentUser.uid);
       const walletSnap = await getDoc(walletRef);
 
-      if (!walletSnap.exists() || (walletSnap.data().balance || 0) < 300) {
+      if (!walletSnap.exists() || (walletSnap.data().balance || 0) < 600) {
         alert('💸 Solde insuffisant pour soutenir');
         return;
       }
 
-      await updateDoc(walletRef, { balance: walletSnap.data().balance - 300 });
+      await updateDoc(walletRef, { balance: walletSnap.data().balance - 600 });
 
       await setDoc(
         doc(db, 'users', uid),
-        { soutienvues: increment(2000) },
+        { soutienvues: increment(3000) },
         { merge: true }
       );
 
@@ -1651,7 +1747,7 @@ async function loadTotalViewsAndBalance(period = 'all') {
   }
 
   // 💰 Calcul du solde potentiel
-  const raw = Math.floor(totalViews / 1000) * 350;
+  const raw = Math.floor(totalViews / 1000) * 200;
 
   // 🔎 Vérifier retraits déjà faits
   const withdrawalsSnap = await getDocs(
