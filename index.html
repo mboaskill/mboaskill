@@ -670,15 +670,30 @@ async function incrementView(postId) {
 }
 
 // Observer pour compter quand le post devient visible
+const timers = new Map(); // stocke les timers par post
+
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
+    const postId = entry.target.dataset.post;
+
     if (entry.isIntersecting) {
-      const postId = entry.target.dataset.post;
-      incrementView(postId);
-      observer.unobserve(entry.target); // une seule fois par post
+      // Lancer un timer de 6 secondes quand le post est ≥ 80% visible
+      const timer = setTimeout(() => {
+        incrementView(postId);
+        observer.unobserve(entry.target); // on ne compte qu'une fois
+        timers.delete(postId);
+      }, 6000);
+
+      timers.set(postId, timer);
+    } else {
+      // Si le post quitte l’écran avant 6s → annuler
+      if (timers.has(postId)) {
+        clearTimeout(timers.get(postId));
+        timers.delete(postId);
+      }
     }
   });
-}, { threshold: 0.5 });
+}, { threshold: 0.8 }); // 80% visible
 /*──────────────────────────────────────────────────────────
   3. DOM READY — Dépôt
 ──────────────────────────────────────────────────────────*/
@@ -1322,7 +1337,7 @@ act.append(like, lCnt);
 
   // Vues (affichage combiné)
   const vCnt = document.createElement('span');
-  const vuesAffichees = (d.views || 0) + (d.boosted || 0) + ((d.likes || 0) * 10);
+  const vuesAffichees = (d.views || 0) + (d.boosted || 0) + ((d.likes || 0) * 5);
   vCnt.textContent = `👁️ ${fmt(vuesAffichees)}`;
   act.appendChild(vCnt);
 
@@ -1514,9 +1529,9 @@ async function debit(cost){
 window.boostPost = async () => {
   if (!boostId) return alert('Choisissez une publication');
   const v = parseInt(qs('boostViews').value);
-  if (isNaN(v) || v < 4000) return alert('Min 4 000 vues (4600 XAF)');
+  if (isNaN(v) || v < 2000) return alert('Min 2 000 vues (4600 XAF)');
 
-  const cost = Math.ceil(v / 1000) * 1150;
+  const cost = Math.ceil(v / 1000) * 2300;
   if (!(await debit(cost))) return;
 
   const countryIndex = parseInt(qs('boostCountry').value);
