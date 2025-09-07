@@ -647,19 +647,29 @@ const fmt=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':n;
     }
   }
 })();
-let seenPosts = new Set();
-
 async function incrementView(postId) {
-  if (seenPosts.has(postId)) return; // déjà compté
-  seenPosts.add(postId);
+  if (!currentUser) return;
 
   try {
-    const ref = doc(db, "posts", postId);
-    await updateDoc(ref, { views: increment(1) });
+    const postRef = doc(db, "posts", postId);
+    const userViewRef = doc(db, "posts", postId, "viewsByUser", currentUser.uid);
+
+    // Vérifie si l'utilisateur a déjà vu ce post
+    const userViewSnap = await getDoc(userViewRef);
+    if (userViewSnap.exists()) return; // déjà compté
+
+    // Marquer comme vu pour cet utilisateur
+    await setDoc(userViewRef, { seenAt: new Date() });
+
+    // Incrémenter le compteur total
+    await updateDoc(postRef, { views: increment(1) });
+
   } catch (e) {
     console.error("Erreur incrément vue:", e);
   }
 }
+
+// Observer pour compter quand le post devient visible
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
@@ -668,7 +678,7 @@ const observer = new IntersectionObserver((entries) => {
       observer.unobserve(entry.target); // une seule fois par post
     }
   });
-}, { threshold: 0.5 }); // 50% visible à l'écran
+}, { threshold: 0.5 });
 /*──────────────────────────────────────────────────────────
   3. DOM READY — Dépôt
 ──────────────────────────────────────────────────────────*/
