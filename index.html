@@ -1924,11 +1924,23 @@ window.signupWithEmail = async () => {
 
     // 3) Suivi automatique de l'admin
     // **REMPLACE** cette valeur par l'UID réel du compte admin présent dans ta collection "follows"
-    const ADMIN_UID = "810T1WLrysRxELoiYO7hSHywwRA3";
+    async function autoFollowAdmin(user) {
+  const ADMIN_UID = "810T1WLrysRxELoiYO7hSHywwRA3";
 
-    const listRef = doc(db, "follows", ADMIN_UID, "list", user.uid);
-    const counterRef = doc(db, "follows", ADMIN_UID);
+  // 1. Ajouter le user dans la liste des followers de l’admin
+  const followerRef = doc(db, "follows", ADMIN_UID, "list", user.uid);
+  await setDoc(followerRef, {
+    uid: user.uid,
+    createdAt: Date.now()
+  });
 
+  // 2. Incrémenter le compteur de followers de l’admin
+  const counterRef = doc(db, "follows", ADMIN_UID);
+  await updateDoc(counterRef, {
+    filo: increment(1)   // ⚠️ "filo" est ton champ compteur (vu dans la capture)
+  });
+  }
+  
     // Essaye d'abord une transaction (atomique) : increment + création de la doc list
     try {
       await runTransaction(db, async (tx) => {
