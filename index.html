@@ -414,7 +414,7 @@ hr {
   <div class="boutons">
   <button onclick="openTab(event,'vibo')">Deposer<i class="fas fa-sack-dollar"></i></button>    
   <button id="certify-btn" onclick="certifyUser()">Se certifier</button>
-  <button onclick="openTab(event,'totalViewsSection')">Retirer<i class="fas fa-door-open"></i></button>
+  <button onclick="openTab(event,'totalViewsSection')">Retire<i class="fas fa-right-from-bracket"></i></button>
   </div>
   <div id="myFeed"></div>
 </section>
@@ -1343,8 +1343,8 @@ act.append(like, lCnt);
   // Vues (affichage combiné)
   const vCnt = document.createElement('span');
   const vuesAffichees = (d.views || 0) + (d.boosted || 0) + ((d.likes || 0) * 5);
-  vCnt.textContent = `👁️ ${fmt(vuesAffichees)}`;
-  act.appendChild(vCnt);
+  vCnt.innerHTML = `<i class="fas fa-eye"></i> ${fmt(vuesAffichees)}`;
+    act.appendChild(vCnt);
 
   // Commentaire
   const comI = document.createElement('i');
