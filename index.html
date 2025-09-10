@@ -2044,6 +2044,7 @@ function linkifyText(text) {
     return `<a href="${url}" target="_blank" style="color:#1877f2;text-decoration:underline;">${match}</a>`;
   });
 }
+
 const textarea = document.getElementById("postText");
 
 // écoute les saisies dans textarea
@@ -2052,7 +2053,7 @@ textarea.addEventListener("input", async (e) => {
   const cursorPos = e.target.selectionStart;
 
   const textUntilCursor = value.slice(0, cursorPos);
-  const match = textUntilCursor.match(/@(\w*)$/);
+  const match = textUntilCursor.match(/@([\w ]*)$/); // capture noms composés
 
   if (match) {
     const queryText = match[1];
@@ -2076,7 +2077,8 @@ async function showMentionSuggestions(queryText) {
   }
 
   const usersRef = collection(db, "users");
-  const q = query(usersRef, where("name", ">=", queryText), where("name", "<=", queryText + "\uf8ff"));
+  // recherche insensible à la casse
+  const q = query(usersRef, where("name_lower", ">=", queryText.toLowerCase()), where("name_lower", "<=", queryText.toLowerCase() + "\uf8ff"));
   const snapshot = await getDocs(q);
 
   if (snapshot.empty) {
@@ -2112,7 +2114,7 @@ function selectMention(user, userId) {
   const cursorPos = textarea.selectionStart;
   const value = textarea.value;
 
-  const before = value.slice(0, cursorPos).replace(/@\w*$/, `@${user.name} `);
+  const before = value.slice(0, cursorPos).replace(/@[\w ]*$/, `@${user.name} `);
   const after = value.slice(cursorPos);
   textarea.value = before + after;
 
@@ -2125,41 +2127,50 @@ function renderPreview(text) {
   const preview = document.getElementById("preview");
   if (!preview) return;
 
-  // vide le contenu
   preview.innerHTML = "";
 
-  // sépare texte et mentions
-  const parts = text.split(/(@\w+)/g);
+  // capture @nom avec espaces
+  const mentionPattern = /@([\w ]+)/g;
+  let lastIndex = 0;
+  let match;
 
-  parts.forEach(part => {
-    if (part.startsWith("@")) {
-      const name = part.slice(1); // enlève @
-      const a = document.createElement("a");
-      a.href = "#";
-      a.textContent = part;
-      a.style.color = "gold"; // couleur des mentions
-      a.style.textDecoration = "none";
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
-        openUserFeedByName(name);
-      });
-      preview.appendChild(a);
-    } else {
-      preview.appendChild(document.createTextNode(part));
+  while ((match = mentionPattern.exec(text)) !== null) {
+    // texte avant la mention
+    if (match.index > lastIndex) {
+      preview.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
     }
-  });
+
+    const name = match[1]; // tout ce qui suit le @
+    const a = document.createElement("a");
+    a.href = "#";
+    a.textContent = match[0];
+    a.style.color = "gold";
+    a.style.textDecoration = "none";
+    a.style.cursor = "pointer";
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      openUserFeedByName(name);
+    });
+    preview.appendChild(a);
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // texte restant après la dernière mention
+  if (lastIndex < text.length) {
+    preview.appendChild(document.createTextNode(text.slice(lastIndex)));
+  }
 }
 
 // 🚀 ouvre le profil utilisateur
 async function openUserFeedByName(name) {
   const usersRef = collection(db, "users");
-  const q = query(usersRef, where("name", "==", name));
+  const q = query(usersRef, where("name_lower", "==", name.toLowerCase())); // recherche insensible à la casse
   const snapshot = await getDocs(q);
 
   if (!snapshot.empty) {
     const docSnap = snapshot.docs[0];
-    const userId = docSnap.id;
-    openUserFeed(userId); // fonction existante
+    openUserFeed(docSnap.id); // fonction existante
   } else {
     alert("Utilisateur introuvable");
   }
