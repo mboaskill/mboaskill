@@ -254,8 +254,13 @@ hr {
     cursor: pointer;
     font-size: 20px;
   }
-
-  </style>
+.mention {
+  color: gold;
+  font-weight: bold; /* optionnel pour faire ressortir */
+  text-decoration: none; /* supprime le soulignement si tu veux */
+  cursor: pointer; /* indique que c’est cliquable */
+}
+ </style>
 </head>
 <body>
 <header>  
@@ -283,9 +288,9 @@ hr {
 <!-- ============ POST ============ -->
 <section id="post" class="tabcontent">
   <h3>Créer une publication texte</h3>
-  <textarea id="postText" placeholder="Exprimez-vous..."></textarea>
-    <div class="">   
-        <label><i class="fas fa-palette" style="color: orange;"></i>   <input type="color" id="bgColor" value="#FFA500"/>
+<textarea id="postText" placeholder="Exprimez-vous..."></textarea>
+<div id="mentionSuggestions" style="display:none; position:absolute; background:#fff; border:1px solid #ccc; border-radius:6px; padding:4px; max-height:200px; overflow-y:auto; z-index:1000;"></div>
+<label><i class="fas fa-palette" style="color: orange;"></i>   <input type="color" id="bgColor" value="#FFA500"/>
         </label>
         </div>
   <hr/>
@@ -1229,30 +1234,30 @@ function card(id, d, isMine) {
   img.src = d.userPhoto || 'https://via.placeholder.com/40';
   img.alt = d.userName || d.userEmail || 'Profil';
   img.onclick = () => openUserFeed(d.userId);
-const name = document.createElement('a');
-name.className = 'username';
-name.href = `https://mboaskill.cm/${d.userId}`;
-name.onclick = (e) => {
-  e.preventDefault();
-  openUserFeed(d.userId);
-};
 
-// Vérifie si l'utilisateur est certifié (collection 'verified')
-const verifiedRef = doc(db, 'verified', d.userId);
-getDoc(verifiedRef).then((snap) => {
-  if (snap.exists() && snap.data().status === true) {
-    name.innerHTML = `
-      ${d.userName || d.userEmail}
-      <span class="verified-badge">
-        <i class="fas fa-certificate"></i>
-        <i class="fas fa-check checkmark"></i>
-      </span>
-    `;
-  } else {
-    name.textContent = d.userName || d.userEmail;
-  }
-});
-// Temps relatif
+  const name = document.createElement('a');
+  name.className = 'username';
+  name.href = `https://mboaskill.cm/${d.userId}`;
+  name.onclick = (e) => {
+    e.preventDefault();
+    openUserFeed(d.userId);
+  };
+
+  const verifiedRef = doc(db, 'verified', d.userId);
+  getDoc(verifiedRef).then((snap) => {
+    if (snap.exists() && snap.data().status === true) {
+      name.innerHTML = `
+        ${d.userName || d.userEmail}
+        <span class="verified-badge">
+          <i class="fas fa-certificate"></i>
+          <i class="fas fa-check checkmark"></i>
+        </span>
+      `;
+    } else {
+      name.textContent = d.userName || d.userEmail;
+    }
+  });
+
   const time = document.createElement('small');
   time.style.marginLeft = '8px';
   time.style.color = '#888';
@@ -1262,14 +1267,12 @@ getDoc(verifiedRef).then((snap) => {
 
   head.append(img, name, time);
 
-  // Bouton suivre
   const fbtn = renderFollowBtn(d.userId);
   if (fbtn) head.appendChild(fbtn);
 
-  // Étiquette sponsorisé si boosté
   if ((d.boosted || 0) > 0) {
     const tag = document.createElement('span');
-tag.innerHTML = '<i class="fa-solid fa-trophy" style="color:gold"></i>';
+    tag.innerHTML = '<i class="fa-solid fa-trophy" style="color:gold"></i>';
     tag.style.cssText = 'margin-left:auto;color:#ffa500;font-size:12px;font-weight:bold';
     head.appendChild(tag);
   }
@@ -1278,59 +1281,69 @@ tag.innerHTML = '<i class="fa-solid fa-trophy" style="color:gold"></i>';
 
   /* ---------- CONTENT ---------- */
   const cont = document.createElement('div');
-cont.className = 'post-content';
+  cont.className = 'post-content';
 
-if (d.imageUrl) {
-  // 🖼️ Image uniquement (remplace la vidéo)
-  const imgHtml = `
-    <img src="${d.imageUrl}" style="max-width:100%;border-radius:8px;" />
-    ${d.imageTitle ? `<div style="font-weight:bold;margin-top:4px;">${linkifyText(d.imageTitle)}</div>` : ''}
-  `;
-  cont.innerHTML = imgHtml;
+  if (d.imageUrl) {
+    const imgHtml = `
+      <img src="${d.imageUrl}" style="max-width:100%;border-radius:8px;" />
+      ${d.imageTitle ? `<div style="font-weight:bold;margin-top:4px;">${linkifyText(d.imageTitle)}</div>` : ''}
+    `;
+    cont.innerHTML = imgHtml;
+  } else if (d.text) {
+    const textDiv = document.createElement('div');
+    textDiv.className = 'text-bg';
+    textDiv.style.background = d.bgColor || '#1877f2';
 
-} else if (d.text) {
-  // 📝 Texte seul si pas d'image
-  cont.innerHTML = `<div class="text-bg" style="background:${d.bgColor || '#1877f2'}">${linkifyText(d.text)}</div>`;
-}
+    // ⚡ Transforme les mentions @nom en liens cliquables dorés
+    const parts = d.text.split(/(@\w+)/g);
+    parts.forEach(part => {
+      if (part.startsWith("@")) {
+        const namePart = part.slice(1);
+        const a = document.createElement('a');
+        a.href = "#";
+        a.textContent = part;
+        a.classList.add('mention'); // CSS gold
+        a.style.textDecoration = 'none';
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          openUserFeedByName(namePart);
+        });
+        textDiv.appendChild(a);
+      } else {
+        textDiv.appendChild(document.createTextNode(part));
+      }
+    });
 
-w.appendChild(cont);
+    cont.appendChild(textDiv);
+  }
+
+  w.appendChild(cont);
+
   /* ---------- ACTIONS ---------- */
   const act = document.createElement('div');
   act.className = 'post-actions';
 
-  // Like
-const like = document.createElement('i');
-like.className = 'fa-regular fa-heart'; // cœur vide au départ
-like.classList.add('like'); // ta classe perso pour styliser
+  const like = document.createElement('i');
+  like.className = 'fa-regular fa-heart';
+  like.classList.add('like');
 
-const lCnt = document.createElement('span');
-lCnt.textContent = fmt(d.likes || 0);
+  const lCnt = document.createElement('span');
+  lCnt.textContent = fmt(d.likes || 0);
 
-// Vérifie si l'utilisateur a déjà liké
-if (currentUser) {
-  const likeRef = doc(db, 'posts', id, 'likes', currentUser.uid);
-  getDoc(likeRef).then(snap => {
-    if (snap.exists()) {
-      like.classList.remove('fa-regular');
-      like.classList.add('fa-solid', 'liked'); // plein + couleur
-    }
-  });
-}
+  if (currentUser) {
+    const likeRef = doc(db, 'posts', id, 'likes', currentUser.uid);
+    getDoc(likeRef).then(snap => {
+      if (snap.exists()) {
+        like.classList.remove('fa-regular');
+        like.classList.add('fa-solid', 'liked');
+      }
+    });
+  }
 
-// Toggle au clic
-like.onclick = () => toggleLike(id, like, lCnt);
-// Vérifie si déjà liké depuis Firestore
-if (currentUser) {
-  const likeRef = doc(db, 'posts', id, 'likes', currentUser.uid);
-  getDoc(likeRef).then(snap => {
-    if (snap.exists()) like.classList.add('liked');
-  });
-}
+  like.onclick = () => toggleLike(id, like, lCnt);
 
-like.onclick = () => toggleLike(id, like, lCnt);
+  act.append(like, lCnt);
 
-act.append(like, lCnt);
-  // 🟡 EDIT (uniquement mes posts) — placé AVANT commentaires
   if (isMine) {
     const edit = document.createElement('i');
     edit.className = 'fa-solid fa-pen-to-square';
@@ -1340,20 +1353,17 @@ act.append(like, lCnt);
     act.appendChild(edit);
   }
 
-  // Vues (affichage combiné)
   const vCnt = document.createElement('span');
   const vuesAffichees = (d.views || 0) + (d.boosted || 0) + ((d.likes || 0) * 5);
   vCnt.innerHTML = `<i class="fas fa-eye"></i> ${fmt(vuesAffichees)}`;
-    act.appendChild(vCnt);
+  act.appendChild(vCnt);
 
-  // Commentaire
   const comI = document.createElement('i');
   comI.className = 'fa-regular fa-comment';
   const comCnt = document.createElement('span');
   comCnt.textContent = ' … ';
   act.append(comI, comCnt);
 
-  // Boost (uniquement mes posts)
   if (isMine) {
     const b = document.createElement('button');
     b.className = 'boost-btn';
@@ -1364,7 +1374,7 @@ act.append(like, lCnt);
 
   w.appendChild(act);
 
-  /* ---------- COMMENTS SECTION (toggle) ---------- */
+  /* ---------- COMMENTS SECTION ---------- */
   const comSec = document.createElement('div');
   comSec.className = 'comments-section';
   comSec.style.display = 'none';
@@ -1394,7 +1404,6 @@ act.append(like, lCnt);
 
   w.appendChild(comSec);
 
-  // Toggle affichage commentaires
   comI.onclick = () => {
     const show = comSec.style.display === 'none';
     comSec.style.display = show ? 'block' : 'none';
@@ -2039,6 +2048,126 @@ function linkifyText(text) {
     if (!url.startsWith("http")) url = "https://" + url;
     return `<a href="${url}" target="_blank" style="color:#1877f2;text-decoration:underline;">${match}</a>`;
   });
+}
+const textarea = document.getElementById("postText");
+
+// écoute les saisies dans textarea
+textarea.addEventListener("input", async (e) => {
+  const value = e.target.value;
+  const cursorPos = e.target.selectionStart;
+
+  const textUntilCursor = value.slice(0, cursorPos);
+  const match = textUntilCursor.match(/@(\w*)$/);
+
+  if (match) {
+    const queryText = match[1];
+    showMentionSuggestions(queryText);
+  } else {
+    hideMentionSuggestions();
+  }
+
+  renderPreview(value); // met à jour l’aperçu avec mentions cliquables
+});
+
+// 🔎 Suggestions Firestore
+async function showMentionSuggestions(queryText) {
+  const container = document.getElementById("mentionSuggestions");
+  container.innerHTML = ""; 
+  container.style.display = "block";
+
+  if (!queryText) {
+    container.style.display = "none";
+    return;
+  }
+
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, where("name", ">=", queryText), where("name", "<=", queryText + "\uf8ff"));
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    container.innerHTML = "<div style='padding:4px;color:#888'>Aucun résultat</div>";
+    return;
+  }
+
+  snapshot.forEach(docSnap => {
+    const user = docSnap.data();
+    const userId = docSnap.id;
+
+    const div = document.createElement("div");
+    div.className = "suggestion-item";
+    div.style.cursor = "pointer";
+    div.style.padding = "4px";
+    div.innerHTML = `
+      <img src="${user.photoURL || 'https://via.placeholder.com/24'}" style="width:24px;height:24px;border-radius:50%;vertical-align:middle;margin-right:6px">
+      <span>${user.name}</span>
+      ${user.verified ? '<i class="fas fa-check-circle" style="color:#1877f2;"></i>' : ""}
+    `;
+    div.onclick = () => selectMention(user, userId);
+    container.appendChild(div);
+  });
+}
+
+function hideMentionSuggestions() {
+  const container = document.getElementById("mentionSuggestions");
+  if (container) container.style.display = "none";
+}
+
+// ✅ insère @nom dans textarea
+function selectMention(user, userId) {
+  const cursorPos = textarea.selectionStart;
+  const value = textarea.value;
+
+  const before = value.slice(0, cursorPos).replace(/@\w*$/, `@${user.name} `);
+  const after = value.slice(cursorPos);
+  textarea.value = before + after;
+
+  hideMentionSuggestions();
+  renderPreview(textarea.value);
+}
+
+// 🖼️ rendu du texte avec mentions cliquables
+function renderPreview(text) {
+  const preview = document.getElementById("preview");
+  if (!preview) return;
+
+  // vide le contenu
+  preview.innerHTML = "";
+
+  // sépare texte et mentions
+  const parts = text.split(/(@\w+)/g);
+
+  parts.forEach(part => {
+    if (part.startsWith("@")) {
+      const name = part.slice(1); // enlève @
+      const a = document.createElement("a");
+      a.href = "#";
+      a.textContent = part;
+      a.style.color = "gold"; // couleur des mentions
+      a.style.textDecoration = "none";
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        openUserFeedByName(name);
+      });
+      preview.appendChild(a);
+    } else {
+      preview.appendChild(document.createTextNode(part));
+    }
+  });
+}
+
+// 🚀 ouvre le profil utilisateur
+async function openUserFeedByName(name) {
+  const usersRef = collection(db, "users");
+  const q = query(usersRef, where("name", "==", name));
+  const snapshot = await getDocs(q);
+
+  if (!snapshot.empty) {
+    const docSnap = snapshot.docs[0];
+    const userId = docSnap.id;
+    openUserFeed(userId); // fonction existante
+  } else {
+    alert("Utilisateur introuvable");
+  }
 }
 // Fonction pour afficher le lien de profil
 function showProfileLink(uid) {
