@@ -126,13 +126,12 @@
 }
 .like {
   cursor: pointer;
-  font-size: 2.2rem;
+  font-size: 1.2rem;
   transition: color 0.3s ease;
 }
 
 .fa-heart.liked {
   color: #1877f2 !important; /* 💙 bleu Facebook */
-font-size: 100%;
 }
     .fa-heart {
      
@@ -1219,7 +1218,6 @@ function renderBoostFeed() {
 /*──────────────────────────────────────────────────────────
  12. CARD (like / comments / boost)
 ──────────────────────────────────────────────────────────*/
-
 function card(id, d, isMine) {
   const w = document.createElement('div');
   w.className = 'post';
@@ -1293,24 +1291,23 @@ function card(id, d, isMine) {
     textDiv.className = 'text-bg';
     textDiv.style.background = d.bgColor || '#1877f2';
 
-    // ⚡ Transforme les mentions @nom en liens cliquables dorés
-    const parts = d.text.split(/(@\w+)/g);
-    parts.forEach(part => {
-      if (part.startsWith("@")) {
-        const namePart = part.slice(1);
-        const a = document.createElement('a');
-        a.href = "#";
-        a.textContent = part;
-        a.classList.add('mention'); // CSS gold
-        a.style.textDecoration = 'none';
-        a.addEventListener('click', (e) => {
-          e.preventDefault();
-          openUserFeedByName(namePart);
-        });
-        textDiv.appendChild(a);
-      } else {
-        textDiv.appendChild(document.createTextNode(part));
-      }
+    // 1️⃣ Convertit d'abord les liens avec linkifyText
+    let html = linkifyText(d.text);
+
+    // 2️⃣ Remplace les mentions @nom par des <a class="mention">
+    html = html.replace(/@(\w+)/g, (match, name) => {
+      return `<a href="#" class="mention" data-username="${name}">${match}</a>`;
+    });
+
+    textDiv.innerHTML = html;
+
+    // 3️⃣ Ajoute le listener click sur toutes les mentions
+    textDiv.querySelectorAll('.mention').forEach(a => {
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        const name = a.dataset.username;
+        openUserFeedByName(name);
+      });
     });
 
     cont.appendChild(textDiv);
@@ -1340,7 +1337,6 @@ function card(id, d, isMine) {
   }
 
   like.onclick = () => toggleLike(id, like, lCnt);
-
   act.append(like, lCnt);
 
   if (isMine) {
