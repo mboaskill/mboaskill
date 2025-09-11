@@ -1318,7 +1318,7 @@ function selectMention(user, textarea) {
   const value = textarea.value;
 
   // Remplace le @... par @NomComplet + ","
-  const before = value.slice(0, cursorPos).replace(/@[\wÀ-ÖØ-öø-ÿ ]*$/, `@${user.name} !`);
+  const before = value.slice(0, cursorPos).replace(/@[\wÀ-ÖØ-öø-ÿ ]*$/, `@${user.name},`);
   const after = value.slice(cursorPos);
   textarea.value = before + after;
 
