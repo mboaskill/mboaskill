@@ -9,7 +9,6 @@
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <style>
-      
     /* === GLOBAL STYLES ================================= */
     body{
       margin:0;
@@ -252,11 +251,15 @@ hr {
     cursor: pointer;
     font-size: 20px;
   }
-.mention {
+
+    .mention {
   color: gold;
   font-weight: bold; /* optionnel pour faire ressortir */
   text-decoration: none; /* supprime le soulignement si tu veux */
   cursor: pointer; /* indique que c’est cliquable */
+}
+#mentionSuggestions {
+    display:none; position:absolute; background:#fff; border:1px solid #ccc; border-radius:6px; padding:4px; max-height:400px; overflow-y:auto; z-index:1000;
 }
  </style>
 </head>
@@ -277,31 +280,36 @@ hr {
     <p id="accountStatus"></p>
   </div>
   <hr>
-    <div class="post-header">
-    <img class="circle" src="https://ucarecdn.com/02df5bb7-ff27-4d7c-ae62-a7b468c119e6/-/preview/1000x1000/"><button onclick="openTab(event,'amis')">Ajouter + <i class="fa-solid fa-user-group"></i></button>
+    <div class="post-header" onclick="window.open('https://www.appcreator24.com/app3638117-t0p691')">
+    <img class="circle" src="https://ucarecdn.com/18dbaec6-1d7c-4b73-8624-4cd1741b13c0/-/preview/1000x1000/" onclick="window.open('https://www.appcreator24.com/app3638117-t0p691')"> <i class="fas fa-download" style="color:gold"></i>
   <hr>
+  </div>
   <div id="feed"></div>
 </section>
 
 <!-- ============ POST ============ -->
 <section id="post" class="tabcontent">
-  <h3>Créer une publication texte</h3>
-<textarea id="postText" placeholder="Exprimez-vous..."></textarea>
-<div id="mentionSuggestions" style="display:none; position:absolute; background:#fff; border:1px solid #ccc; border-radius:6px; padding:4px; max-height:200px; overflow-y:auto; z-index:1000;"></div>
+  <h2>Publier du texte</h2>
+<textarea id="postText" placeholder="Exprimez-vous..." style="height:15%"></textarea>
+  
+ <div id="mentionSuggestions"></div>
+
 <label><i class="fas fa-palette" style="color: orange;"></i>   <input type="color" id="bgColor" value="#FFA500"/>
         </label>
         </div>
   <hr/>
-  <h2>image</h2>
+  <h2>Publier une image</h2>
 <input type="file" id="imageFile" accept="image/*" />
-<input type="text" id="imageTitle" placeholder="Titre de l'image" />
+<textarea id="imageTitle" placeholder="Titre de l'image" style="height:8%"></textarea>
+  
+
   <button onclick="publishPost()">Publier</button>
   <p id="status"></p>
 </section>
 
 <!-- ============ VIDEO FEED ============ -->
 <section id="videoFeed" class="tabcontent">
-  <h3>Publications avec images</h3>
+  <h3>Des images pour vous</h3>
   <div id="videoFeedContent"></div>
 </section>
 
@@ -471,7 +479,7 @@ hr {
   </select>
   <button onclick="boostPost()">Booster</button>
 </div>  <br>
-  <p><i class="fas fa-info-circle" style="color:#fff"></i> Le nombre de personnes à entrer est une estimation du nombres de vues par jour. minimum 4000 (4K pour 3800 XAF)</p>
+  <p><i class="fas fa-info-circle" style="color:#fff"></i> Le nombre de personnes à entrer est une estimation du nombres de vues par jour. minimum 2000 (2K pour 4600 XAF)</p>
 </section>
 
 <!-- ============ LOGIN FORM ============ -->
@@ -520,10 +528,10 @@ hr {
     promotion social ➡️ <img class="circle"  src="https://ucarecdn.com/04a9cc78-e2a1-4e71-baa0-b83b5de179ed/-/preview/417x417/" onclick="window.open('https://followersmanager.netlify.app')"/>
     
    </div>
-  <div id="suggestions">
- <h3>vous connaissez peut etre:</h3>
+<div id="suggestions">
+  <h3>Vous connaissez peut-être :</h3>
   <div id="suggestionsList">Chargement…</div>
-</div>   
+</div>
 </section>
 <section id="music" class="tabcontent">
  <button onclick="openTab(event,'mus')" id="bouton-lundi">importer ma musique <i class="fas fa-download"></i></button>  
@@ -1042,7 +1050,6 @@ async function renderFeed() {
   const qBoost = query(
     collection(db, 'posts'),
     where('boosted', '>', 0),
-    where('boostIndex', '==', userCountry),
     orderBy('boosted', 'desc'),
     orderBy('createdAt', 'desc'),
     limit(30)
@@ -1054,9 +1061,13 @@ async function renderFeed() {
     const boostAt = data.boostAt?.toMillis?.() || 0;
     const diffBoostDays = (now - boostAt) / (1000 * 60 * 60 * 24);
 
-    if (diffBoostDays <= 2) {
+    // Vérifie si le post est boosté dans le pays de l'utilisateur
+    const boostIndices = Array.isArray(data.boostIndex) ? data.boostIndex : [data.boostIndex];
+    const isBoostedInUserCountry = boostIndices.includes(userCountry);
+
+    if (diffBoostDays <= 2 && isBoostedInUserCountry) {
       posts.push({ id: docSnap.id, data });
-    } else {
+    } else if (diffBoostDays > 2) {
       await updateDoc(doc(db, 'posts', docSnap.id), { boosted: 0 });
     }
   }
@@ -1218,6 +1229,178 @@ function renderBoostFeed() {
 /*──────────────────────────────────────────────────────────
  12. CARD (like / comments / boost)
 ──────────────────────────────────────────────────────────*/
+// ---------- USERS CACHE ----------
+let usersCache = null;
+
+async function ensureUsersCache() {
+  if (usersCache) return usersCache;
+
+  try {
+    const usersRef = collection(db, "users");
+    const snapshot = await getDocs(usersRef);
+    usersCache = snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data.name || "",
+        photoURL: data.photoURL || "",
+        verified: data.verified || false
+      };
+    });
+    return usersCache;
+  } catch (err) {
+    console.error("Erreur lors du chargement des utilisateurs :", err);
+    return [];
+  }
+}
+
+// ---------------- TEXTAREAS & MENTIONS ----------------
+const textareas = [document.getElementById("postText"), document.getElementById("imageTitle")].filter(Boolean);
+
+textareas.forEach(textarea => {
+  textarea.addEventListener("input", async (e) => {
+    const value = e.target.value;
+    const cursorPos = e.target.selectionStart;
+    const textUntilCursor = value.slice(0, cursorPos);
+    const match = textUntilCursor.match(/@([\wÀ-ÖØ-öø-ÿ ]*)$/);
+
+    if (match) await showMentionSuggestions(match[1], textarea);
+    else hideMentionSuggestions();
+
+    await renderPreview(value, textarea.id);
+  });
+});
+
+async function showMentionSuggestions(queryText, textarea) {
+  const container = document.getElementById("mentionSuggestions");
+  container.innerHTML = "";
+  container.style.display = "block";
+
+  if (!queryText || !queryText.trim()) { container.style.display = "none"; return; }
+
+  const users = await ensureUsersCache();
+  if (!users || users.length === 0) { 
+    container.innerHTML = "<div style='padding:4px;color:#888'>Aucun résultat</div>"; 
+    return; 
+  }
+
+  const q = queryText.trim().toLowerCase();
+  const filtered = users.filter(u => u.name && u.name.toLowerCase().startsWith(q));
+
+  if (filtered.length === 0) { 
+    container.innerHTML = "<div style='padding:4px;color:#888'>Aucun résultat</div>"; 
+    return; 
+  }
+
+  filtered.forEach(u => {
+    const div = document.createElement("div");
+    div.className = "suggestion-item";
+    div.style.cursor = "pointer";
+    div.style.padding = "6px 8px";
+    div.innerHTML = `
+      <img src="${u.photoURL || 'https://via.placeholder.com/24'}" style="width:24px;height:24px;border-radius:50%;vertical-align:middle;margin-right:8px">
+      <span>${u.name}</span>
+      ${u.verified ? '<i class="fas fa-check-circle" style="color:#1877f2;margin-left:6px"></i>' : ''}
+    `;
+    div.onclick = () => selectMention(u, textarea);
+    container.appendChild(div);
+  });
+}
+
+function hideMentionSuggestions() {
+  const container = document.getElementById("mentionSuggestions");
+  if (container) container.style.display = "none";
+}
+
+// ---------- INSERT SELECTED MENTION (avec espace+!) ----------
+function selectMention(user, textarea) {
+  const cursorPos = textarea.selectionStart;
+  const value = textarea.value;
+
+  // Remplace le @... par @NomComplet + " !"
+  const before = value.slice(0, cursorPos).replace(/@[\wÀ-ÖØ-öø-ÿ ]*$/, `@${user.name} !`);
+  const after = value.slice(cursorPos);
+  textarea.value = before + after;
+
+  hideMentionSuggestions();
+  renderPreview(textarea.value, textarea.id);
+}
+
+// ---------- RENDER PREVIEW ----------
+async function renderPreview(text, sourceId) {
+  const previewId = sourceId === "postText" ? "previewText" : "previewImage";
+  const preview = document.getElementById(previewId) || document.getElementById("preview");
+  if (!preview) return;
+
+  preview.innerHTML = "";
+  const frag = await parseMentions(text);
+  preview.appendChild(frag);
+}
+
+// ---------- PARSE MENTIONS ----------
+async function parseMentions(text) {
+  const users = await ensureUsersCache();
+  const frag = document.createDocumentFragment();
+  let i = 0;
+
+  while (i < text.length) {
+    const atIdx = text.indexOf("@", i);
+    if (atIdx === -1) {
+      frag.appendChild(document.createTextNode(text.slice(i)));
+      break;
+    }
+
+    if (atIdx > i) frag.appendChild(document.createTextNode(text.slice(i, atIdx)));
+
+    const rest = text.slice(atIdx + 1);
+    const candidates = users
+      .filter(u => u.name && rest.toLowerCase().startsWith(u.name.toLowerCase()))
+      .sort((a, b) => b.name.length - a.name.length);
+
+    if (candidates.length > 0) {
+      const user = candidates[0];
+      const a = document.createElement("a");
+      a.href = "#";
+      a.className = "mention";
+      a.textContent = "@" + user.name;
+      a.dataset.username = user.name;
+      a.style.color = "gold";
+      a.style.textDecoration = "none";
+      a.addEventListener("click", e => {
+        e.preventDefault();
+        openUserFeedByName(user.name);
+      });
+      frag.appendChild(a);
+      i = atIdx + 1 + user.name.length;
+    } else {
+      const nextSpace = rest.search(/\s|[.,!?;:()'"«»]/);
+      const endIdx = nextSpace === -1 ? rest.length : nextSpace;
+      frag.appendChild(document.createTextNode(text.slice(atIdx, atIdx + 1 + endIdx)));
+      i = atIdx + 1 + endIdx;
+    }
+  }
+
+  return frag;
+}
+
+// ---------- OPEN USER PROFILE ----------
+async function openUserFeedByName(name) {
+  const users = await ensureUsersCache();
+  const found = users.find(u => u.name && u.name.toLowerCase() === name.toLowerCase());
+  if (found) { openUserFeed(found.id); return; }
+
+  try {
+    const usersRef = collection(db, "users");
+    const snapshot = await getDocs(usersRef);
+    const doc = snapshot.docs.find(d => (d.data().name || "").toLowerCase() === name.toLowerCase());
+    if (doc) openUserFeed(doc.id);
+    else alert("Utilisateur introuvable");
+  } catch (err) {
+    console.error(err);
+    alert("Erreur lors de la recherche d'utilisateur");
+  }
+}
+
 function card(id, d, isMine) {
   const w = document.createElement('div');
   w.className = 'post';
@@ -1291,24 +1474,26 @@ function card(id, d, isMine) {
     textDiv.className = 'text-bg';
     textDiv.style.background = d.bgColor || '#1877f2';
 
-    // 1️⃣ Convertit d'abord les liens avec linkifyText
-    let html = linkifyText(d.text);
+    // Convertit les liens
+    let html = linkifyText(d.text || '');
 
-    // 2️⃣ Remplace les mentions @nom par des <a class="mention">
-    html = html.replace(/@(\w+)/g, (match, name) => {
-      return `<a href="#" class="mention" data-username="${name}">${match}</a>`;
+    // Remplace les mentions @nom (avec accents et espaces)
+    html = html.replace(/@([\wÀ-ÖØ-öø-ÿ ]+)/g, (match, name) => {
+      return `<a href="#" class="mention" data-username="${name.trim()}">${match}</a>`;
     });
 
-    textDiv.innerHTML = html;
-
-    // 3️⃣ Ajoute le listener click sur toutes les mentions
-    textDiv.querySelectorAll('.mention').forEach(a => {
-      a.addEventListener('click', (e) => {
-        e.preventDefault();
-        const name = a.dataset.username;
-        openUserFeedByName(name);
+    // Sécurité : vérifier avant appendChild
+    if (html) {
+      textDiv.innerHTML = html;
+      textDiv.querySelectorAll('.mention').forEach(a => {
+        a.addEventListener('click', e => {
+          e.preventDefault();
+          openUserFeedByName(a.dataset.username);
+        });
       });
-    });
+    } else {
+      textDiv.textContent = d.text || '';
+    }
 
     cont.appendChild(textDiv);
   }
@@ -2044,138 +2229,7 @@ function linkifyText(text) {
     return `<a href="${url}" target="_blank" style="color:#1877f2;text-decoration:underline;">${match}</a>`;
   });
 }
-
-const textarea = document.getElementById("postText");
-
-// écoute les saisies dans textarea
-textarea.addEventListener("input", async (e) => {
-  const value = e.target.value;
-  const cursorPos = e.target.selectionStart;
-
-  const textUntilCursor = value.slice(0, cursorPos);
-  const match = textUntilCursor.match(/@([\w ]*)$/); // capture noms composés
-
-  if (match) {
-    const queryText = match[1];
-    showMentionSuggestions(queryText);
-  } else {
-    hideMentionSuggestions();
-  }
-
-  renderPreview(value); // met à jour l’aperçu avec mentions cliquables
-});
-
-// 🔎 Suggestions Firestore
-async function showMentionSuggestions(queryText) {
-  const container = document.getElementById("mentionSuggestions");
-  container.innerHTML = ""; 
-  container.style.display = "block";
-
-  if (!queryText) {
-    container.style.display = "none";
-    return;
-  }
-
-  const usersRef = collection(db, "users");
-  // recherche insensible à la casse
-  const q = query(usersRef, where("name_lower", ">=", queryText.toLowerCase()), where("name_lower", "<=", queryText.toLowerCase() + "\uf8ff"));
-  const snapshot = await getDocs(q);
-
-  if (snapshot.empty) {
-    container.innerHTML = "<div style='padding:4px;color:#888'>Aucun résultat</div>";
-    return;
-  }
-
-  snapshot.forEach(docSnap => {
-    const user = docSnap.data();
-    const userId = docSnap.id;
-
-    const div = document.createElement("div");
-    div.className = "suggestion-item";
-    div.style.cursor = "pointer";
-    div.style.padding = "4px";
-    div.innerHTML = `
-      <img src="${user.photoURL || 'https://via.placeholder.com/24'}" style="width:24px;height:24px;border-radius:50%;vertical-align:middle;margin-right:6px">
-      <span>${user.name}</span>
-      ${user.verified ? '<i class="fas fa-check-circle" style="color:#1877f2;"></i>' : ""}
-    `;
-    div.onclick = () => selectMention(user, userId);
-    container.appendChild(div);
-  });
-}
-
-function hideMentionSuggestions() {
-  const container = document.getElementById("mentionSuggestions");
-  if (container) container.style.display = "none";
-}
-
-// ✅ insère @nom dans textarea
-function selectMention(user, userId) {
-  const cursorPos = textarea.selectionStart;
-  const value = textarea.value;
-
-  const before = value.slice(0, cursorPos).replace(/@[\w ]*$/, `@${user.name} `);
-  const after = value.slice(cursorPos);
-  textarea.value = before + after;
-
-  hideMentionSuggestions();
-  renderPreview(textarea.value);
-}
-
-// 🖼️ rendu du texte avec mentions cliquables
-function renderPreview(text) {
-  const preview = document.getElementById("preview");
-  if (!preview) return;
-
-  preview.innerHTML = "";
-
-  // capture @nom avec espaces
-  const mentionPattern = /@([\w ]+)/g;
-  let lastIndex = 0;
-  let match;
-
-  while ((match = mentionPattern.exec(text)) !== null) {
-    // texte avant la mention
-    if (match.index > lastIndex) {
-      preview.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
-    }
-
-    const name = match[1]; // tout ce qui suit le @
-    const a = document.createElement("a");
-    a.href = "#";
-    a.textContent = match[0];
-    a.style.color = "gold";
-    a.style.textDecoration = "none";
-    a.style.cursor = "pointer";
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      openUserFeedByName(name);
-    });
-    preview.appendChild(a);
-
-    lastIndex = match.index + match[0].length;
-  }
-
-  // texte restant après la dernière mention
-  if (lastIndex < text.length) {
-    preview.appendChild(document.createTextNode(text.slice(lastIndex)));
-  }
-}
-
-// 🚀 ouvre le profil utilisateur
-async function openUserFeedByName(name) {
-  const usersRef = collection(db, "users");
-  const q = query(usersRef, where("name_lower", "==", name.toLowerCase())); // recherche insensible à la casse
-  const snapshot = await getDocs(q);
-
-  if (!snapshot.empty) {
-    const docSnap = snapshot.docs[0];
-    openUserFeed(docSnap.id); // fonction existante
-  } else {
-    alert("Utilisateur introuvable");
-  }
-}
-// Fonction pour afficher le lien de profil
+// ---------- cache utilisateurs (chargé une seule fois) ----------
 function showProfileLink(uid) {
   const link = `https://mboaskill.cm/u/${uid}`;
   const input = document.getElementById('profile-link');
@@ -2261,64 +2315,80 @@ window.addEventListener('DOMContentLoaded', () => {
   // Nettoyer l’URL visuellement
   history.replaceState({}, '', '/');
 });
-let suggestionInterval; // à placer en global
+
+let suggestionInterval;
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadSuggestions();
+});
 
 async function loadSuggestions() {
   const currentUser = auth.currentUser;
   if (!currentUser) return;
 
   const suggestionsList = document.getElementById('suggestionsList');
+  if (!suggestionsList) return;
   suggestionsList.textContent = 'Chargement…';
 
-  const allUsersSnap = await getDocs(collection(db, 'users'));
-  let suggestions = [];
-
-  allUsersSnap.forEach(docSnap => {
-    const user = docSnap.data();
-    const uid = docSnap.id;
-    if (uid !== currentUser.uid && !followingIds.has(uid)) {
-      suggestions.push({ uid, ...user });
-    }
-  });
-
-  if (suggestions.length === 0) {
-    suggestionsList.textContent = 'Aucune suggestion pour le moment.';
-    return;
-  }
-
-  // Fonction pour mélanger et afficher
-  function updateSuggestions() {
-    // Mélange
-    for (let i = suggestions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [suggestions[i], suggestions[j]] = [suggestions[j], suggestions[i]];
+  try {
+    const followsDoc = await getDoc(doc(db, "follows", currentUser.uid));
+    if (!followsDoc.exists()) {
+      suggestionsList.textContent = 'Aucun follower pour le moment.';
+      return;
     }
 
-    // Affichage
-    suggestionsList.innerHTML = '<hr>';
-    suggestions.forEach(user => {
-      const div = document.createElement('div');
-      div.className = 'suggestion-item';
-      div.style = 'display:flex;align-items:center;gap:10px;margin:5px 0';
+    // Ici on récupère la liste des followers
+    const followers = followsDoc.data().list || {}; // ou subcollection si c'est une subcollection
+    const followerIds = Object.keys(followers);
 
-      const img = document.createElement('img');
-      img.src = user.photo || 'https://via.placeholder.com/40';
-      img.style = 'width:40px;height:40px;border-radius:50%';
+    if (followerIds.length === 0) {
+      suggestionsList.textContent = 'Aucun follower pour le moment.';
+      return;
+    }
 
-      const name = document.createElement('span');
-      name.textContent = user.name || user.email || 'Utilisateur';
+    const suggestions = [];
+    for (const uid of followerIds) {
+      const userDoc = await getDoc(doc(db, "users", uid));
+      if (userDoc.exists()) {
+        suggestions.push({ uid, ...userDoc.data() });
+      }
+    }
 
-      const btn = renderFollowBtn(user.uid);
+    function updateSuggestions() {
+      for (let i = suggestions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [suggestions[i], suggestions[j]] = [suggestions[j], suggestions[i]];
+      }
 
-      div.append(img, name);
-      if (btn) div.appendChild(btn);
-      suggestionsList.appendChild(div);
-    });
+      suggestionsList.innerHTML = '<hr>';
+      suggestions.forEach(user => {
+        const div = document.createElement('div');
+        div.className = 'suggestion-item';
+        div.style = 'display:flex;align-items:center;gap:10px;margin:5px 0';
+
+        const img = document.createElement('img');
+        img.src = user.photo || 'https://via.placeholder.com/40';
+        img.style = 'width:40px;height:40px;border-radius:50%';
+
+        const name = document.createElement('span');
+        name.textContent = user.name || user.email || 'Utilisateur';
+
+        const btn = renderFollowBtn(user.uid);
+
+        div.append(img, name);
+        if (btn) div.appendChild(btn);
+        suggestionsList.appendChild(div);
+      });
+    }
+
+    updateSuggestions();
+    clearInterval(suggestionInterval);
+    suggestionInterval = setInterval(updateSuggestions, 60000);
+
+  } catch (err) {
+    console.error(err);
+    suggestionsList.textContent = 'Erreur lors du chargement des followers.';
   }
-
-  updateSuggestions(); // affiche une fois immédiatement
-  clearInterval(suggestionInterval);
-  suggestionInterval = setInterval(updateSuggestions, 60000); // toutes les 1 min
 }
 
 window.certifyUser = async function () {
@@ -2474,7 +2544,7 @@ async function renderMusicFeed() {
 
           // ➕ Ajoutes 360 vues  totalviewcontent
           const statsRef = doc(db, 'totalviewcontent', d.userId);
-          await setDoc(statsRef, { views: increment(360) }, { merge: true });
+          await setDoc(statsRef, { views: increment(270) }, { merge: true });
 
           // Suppression de la mise à jour de totalviews, car on calcule tout depuis totalviewcontent
           // Donc plus de code ici pour totalviews
