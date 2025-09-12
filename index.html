@@ -325,13 +325,23 @@ hr {
 </select>
 <div class="row-info">
   <span class="label">Vues:</span>
-  <span class="value"><p id="totalViewsCount" style="background-color:orange">Chargement...</p>
-</span>
+  <span class="value">
+    <p id="totalViewsCount" style="background-color:orange">Chargement...</p>
+  </span>
 </div>
+
 <div class="row-info">
-  <span class="label">solde:</span>
-  <span class="value">  <p id="currentBalance">XAF</p>
-</span>
+  <span class="label">Solde brut:</span>
+  <span class="value">
+    <p id="grossBalance">XAF</p>
+  </span>
+</div>
+
+<div class="row-info">
+  <span class="label">Disponible à retirer:</span>
+  <span class="value">
+    <p id="currentBalance">XAF</p>
+  </span>
 </div>
 <div class="row-info">
   <span class="label">texte+image:</span>
@@ -1932,88 +1942,111 @@ d.append(img,span);if(btn)d.append(btn);d.onclick=()=>openUserFeed(u.uid);res.ap
  14. VIEWS & RETRAIT
 ──────────────────────────────────────────────────────────*/
 
-// 🔄 Charger le solde et les vues totales
-async function loadTotalViewsAndBalance(period = 'all') {
-  if (!currentUser) return;
+// attendre que le DOM soit prêt
+document.addEventListener('DOMContentLoaded', () => {
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    const loadingEl = document.getElementById('loadingMessage');
+    const balanceWrapperEl = document.getElementById('balanceWrapper');
 
-  const postsRef = collection(db, 'posts');
-  let q = query(postsRef, where('userId', '==', currentUser.uid));
-  // TODO : ajouter filtre période si besoin
-
-  const snap = await getDocs(q);
-  let totalViews = 0;
-
-  snap.forEach(d => {
-    const v = d.data();
-    const views = v.views || 0;
-    const boosted = v.boosted || 0;
-    const likes = v.likes || 0;
-    const vuesParLike = likes * 13;
-    const totalviewcontent = v.totalviewcontent || 0;
-
-    totalViews += views + boosted + vuesParLike + totalviewcontent;
+    if (user) {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (balanceWrapperEl) balanceWrapperEl.style.display = 'block';
+      loadTotalViewsAndBalance();
+    } else {
+      if (loadingEl) loadingEl.textContent = "Utilisateur non connecté";
+      if (balanceWrapperEl) balanceWrapperEl.style.display = 'none';
+      currentBalance = 0;
+    }
   });
+});
 
-  // ➕ Ajouter soutienvues depuis users/{uid}
-  const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-  const soutienvues = userDoc.exists() ? (userDoc.data().soutienvues || 0) : 0;
-  totalViews += soutienvues;
-
-  // 🖥️ Affichage direct compteur total
-  const el = document.getElementById('totalViewsCounter');
-  if (el) {
-    el.textContent = `Total vues + soutienvues: ${totalViews}`;
-  }
-
-  // 💰 Calcul du solde potentiel
-  const raw = Math.floor(totalViews / 1000) * 200;
-
-  // 🔎 Vérifier retraits déjà faits
-  const withdrawalsSnap = await getDocs(
-    query(collection(db, 'withdrawals'), where('userId', '==', currentUser.uid))
-  );
-  const withdrawn = withdrawalsSnap.docs.reduce(
-    (sum, d) => sum + (d.data().amount || 0),
-    0
-  );
-
-  // ✅ Solde réel (jamais négatif)
-  const potential = Math.max(0, raw - withdrawn);
-
-  // 🖥️ Mise à jour interface
-  qs('totalViewsCount').textContent = fmt(totalViews);
-  qs('currentBalance').textContent = potential + ' FCFA';
-
-  // 💾 Variable globale
-  currentBalance = potential;
-}
-
-// 🔁 Fonction de retrait
-window.withdrawBalance = async () => {
-  const a = qs("withdrawAmount").valueAsNumber;
-  const phone = qs("withdrawPhone").value.trim();
-
-  if (!currentUser || !currentUser.uid) {
-    return alert("Utilisateur non authentifié.");
-  }
-
-  if (!Number.isFinite(a) || a < 5000) {
-    return alert("Montant minimum : 5 000 XAF");
-  }
-
-  if (!phone || phone.length < 8) {
-    return alert("Veuillez entrer un numéro valide.");
-  }
-
-  // 🔄 Toujours recalculer le solde à jour
-  await loadTotalViewsAndBalance();
-
-  if (a > currentBalance) {
-    return alert("Solde insuffisant. Votre solde actuel est " + currentBalance + " FCFA");
+// charge total vues + calcule solde disponible
+async function loadTotalViewsAndBalance(period = 'all') {
+  if (!currentUser) {
+    console.warn("loadTotalViewsAndBalance: currentUser null");
+    return;
   }
 
   try {
-    // 💾 Enregistrer le retrait
+    // 1) total vues des posts
+    const postsRef = collection(db, 'posts');
+    const q = query(postsRef, where('userId', '==', currentUser.uid));
+    const snap = await getDocs(q);
+    let totalViews = 0;
+
+    snap.forEach(d => {
+      const v = d.data();
+      const views = Number(v.views) || 0;
+      const boosted = Number(v.boosted) || 0;
+      const likes = Number(v.likes) || 0;
+      const vuesParLike = likes * 13;
+      const totalviewcontent = Number(v.totalviewcontent) || 0;
+      totalViews += views + boosted + vuesParLike + totalviewcontent;
+    });
+
+    // 2) soutienvues depuis users/{uid}
+    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+    const soutienvues = userDoc.exists() ? Number(userDoc.data().soutienvues || 0) : 0;
+    totalViews += soutienvues;
+
+    console.log("DEBUG totalViews =", totalViews);
+
+    // affichage total vues (fmt K/M)
+    const totalViewsCounterEl = document.getElementById('totalViewsCounter');
+    if (totalViewsCounterEl) totalViewsCounterEl.textContent = `Total vues + soutienvues: ${fmt(totalViews)}`;
+
+    const totalViewsCountEl = document.getElementById('totalViewsCount');
+    if (totalViewsCountEl) totalViewsCountEl.textContent = fmt(totalViews);
+
+    // 3) calcul gains bruts (raw) par palier
+    const raw = Math.floor(totalViews / 1000) * 200;
+    console.log("DEBUG raw (gains bruts) =", raw);
+
+    // 4) somme des retraits déjà effectués
+    const withdrawalsSnap = await getDocs(
+      query(collection(db, 'withdrawals'), where('userId', '==', currentUser.uid))
+    );
+    const withdrawn = withdrawalsSnap.docs.reduce(
+      (sum, d) => sum + Number(d.data().amount || 0),
+      0
+    );
+    console.log("DEBUG withdrawn =", withdrawn);
+
+    // 5) disponible pour retrait = raw - withdrawn (jamais négatif)
+    const available = Math.max(0, raw - withdrawn);
+    console.log("DEBUG available =", available);
+
+    // mise à jour interface (solde affiché = disponible)
+    const currentBalanceEl = document.getElementById('currentBalance');
+    if (currentBalanceEl) currentBalanceEl.textContent = available + ' FCFA';
+
+    currentBalance = available;
+
+  } catch (err) {
+    console.error("Erreur loadTotalViewsAndBalance :", err);
+  }
+}
+
+// retrait progressif
+window.withdrawBalance = async () => {
+  try {
+    const amountInput = document.getElementById("withdrawAmount");
+    const phoneInput = document.getElementById("withdrawPhone");
+
+    const a = amountInput ? amountInput.valueAsNumber : 0;
+    const phone = phoneInput ? phoneInput.value.trim() : "";
+
+    if (!currentUser || !currentUser.uid) return alert("Utilisateur non authentifié.");
+    if (!Number.isFinite(a) || a < 5000) return alert("Montant minimum : 5 000 XAF");
+    if (!phone || phone.length < 8) return alert("Veuillez entrer un numéro valide.");
+
+    // s'assurer que currentBalance est à jour
+    await loadTotalViewsAndBalance();
+
+    if (a > currentBalance) return alert("Solde insuffisant. Votre solde actuel est " + currentBalance + " FCFA");
+
+    // enregistrer le retrait
     await addDoc(collection(db, "withdrawals"), {
       userId: currentUser.uid,
       amount: a,
@@ -2022,20 +2055,18 @@ window.withdrawBalance = async () => {
       status: "en attente",
     });
 
-    // 🖥️ Réinitialiser l’UI
-    qs("withdrawAmount").value = "";
-    qs("withdrawPhone").value = "";
+    if (amountInput) amountInput.value = "";
+    if (phoneInput) phoneInput.value = "";
 
-    // 🔁 Recharger le solde affiché
+    // recharger solde disponible après retrait
     await loadTotalViewsAndBalance();
 
-    alert("✅ Demande de retrait enregistrée et transmise !");
+    alert("✅ Demande de retrait enregistrée !");
   } catch (err) {
     console.error("Erreur de retrait :", err);
     alert("❌ Une erreur est survenue lors du retrait.");
   }
 };
-
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("notchpayBtn");
   if (!btn) {
