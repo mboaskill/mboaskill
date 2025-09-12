@@ -1072,7 +1072,6 @@ async function renderFeed() {
     const boostAt = data.boostAt?.toMillis?.() || 0;
     const diffBoostDays = (now - boostAt) / (1000 * 60 * 60 * 24);
 
-    // Vérifie si le post est boosté dans le pays de l'utilisateur
     const boostIndices = Array.isArray(data.boostIndex) ? data.boostIndex : [data.boostIndex];
     const isBoostedInUserCountry = boostIndices.includes(userCountry);
 
@@ -1083,36 +1082,31 @@ async function renderFeed() {
     }
   }
 
-  // --- POSTS DES UTILISATEURS SUIVIS ---
+  // --- POSTS DES UTILISATEURS SUIVIS (3 par utilisateur) ---
   if (followingIds.size > 0) {
-    const groups = [...followingIds].reduce((a, u, i) => {
-      if (i % 10 === 0) a.push([]);
-      a[a.length - 1].push(u);
-      return a;
-    }, []);
-
-    for (const g of groups) {
+    for (const userId of followingIds) {
       const q = query(
         collection(db, 'posts'),
-        where('userId', 'in', g),
+        where('userId', '==', userId),
         orderBy('createdAt', 'desc'),
-        limit(30)
+        limit(10) // prendre les 10 derniers posts pour choix aléatoire
       );
       const snap = await getDocs(q);
-      snap.forEach(d => {
-        const postData = d.data();
-        const createdAt = postData.createdAt?.toMillis?.() || 0;
-        const isRecent = (now - createdAt) <= sevenDays;
-        const alreadyAdded = posts.find(p => p.id === d.id);
+      const recentPosts = snap.docs
+        .map(d => ({ id: d.id, data: d.data() }))
+        .filter(p => (now - (p.data.createdAt?.toMillis?.() || 0)) <= sevenDays);
 
-        if (isRecent && !alreadyAdded) {
-          posts.push({ id: d.id, data: postData });
-        }
-      });
+      // Shuffle local des posts de cet utilisateur
+      for (let i = recentPosts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [recentPosts[i], recentPosts[j]] = [recentPosts[j], recentPosts[i]];
+      }
+
+      posts.push(...recentPosts.slice(0, 3)); // max 3 posts par utilisateur
     }
   }
 
-  // --- Mélange aléatoire ---
+  // --- Mélange global de tous les posts ---
   for (let i = posts.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [posts[i], posts[j]] = [posts[j], posts[i]];
@@ -1129,6 +1123,7 @@ async function renderFeed() {
     observer.observe(el);
   });
 }
+
 function loadFollowedPosts(c){
   if(!followingIds.size)return;
   const groups=[...followingIds].reduce((a,u,i)=>{if(i%10===0)a.push([]);a[a.length-1].push(u);return a;},[]);
