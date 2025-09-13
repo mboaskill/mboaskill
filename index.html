@@ -2072,7 +2072,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   btn.addEventListener("click", async () => {
     const m = parseFloat(qs("montant").value);
-    if (isNaN(m) || m < 500) return alert("Montant min 500 XAF");
+    if (isNaN(m) || m < 50) return alert("Montant min 500 XAF");
     if (!currentUser) return alert("Connectez-vous");
 
     try {
