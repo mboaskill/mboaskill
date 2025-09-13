@@ -2067,13 +2067,13 @@ window.withdrawBalance = async () => {
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("notchpayBtn");
   if (!btn) return console.error("Bouton notchpayBtn introuvable !");
-  
+
   btn.addEventListener("click", async () => {
-    const m = parseFloat(document.getElementById("montant").value);
-    if (isNaN(m) || m < 10) return alert("Montant min 50 XAF");
+    const montantInput = document.getElementById("montant");
+    const m = parseFloat(montantInput.value);
+    if (isNaN(m) || m < 50) return alert("Montant min 50 XAF");
     if (!currentUser) return alert("Connectez-vous");
 
-    // Générer une référence unique
     const reference = `tx_${Date.now()}`;
 
     try {
@@ -2092,19 +2092,18 @@ window.addEventListener("DOMContentLoaded", () => {
             email: currentUser.email,
             name: currentUser.displayName || "Utilisateur"
           },
-          callback: window.location.origin + `/merci.html?reference=${reference}`
+          callback: "https://us-central1-ton-projet.cloudfunctions.net/notchpayWebhook"
         })
       });
 
       const data = await res.json();
       if (data && data.authorization_url) {
-        // Rediriger l'utilisateur vers NotchPay pour payer
-        window.location.href = data.authorization_url;
+        window.location.href = data.authorization_url; // Redirection vers NotchPay
       } else {
         alert("Erreur : impossible de démarrer le paiement.");
       }
     } catch (err) {
-      console.error("Erreur NotchPay:", err);
+      console.error("Erreur NotchPay :", err);
       alert("Erreur de connexion à NotchPay.");
     }
   });
