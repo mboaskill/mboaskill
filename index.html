@@ -1937,7 +1937,6 @@ d.append(img,span);if(btn)d.append(btn);d.onclick=()=>openUserFeed(u.uid);res.ap
 /*──────────────────────────────────────────────────────────
  14. VIEWS & RETRAIT
 ──────────────────────────────────────────────────────────*/
-
 // attendre que le DOM soit prêt
 document.addEventListener('DOMContentLoaded', () => {
   onAuthStateChanged(auth, (user) => {
@@ -1976,44 +1975,68 @@ async function loadTotalViewsAndBalance(period = 'all') {
       const views = Number(v.views) || 0;
       const boosted = Number(v.boosted) || 0;
       const likes = Number(v.likes) || 0;
-      const vuesParLike = likes * 13;
+      const vuesParLike = likes * 5;
       const totalviewcontent = Number(v.totalviewcontent) || 0;
       totalViews += views + boosted + vuesParLike + totalviewcontent;
     });
 
     // 2) soutienvues depuis users/{uid}
-    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+    const userDocRef = doc(db, 'users', currentUser.uid);
+    const userDoc = await getDoc(userDocRef);
     const soutienvues = userDoc.exists() ? Number(userDoc.data().soutienvues || 0) : 0;
     totalViews += soutienvues;
 
+    // récupérer lastResetViews
+    let lastResetViews = 0;
+    if (userDoc.exists()) {
+      lastResetViews = Number(userDoc.data().lastResetViews || 0);
+    }
+
     console.log("DEBUG totalViews =", totalViews);
+    console.log("DEBUG lastResetViews =", lastResetViews);
 
-    // affichage total vues (fmt K/M)
-    const totalViewsCounterEl = document.getElementById('totalViewsCounter');
-    if (totalViewsCounterEl) totalViewsCounterEl.textContent = `Total vues + soutienvues: ${fmt(totalViews)}`;
+    // 3) calcul des nouvelles vues depuis le dernier retrait total
+    const newViews = Math.max(0, totalViews - lastResetViews);
 
-    const totalViewsCountEl = document.getElementById('totalViewsCount');
-    if (totalViewsCountEl) totalViewsCountEl.textContent = fmt(totalViews);
-
-    // 3) calcul gains bruts (raw) par palier
-    const raw = Math.floor(totalViews / 1000) * 200;
+    // 4) calcul gains bruts (raw) sur ces nouvelles vues
+    const raw = Math.floor(newViews / 1000) * 200;
+    console.log("DEBUG newViews =", newViews);
     console.log("DEBUG raw (gains bruts) =", raw);
 
-    // 4) somme des retraits déjà effectués
+    // 5) somme des retraits validés depuis le dernier reset
     const withdrawalsSnap = await getDocs(
-      query(collection(db, 'withdrawals'), where('userId', '==', currentUser.uid))
+      query(
+        collection(db, 'withdrawals'),
+        where('userId', '==', currentUser.uid),
+        where('status', '==', 'validé')
+      )
     );
     const withdrawn = withdrawalsSnap.docs.reduce(
-      (sum, d) => sum + Number(d.data().amount || 0),
+      (sum, d) => {
+        const data = d.data();
+        const ts = data.date?.toMillis ? data.date.toMillis() : (data.date?.seconds ? data.date.seconds * 1000 : 0);
+        // on ne compte que les retraits après le reset
+        if (userDoc.exists() && userDoc.data().lastResetAt) {
+          const resetAt = userDoc.data().lastResetAt.toMillis ? userDoc.data().lastResetAt.toMillis() : 0;
+          if (ts <= resetAt) return sum;
+        }
+        return sum + Number(data.amount || 0);
+      },
       0
     );
-    console.log("DEBUG withdrawn =", withdrawn);
+    console.log("DEBUG withdrawn (validés depuis reset) =", withdrawn);
 
-    // 5) disponible pour retrait = raw - withdrawn (jamais négatif)
+    // 6) disponible pour retrait = raw - withdrawn (jamais négatif)
     const available = Math.max(0, raw - withdrawn);
     console.log("DEBUG available =", available);
 
     // mise à jour interface (solde affiché = disponible)
+    const totalViewsCounterEl = document.getElementById('totalViewsCounter');
+    if (totalViewsCounterEl) totalViewsCounterEl.textContent = `Total vues: ${fmt(totalViews)}`;
+
+    const totalViewsCountEl = document.getElementById('totalViewsCount');
+    if (totalViewsCountEl) totalViewsCountEl.textContent = fmt(totalViews);
+
     const currentBalanceEl = document.getElementById('currentBalance');
     if (currentBalanceEl) currentBalanceEl.textContent = available + ' FCFA';
 
@@ -2043,13 +2066,21 @@ window.withdrawBalance = async () => {
     if (a > currentBalance) return alert("Solde insuffisant. Votre solde actuel est " + currentBalance + " FCFA");
 
     // enregistrer le retrait
-    await addDoc(collection(db, "withdrawals"), {
+    const newWithdrawalRef = await addDoc(collection(db, "withdrawals"), {
       userId: currentUser.uid,
       amount: a,
       phone: phone,
       date: new Date(),
       status: "en attente",
     });
+
+    // si le retrait vide le solde, on "reset"
+    if (a === currentBalance) {
+      await updateDoc(doc(db, "users", currentUser.uid), {
+        lastResetViews: 0 + (await getTotalViews(currentUser.uid)), // on enregistre le total de vues actuel
+        lastResetAt: new Date()
+      });
+    }
 
     if (amountInput) amountInput.value = "";
     if (phoneInput) phoneInput.value = "";
@@ -2064,6 +2095,29 @@ window.withdrawBalance = async () => {
   }
 };
 
+// petite fonction utilitaire pour recalculer totalViews (sans reset)
+async function getTotalViews(uid) {
+  let total = 0;
+  const postsRef = collection(db, 'posts');
+  const q = query(postsRef, where('userId', '==', uid));
+  const snap = await getDocs(q);
+  snap.forEach(d => {
+    const v = d.data();
+    const views = Number(v.views) || 0;
+    const boosted = Number(v.boosted) || 0;
+    const likes = Number(v.likes) || 0;
+    const vuesParLike = likes * 5;
+    const totalviewcontent = Number(v.totalviewcontent) || 0;
+    total += views + boosted + vuesParLike + totalviewcontent;
+  });
+
+  const userDoc = await getDoc(doc(db, 'users', uid));
+  if (userDoc.exists()) {
+    total += Number(userDoc.data().soutienvues || 0);
+  }
+
+  return total;
+}
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("notchpayBtn");
   if (!btn) return console.error("Bouton notchpayBtn introuvable !");
