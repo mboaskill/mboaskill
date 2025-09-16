@@ -1617,7 +1617,7 @@ function card(id, d, isMine) {
   } else if (d.text) {
     const textDiv = document.createElement('div');
     textDiv.className = 'text-bg';
-    textDiv.style.background = d.bgColor || '#1877f2';
+    textDiv.style.background = d.bgColor || '#000000';
 
     let html = linkifyText(d.text || '');
 
