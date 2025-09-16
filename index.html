@@ -1925,7 +1925,7 @@ window.boostPost = async () => {
  13. USER FEED & SEARCH
 ──────────────────────────────────────────────────────────*/
 // Feed d'un utilisateur
-  window.openUserFeed = async uid => {
+window.openUserFeed = async uid => {
   openTab(
     { currentTarget: document.querySelector('.tablinks[onclick*="home"]') },
     'userFeed'
@@ -1940,11 +1940,13 @@ window.boostPost = async () => {
       photo = 'https://via.placeholder.com/40',
       verified = false;
 
-  // 🔹 Récupère les infos actuelles du profil dans "users" (sauf le nom)
+  // 🔹 Récupère les infos actuelles du profil dans "users"
   const userRef = doc(db, 'users', uid);
   const userSnap = await getDoc(userRef);
+
   if (userSnap.exists()) {
     const data = userSnap.data();
+    name = data.name || name;
     photo = data.photoURL || photo;
   }
 
@@ -1955,27 +1957,16 @@ window.boostPost = async () => {
     verified = true;
   }
 
-  // 🔹 Récupère le nom de la dernière publication
-  const postsQuery = query(
-    collection(db, 'posts'),
-    where('userId', '==', uid),
-    orderBy('createdAt', 'desc'),
-    limit(1)
-  );
-  const postsSnap = await getDocs(postsQuery);
-  if (!postsSnap.empty) {
-    const lastPost = postsSnap.docs[0].data();
-    name = lastPost.name || name;
-  }
-
   // HEADER
   title.innerHTML = '';
   title.style.cssText = 'display:flex;align-items:flex-start;gap:10px;';
 
+  // Bloc photo
   const img = document.createElement('img');
   img.src = photo;
   img.style.cssText = 'width:100px;height:100px;border-radius:50%';
 
+  // Bloc infos (nom + followers + boutons)
   const infoBlock = document.createElement('div');
   infoBlock.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;gap:4px';
 
@@ -1988,6 +1979,7 @@ window.boostPost = async () => {
   fol.style.color = '#555';
   fol.style.fontSize = '14px';
 
+  // 🔹 Bouton suivre/désuivre
   const btn = renderFollowBtn(uid);
   if (btn) infoBlock.appendChild(btn);
 
@@ -1999,11 +1991,14 @@ window.boostPost = async () => {
   const followsSnap = await getDoc(followsRef);
   const followerCount = followsSnap.exists() ? (followsSnap.data().filo || 0) : 0;
 
+  // 🔹 Met à jour l'icône dans #gagne
   const gagneEl = document.getElementById('gagne');
   if (gagneEl) {
-    gagneEl.innerHTML = followerCount >= 100
-      ? '<i class="fas fa-check-circle" style="color:green;"></i>'
-      : '<i class="fa-solid fa-xmark" style="color:red;"></i>';
+    if (followerCount >= 100) {
+      gagneEl.innerHTML = '<i class="fas fa-check-circle" style="color:green;"></i>';
+    } else {
+      gagneEl.innerHTML = '<i class="fa-solid fa-xmark" style="color:red;"></i>';
+    }
   }
 
   // 🔹 Bouton "soutenir" si +100 followers
@@ -2062,7 +2057,7 @@ window.boostPost = async () => {
       }
     }
   );
-};       
+};      
 window.searchUser=async()=>{
 const q=qs('searchUserInput').value.trim().toLowerCase();
 if(!q)return alert('Entrez un nom ou e-mail');
