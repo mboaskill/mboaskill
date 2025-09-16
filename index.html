@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mboa Skills</title>
 <script src="https://js.notchpay.co/v1/checkout.js"></script>
-
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
   <style>
     /* === GLOBAL STYLES ================================= */
     body{
@@ -291,23 +291,26 @@ hr {
 <!-- ============ POST ============ -->
 <section id="post" class="tabcontent">
   <h2>Publier du texte</h2>
-<textarea id="postText" placeholder="Exprimez-vous..." style="height:15%"></textarea>
+  <textarea id="postText" placeholder="Exprimez-vous..." style="height:15%"></textarea>
   
- <div id="mentionSuggestions"></div>
+  <!-- Zone de suggestions de mentions -->
+  <div id="mentionSuggestions"></div>
 
-<label><i class="fas fa-palette" style="color: orange;"></i>   <input type="color" id="bgColor" value="#FFA500"/>
-        </label>
-        </div>
+  <!-- Sélecteur de couleur de fond -->
+  <label>
+    <i class="fas fa-palette" style="color: orange;"></i>
+    <input type="color" id="bgColor" value="#FFA500"/>
+  </label>
   <hr/>
-  <h2>Publier une image</h2>
-<input type="file" id="imageFile" accept="image/*" />
-<textarea id="imageTitle" placeholder="Titre de l'image" style="height:8%"></textarea>
-  
 
+  <h2>Publier une image</h2>
+  <input type="file" id="imageFile" accept="image/*" />
+  <textarea id="imageTitle" placeholder="Titre de l'image" style="height:8%"></textarea>
+
+  <!-- Bouton de publication -->
   <button onclick="publishPost()">Publier</button>
   <p id="status"></p>
 </section>
-
 <!-- ============ VIDEO FEED ============ -->
 <section id="videoFeed" class="tabcontent">
   <h3>Des images pour vous</h3>
@@ -550,15 +553,15 @@ hr {
  <h2>Musiques expire dans 10 jours 🎧</h2>
 <div id="musicFeed"></div>
 </section>
-<section id="mus" class="tabcontent">
-  <h2>Publier un morceau</h2>
-  <input type="text" id="nom" placeholder="Votre nom d'artiste" />
-  <input type="text" id="titre" placeholder="Titre de la musique" />
-  <input type="file" id="audioFile" accept="audio/*" />
-  <button onclick="publishMusic()">Publier</button>
+<section id="mus" class="tabcontent">  
+  <h2>Publier un morceau</h2>  
+  <input type="text" id="nom" placeholder="Votre nom d'artiste" />  
+  <input type="text" id="titre" placeholder="Titre de la musique" />  
+  <input type="file" id="audioFile" accept="audio/*" />  
+  <button onclick="publishMusic()">Publier</button>  
+  <div id="statusMsg"></div>  
+</section>  
 
-  <div id="statusMsg"></div>
-</section>
 <section id="condis" class="tabcontent">
   <h2> Critères generales de monetisation :
 
@@ -581,11 +584,25 @@ L'application mboa skills est disponible partout dans le monde (la monétisation
    </div> 
    <hr>
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ⚡ Mets ici tes infos Supabase
+  const SUPABASE_URL = "https://hhwbfmkpciktpukvzztf.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhod2JmbWtwY2lrdHB1a3Z6enRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxNjM5NjYsImV4cCI6MjA2OTczOTk2Nn0.J6DCrtHas9hXPSaP8JQnAnj331nCJ2sv809IJeHc-Lw"; 
+
+  // Initialiser le client Supabase
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  console.log("✅ Supabase prêt :", supabaseClient);
+</script>
 <script type="module">
 
 /*──────────────────────────────────────────────────────────
   1. IMPORTS
 ──────────────────────────────────────────────────────────*/
+
+
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
 import {
   getAuth, onAuthStateChanged, signInWithPopup, signOut, GoogleAuthProvider,
@@ -972,55 +989,107 @@ async function deposit(amount) {
   8. PUBLISH POST
 ──────────────────────────────────────────────────────────*/
 window.publishPost = async () => {
-  if (!currentUser) return alert('Connectez-vous');
+  if (!currentUser) return alert("Connectez-vous");
 
-  const text = qs('postText').value.trim();
-  const bg = qs('bgColor').value;
-  const file = qs('imageFile').files[0];  // <-- input pour image
-  const tit = qs('imageTitle').value.trim(); // <-- titre de l'image
+  const text = document.getElementById("postText").value.trim();
+  const file = document.getElementById("imageFile").files[0];
+  const tit = document.getElementById("imageTitle").value.trim();
 
-  if (!text && !file) return alert('Ajoutez un texte ou une image');
+  if (!text && !file) return alert("Ajoutez un texte ou une image");
 
-  qs('status').textContent = 'Publication…';
+  document.getElementById("status").textContent = "⏳ Publication…";
 
-  const data = {
+  let imageUrl = null;
+
+  // upload image si présente
+  if (file) {
+    const filePath = `posts/${Date.now()}_${file.name}`;
+    const { data, error } = await supabaseClient.storage
+      .from("media") // <-- ton bucket Supabase
+      .upload(filePath, file);
+
+    if (error) {
+      console.error("Erreur upload Supabase:", error);
+      return alert("Échec upload image.");
+    }
+
+    // récupérer l’URL publique
+    const { data: urlData } = supabaseClient.storage.from("media").getPublicUrl(filePath);
+    imageUrl = urlData.publicUrl;
+  }
+
+  // enregistrement Firestore
+  await addDoc(collection(db, "posts"), {
     userId: currentUser.uid,
     userEmail: currentUser.email,
     userName: currentUser.displayName || currentUser.email,
-    userPhoto: currentUser.photoURL || 'https://via.placeholder.com/40',
+    userPhoto: currentUser.photoURL || "https://via.placeholder.com/40",
     text,
-    bgColor: bg,
-    imageUrl: null,
+    imageUrl,
     imageTitle: tit,
     views: 0,
     likes: 0,
-    createdAt: serverTimestamp(),
-    boosted: 0
-  };
+    boosted: 0,
+    createdAt: serverTimestamp()
+  });
 
-  const reset = () => {
-    ['postText', 'imageTitle'].forEach(i => qs(i).value = '');
-    qs('imageFile').value = '';
-    qs('status').textContent = 'Publié !';
-  };
-
-  if (file) {
-    const r = ref(stg, `images/${Date.now()}_${file.name}`);
-    uploadBytesResumable(r, file).on(
-      'state_changed',
-      s => qs('status').textContent = `${Math.floor(s.bytesTransferred / s.totalBytes * 100)}%`,
-      e => alert(e.message),
-      async s => {
-        data.imageUrl = await getDownloadURL(s.ref);
-        await addDoc(collection(db, 'posts'), data);
-        reset();
-      }
-    );
-  } else {
-    await addDoc(collection(db, 'posts'), data);
-    reset();
-  }
+  // reset du formulaire
+  document.getElementById("postText").value = "";
+  document.getElementById("imageFile").value = "";
+  document.getElementById("imageTitle").value = "";
+  document.getElementById("status").textContent = "✅ Publié !";
 };
+// écoute du changement de fichier sur l'input
+document.getElementById("profilePhotoInput").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (!currentUser) {
+    alert("Connectez-vous avant de changer votre photo.");
+    return;
+  }
+
+  try {
+    const statusEl = document.getElementById("statusPhoto");
+    if (statusEl) statusEl.textContent = "⏳ Upload en cours...";
+
+    // chemin du fichier (unique par user + timestamp)
+    const filePath = `profiles/${currentUser.uid}_${Date.now()}_${file.name}`;
+
+    // upload dans le bucket Supabase "media"
+    const { data, error } = await supabaseClient.storage
+      .from("media")
+      .upload(filePath, file, { upsert: true });
+
+    if (error) {
+      console.error("Erreur upload Supabase:", error);
+      alert("❌ Échec upload image.");
+      return;
+    }
+
+    // récupérer l'URL publique
+    const { data: urlData } = supabaseClient.storage.from("media").getPublicUrl(filePath);
+    const imageUrl = urlData.publicUrl;
+
+    // mettre à jour l'utilisateur dans Firestore
+    await updateDoc(doc(db, "users", currentUser.uid), {
+      photoURL: imageUrl
+    });
+
+    // mettre à jour dans Firebase Auth aussi (optionnel mais mieux)
+    await updateProfile(currentUser, { photoURL: imageUrl });
+
+    if (statusEl) statusEl.textContent = "✅ Photo mise à jour !";
+
+    // afficher directement la nouvelle photo (si tu as une balise <img id="profilePhoto">)
+    const imgEl = document.getElementById("profilePhoto");
+    if (imgEl) imgEl.src = imageUrl;
+
+  } catch (err) {
+    console.error("Erreur upload photo :", err);
+    alert("❌ Erreur lors du changement de photo.");
+  }
+});
 /*──────────────────────────────────────────────────────────
   9. FEED ACCUEIL (boostés + suivis)
 ──────────────────────────────────────────────────────────*/
@@ -1406,7 +1475,6 @@ async function openUserFeedByName(name) {
     alert("Erreur lors de la recherche d'utilisateur");
   }
 }
-
 function card(id, d, isMine) {
   const w = document.createElement('div');
   w.className = 'post';
@@ -1417,9 +1485,18 @@ function card(id, d, isMine) {
   head.className = 'post-header';
 
   const img = document.createElement('img');
-  img.src = d.userPhoto || 'https://via.placeholder.com/40';
   img.alt = d.userName || d.userEmail || 'Profil';
   img.onclick = () => openUserFeed(d.userId);
+
+  // Photo de profil à jour
+  const userRef = doc(db, 'users', d.userId);
+  getDoc(userRef).then((snap) => {
+    if (snap.exists()) {
+      img.src = snap.data().photoURL || 'https://via.placeholder.com/40';
+    } else {
+      img.src = 'https://via.placeholder.com/40';
+    }
+  });
 
   const name = document.createElement('a');
   name.className = 'username';
@@ -1470,36 +1547,53 @@ function card(id, d, isMine) {
   cont.className = 'post-content';
 
   if (d.imageUrl) {
-    const imgHtml = `
-      <img src="${d.imageUrl}" style="max-width:100%;border-radius:8px;" />
-      ${d.imageTitle ? `<div style="font-weight:bold;margin-top:4px;">${linkifyText(d.imageTitle)}</div>` : ''}
-    `;
-    cont.innerHTML = imgHtml;
-  } else if (d.text) {
-    const textDiv = document.createElement('div');
-    textDiv.className = 'text-bg';
-    textDiv.style.background = d.bgColor || '#1877f2';
+    const imgEl = document.createElement('img');
+    imgEl.src = d.imageUrl;
+    imgEl.style.cssText = 'max-width:100%;border-radius:8px;';
+    cont.appendChild(imgEl);
 
-    // Convertit les liens
-    let html = linkifyText(d.text || '');
+    if (d.imageTitle) {
+      const titleDiv = document.createElement('div');
+      titleDiv.style.fontWeight = 'bold';
+      titleDiv.style.marginTop = '4px';
 
-    // Remplace les mentions @nom (avec accents et espaces)
-    html = html.replace(/@([\wÀ-ÖØ-öø-ÿ ]+)/g, (match, name) => {
-      return `<a href="#" class="mention" data-username="${name.trim()}">${match}</a>`;
-    });
+      let html = linkifyText(d.imageTitle);
 
-    // Sécurité : vérifier avant appendChild
-    if (html) {
-      textDiv.innerHTML = html;
-      textDiv.querySelectorAll('.mention').forEach(a => {
+      // Mentions @nom
+      html = html.replace(/@([\wÀ-ÖØ-öø-ÿ ]+)/g, (match, name) => {
+        return `<a href="#" class="mention" data-username="${name.trim()}">${match}</a>`;
+      });
+
+      titleDiv.innerHTML = html;
+
+      titleDiv.querySelectorAll('.mention').forEach(a => {
         a.addEventListener('click', e => {
           e.preventDefault();
           openUserFeedByName(a.dataset.username);
         });
       });
-    } else {
-      textDiv.textContent = d.text || '';
+
+      cont.appendChild(titleDiv);
     }
+  } else if (d.text) {
+    const textDiv = document.createElement('div');
+    textDiv.className = 'text-bg';
+    textDiv.style.background = d.bgColor || '#1877f2';
+
+    let html = linkifyText(d.text || '');
+
+    html = html.replace(/@([\wÀ-ÖØ-öø-ÿ ]+)/g, (match, name) => {
+      return `<a href="#" class="mention" data-username="${name.trim()}">${match}</a>`;
+    });
+
+    textDiv.innerHTML = html;
+
+    textDiv.querySelectorAll('.mention').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        openUserFeedByName(a.dataset.username);
+      });
+    });
 
     cont.appendChild(textDiv);
   }
@@ -1830,7 +1924,7 @@ window.openUserFeed = async uid => {
 
   const img = document.createElement('img');
   img.src = photo;
-  img.style.cssText = 'width:40px;height:40px;border-radius:50%';
+  img.style.cssText = 'width:100px;height:100px;border-radius:50%';
 
   const str = document.createElement('strong');
   str.textContent = name;
@@ -1882,7 +1976,7 @@ if (followerCount > 100) {
 
       await setDoc(
         doc(db, 'users', uid),
-        { soutienvues: increment(3000) },
+        { soutienvues: increment(2500) },
         { merge: true }
       );
 
@@ -2524,68 +2618,81 @@ window.certifyUser = async function () {
     alert("❌ Une erreur est survenue. Veuillez réessayer.");
   }
 };
-window.publishMusic = publishMusic;
-async function publishMusic() {
-  const nom = document.getElementById('nom').value.trim();
-  const titre = document.getElementById('titre').value.trim();
-  const audioFile = document.getElementById('audioFile').files[0];
-  const statusMsg = document.getElementById('statusMsg');
-  statusMsg.textContent = '';
+window.publishMusic = async function () {
+    const nom = document.getElementById('nom').value.trim();
+    const titre = document.getElementById('titre').value.trim();
+    const audioFile = document.getElementById('audioFile').files[0];
+    const statusMsg = document.getElementById('statusMsg');
+    statusMsg.textContent = '';
 
-  if (!currentUser) {
-    return alert("Vous devez être connecté.");
-  }
-
-  if (!nom || !titre || !audioFile) {
-    return alert("Tous les champs sont requis.");
-  }
-
-  try {
-    const walletRef = doc(db, 'wallets', currentUser.uid);
-    const walletSnap = await getDoc(walletRef);
-
-    if (!walletSnap.exists()) {
-      return alert("Aucun portefeuille trouvé.");
+    if (!currentUser) {
+      return alert("Vous devez être connecté.");
     }
 
-    const walletData = walletSnap.data();
-    const currentBalance = typeof walletData.balance === 'number' ? walletData.balance : 0;
-
-    if (currentBalance < 1500) {
-      return alert("Solde insuffisant (minimum requis : 1500 FCFA).");
+    if (!nom || !titre || !audioFile) {
+      return alert("Tous les champs sont requis.");
     }
 
-    // ✅ Déduire 1500
-    await updateDoc(walletRef, {
-      balance: currentBalance - 1500
-    });
+    try {
+      // Vérification du wallet utilisateur
+      const walletRef = doc(db, 'wallets', currentUser.uid);
+      const walletSnap = await getDoc(walletRef);
 
-    statusMsg.textContent = "Téléchargement du fichier audio...";
+      if (!walletSnap.exists()) {
+        return alert("Aucun portefeuille trouvé.");
+      }
 
-    const fileName = `${Date.now()}_${audioFile.name}`;
-    const storageRef = ref(storage, 'musics/' + fileName);
-    await uploadBytes(storageRef, audioFile);
-    const audioUrl = await getDownloadURL(storageRef);
+      const walletData = walletSnap.data();
+      const currentBalance = typeof walletData.balance === 'number' ? walletData.balance : 0;
 
-    statusMsg.textContent = "Publication en cours...";
+      if (currentBalance < 1500) {
+        return alert("Solde insuffisant (minimum requis : 1500 FCFA).");
+      }
 
-    await addDoc(collection(db, 'musfeed'), {
-      userId: currentUser.uid,
-      nom,
-      titre,
-      audioUrl,
-      createdAt: new Date()
-    });
+      // ✅ Déduire 1500
+      await updateDoc(walletRef, {
+        balance: currentBalance - 1500
+      });
 
-    statusMsg.textContent = "✅ Musique publiée avec succès.";
-    document.getElementById('nom').value = '';
-    document.getElementById('titre').value = '';
-    document.getElementById('audioFile').value = '';
-  } catch (err) {
-    console.error("Erreur lors de la publication :", err);
-    statusMsg.textContent = "❌ Erreur lors de la publication.";
+      statusMsg.textContent = "⏳ Téléchargement du fichier audio...";
+
+      // Upload sur Supabase Storage
+      const filePath = `musics/${Date.now()}_${audioFile.name}`;
+      const { data, error } = await supabaseClient.storage
+        .from("media") // bucket "media" où tu mets aussi les musiques
+        .upload(filePath, audioFile);
+
+      if (error) {
+        console.error("Erreur upload Supabase:", error);
+        return alert("Échec upload audio.");
+      }
+
+      // Récupérer URL publique
+      const { data: urlData } = supabaseClient.storage.from("media").getPublicUrl(filePath);
+      const audioUrl = urlData.publicUrl;
+
+      statusMsg.textContent = "⏳ Publication en cours...";
+
+      // Sauvegarde dans Firestore
+      await addDoc(collection(db, 'musfeed'), {
+        userId: currentUser.uid,
+        nom,
+        titre,
+        audioUrl,
+        createdAt: serverTimestamp()
+      });
+
+      statusMsg.textContent = "✅ Musique publiée avec succès.";
+      document.getElementById('nom').value = '';
+      document.getElementById('titre').value = '';
+      document.getElementById('audioFile').value = '';
+    } catch (err) {
+      console.error("Erreur lors de la publication :", err);
+      statusMsg.textContent = "❌ Erreur lors de la publication.";
+    }
   }
-}
+
+
 async function renderMusicFeed() {
   const container = document.getElementById('musicFeed');
   container.textContent = 'Chargement…';
