@@ -2743,8 +2743,6 @@ window.publishMusic = async function () {
       statusMsg.textContent = "❌ Erreur lors de la publication.";
     }
   }
-
-
 async function renderMusicFeed() {
   const container = document.getElementById('musicFeed');
   container.textContent = 'Chargement…';
@@ -2766,69 +2764,76 @@ async function renderMusicFeed() {
       const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
       if (ageInDays > 10) continue;
 
-      // 🎯 2. Vérifie si l’utilisateur a déjà écouté
-      let alreadyViewed = false;
-      if (user) {
+      // 🎯 2. Bloc musique
+      const div = document.createElement('div');
+      div.style.border = '1px solid #ccc';
+      div.style.borderRadius = '10px';
+      div.style.padding = '1rem';
+      div.style.marginBottom = '1rem';
+
+      div.innerHTML = `
+        <strong>${d.nom} - ${d.titre}</strong><br/>
+        <audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>
+        <div style="margin-top: 10px; font-size: 14px; color: #555; display: flex; align-items: center;">
+          <i class="fa-solid fa-headphone" style="margin-right: 6px;"></i>
+          <span id="views_${musicId}">${d.views || 0}</span>
+        </div>
+      `;
+
+      // 🎯 3. Ajout de la logique quand on clique sur Play
+      const audio = div.querySelector('audio');
+      const viewsEl = div.querySelector(`#views_${musicId}`);
+
+      audio.addEventListener('play', async () => {
+        if (!user) return alert("Connectez-vous pour écouter");
+
         const viewDocRef = doc(db, 'views', `${musicId}_${user.uid}`);
         const viewDocSnap = await getDoc(viewDocRef);
-        alreadyViewed = viewDocSnap.exists();
-      }
 
-      // 🎯 3. Si première écoute : déduction + ajout des vues
-      if (user && !alreadyViewed && user.uid !== d.userId) {
+        // Déjà écouté → on ne refait rien
+        if (viewDocSnap.exists() || user.uid === d.userId) return;
+
+        // Vérifier le solde
         const walletRef = doc(db, 'wallets', user.uid);
         const walletSnap = await getDoc(walletRef);
         const balance = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
 
-        if (balance >= 55) {
-          // ➖ Déduire 55
-          await updateDoc(walletRef, {
-            balance: increment(-55)
-          });
-
-          // ✅ Marquer comme écouté
-          const viewDocRef = doc(db, 'views', `${musicId}_${user.uid}`);
-          await setDoc(viewDocRef, {
-            userId: user.uid,
-            musicId,
-            playedAt: now
-          });
-
-          // ➕ Ajoutes 360 vues  totalviewcontent
-          const statsRef = doc(db, 'totalviewcontent', d.userId);
-          await setDoc(statsRef, { views: increment(270) }, { merge: true });
-
-          // Suppression de la mise à jour de totalviews, car on calcule tout depuis totalviewcontent
-          // Donc plus de code ici pour totalviews
-        } else {
-          alert("Solde insuffisant pour écouter cette musique.");
+        if (balance < 55) {
+          audio.pause();
+          alert("💸 Solde insuffisant pour écouter cette musique.");
+          return;
         }
-      }
 
-      // 🎯 4. Affiche le bloc de musique
-  const div = document.createElement('div');
-div.style.border = '1px solid #ccc';
-div.style.borderRadius = '10px';
-div.style.padding = '1rem';
-div.style.marginBottom = '1rem';
+        // ➖ Déduire 55
+        await updateDoc(walletRef, { balance: increment(-55) });
 
-div.innerHTML = `
-  <strong>${d.nom} - ${d.titre}</strong><br/>
-  <audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>
-  <div style="margin-top: 10px; font-size: 14px; color: #555; display: flex; align-items: center;">
-    <i class="fa-solid fa-headphone" style="margin-right: 6px;"></i>
-    <span>${d.views || 0}</span>
-  </div>
-`;
+        // ✅ Marquer comme écouté
+        await setDoc(viewDocRef, {
+          userId: user.uid,
+          musicId,
+          playedAt: new Date()
+        });
 
-container.appendChild(div);
+        // ➕ Ajouter 270 vues à l’artiste
+        const statsRef = doc(db, 'totalviewcontent', d.userId);
+        await setDoc(statsRef, { views: increment(270) }, { merge: true });
+
+        // 🔄 Mettre à jour le compteur à l’écran
+        let currentViews = parseInt(viewsEl.textContent) || 0;
+        viewsEl.textContent = currentViews + 1;
+
+        console.log(`Écoute validée et compteur mis à jour pour ${musicId}`);
+      });
+
+      container.appendChild(div);
     }
   } catch (err) {
     console.error(err);
     container.textContent = 'Erreur de chargement des musiques.';
   }
 }
-// Appel automatique au chargement
+
+// ⚡ Rendu seulement → la logique de paiement se déclenche sur "play"
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   renderMusicFeed();
