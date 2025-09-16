@@ -2282,7 +2282,7 @@ window.addEventListener("DOMContentLoaded", () => {
   btn.addEventListener("click", async () => {
     const montantInput = document.getElementById("montant");
     const m = parseFloat(montantInput.value);
-    if (isNaN(m) || m < 50) return alert("Montant min 50 XAF");
+    if (isNaN(m) || m < 10) return alert("Montant min 50 XAF");
     if (!currentUser) return alert("Connectez-vous");
 
     const reference = `tx_${Date.now()}`;
@@ -2303,7 +2303,12 @@ window.addEventListener("DOMContentLoaded", () => {
             email: currentUser.email,
             name: currentUser.displayName || "Utilisateur"
           },
-          callback: "https://us-central1-ton-projet.cloudfunctions.net/notchpayWebhook"
+          // 🔹 Ton webhook Supabase Edge Function
+          callback: "https://hhwbfmkpciktpukvzztf.supabase.co/functions/v1/swift-responder",
+          // 🔹 Passe l'UID de l'utilisateur pour que la fonction Edge incrémente le bon wallet
+          metadata: {
+            uid: currentUser.uid
+          }
         })
       });
 
