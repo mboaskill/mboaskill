@@ -1862,9 +1862,9 @@ async function debit(cost){
 window.boostPost = async () => {
   if (!boostId) return alert('Choisissez une publication');
   const v = parseInt(qs('boostViews').value);
-  if (isNaN(v) || v < 2000) return alert('Min 2 000 vues (4600 XAF)');
+  if (isNaN(v) || v < 200) return alert('Min 2 000 vues (4600 XAF)');
 
-  const cost = Math.ceil(v / 1000) * 2300;
+  const cost = Math.ceil(v / 100) * 2300;
   if (!(await debit(cost))) return;
 
   const countryIndex = parseInt(qs('boostCountry').value);
