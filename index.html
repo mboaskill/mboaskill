@@ -1345,43 +1345,82 @@ textareas.forEach(textarea => {
     await renderPreview(value, textarea.id);
   });
 });
-
 async function showMentionSuggestions(queryText, textarea) {
   const container = document.getElementById("mentionSuggestions");
   container.innerHTML = "";
   container.style.display = "block";
 
-  if (!queryText || !queryText.trim()) { container.style.display = "none"; return; }
+  if (!queryText || !queryText.trim()) {
+    container.style.display = "none";
+    return;
+  }
 
   const users = await ensureUsersCache();
-  if (!users || users.length === 0) { 
-    container.innerHTML = "<div style='padding:4px;color:#888'>Aucun résultat</div>"; 
-    return; 
+  if (!users || users.length === 0) {
+    container.innerHTML = "<div style='padding:4px;color:#888'>Aucun résultat</div>";
+    return;
   }
 
   const q = queryText.trim().toLowerCase();
   const filtered = users.filter(u => u.name && u.name.toLowerCase().startsWith(q));
 
-  if (filtered.length === 0) { 
-    container.innerHTML = "<div style='padding:4px;color:#888'>Aucun résultat</div>"; 
-    return; 
+  if (filtered.length === 0) {
+    container.innerHTML = "<div style='padding:4px;color:#888'>Aucun résultat</div>";
+    return;
   }
 
-  filtered.forEach(u => {
+  // Fonction format followers
+  const fmtFollowers = (n) => {
+    if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+    if (n >= 1_000) return (n / 1_000).toFixed(0) + "K";
+    return n;
+  };
+
+  for (const u of filtered) {
+    let verified = false;
+    let followersCount = 0;
+
+    try {
+      // Vérifie certification
+      const verifiedSnap = await getDoc(doc(db, "verified", u.id));
+      if (verifiedSnap.exists() && verifiedSnap.data().status === true) {
+        verified = true;
+      }
+
+      // Récupère nombre de followers depuis follows/{uid}.filo
+      const followsSnap = await getDoc(doc(db, "follows", u.id));
+      if (followsSnap.exists()) {
+        followersCount = followsSnap.data().filo || 0;
+      }
+    } catch (err) {
+      console.error("Erreur récupération infos mention:", err);
+    }
+
     const div = document.createElement("div");
     div.className = "suggestion-item";
+    div.style.display = "flex";
+    div.style.alignItems = "center";
+    div.style.padding = "8px";
     div.style.cursor = "pointer";
-    div.style.padding = "6px 8px";
+
     div.innerHTML = `
-      <img src="${u.photoURL || 'https://via.placeholder.com/24'}" style="width:24px;height:24px;border-radius:50%;vertical-align:middle;margin-right:8px">
-      <span>${u.name}</span>
-      ${u.verified ? '<i class="fas fa-check-circle" style="color:#1877f2;margin-left:6px"></i>' : ''}
+      <img src="${u.photoURL || 'https://via.placeholder.com/40'}" 
+           style="width:40px;height:40px;border-radius:50%;margin-right:10px">
+      <div style="flex:1">
+        <div style="font-weight:bold;color:#111">
+          ${u.name}
+          ${verified ? '<i class="fas fa-check-circle" style="color:#1877f2;margin-left:6px"></i>' : ''}
+        </div>
+        <div style="font-size:13px;color:#555">
+          Page · ${fmtFollowers(followersCount)} followers
+        </div>
+      </div>
     `;
+
     div.onclick = () => selectMention(u, textarea);
     container.appendChild(div);
-  });
+  }
 }
-
 function hideMentionSuggestions() {
   const container = document.getElementById("mentionSuggestions");
   if (container) container.style.display = "none";
@@ -1917,83 +1956,88 @@ window.openUserFeed = async uid => {
 
   // HEADER
   title.innerHTML = '';
-  title.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;gap:4px';
+  title.style.cssText = 'display:flex;align-items:flex-start;gap:10px;';
 
-  const headerTop = document.createElement('div');
-  headerTop.style.cssText = 'display:flex;align-items:center;gap:8px';
-
+  // Bloc photo
   const img = document.createElement('img');
   img.src = photo;
   img.style.cssText = 'width:100px;height:100px;border-radius:50%';
 
+  // Bloc infos (nom + followers + boutons)
+  const infoBlock = document.createElement('div');
+  infoBlock.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;gap:4px';
+
   const str = document.createElement('strong');
   str.textContent = name;
+  str.style.fontSize = "18px";
 
   const fol = document.createElement('span');
   fol.dataset.followersOf = uid;
-fol.style.backgroundColor = '#050505';
-fol.style.color = '#fff'; // texte blanc pour que ça reste lisible
+  fol.style.color = '#555';
+  fol.style.fontSize = '14px';
+
   // 🔹 Bouton suivre/désuivre
   const btn = renderFollowBtn(uid);
-  if (btn) headerTop.appendChild(btn);
+  if (btn) infoBlock.appendChild(btn);
 
-  headerTop.prepend(img, str, fol);
-  title.appendChild(headerTop);
+  infoBlock.prepend(str, fol);
+  title.append(img, infoBlock);
 
-// 🔹 Bouton "soutenir" si +100 followers
-// 🔹 Vérifie followers
-const followsRef = doc(db, 'follows', uid);
-const followsSnap = await getDoc(followsRef);
-const followerCount = followsSnap.exists() ? (followsSnap.data().filo || 0) : 0;
+  // 🔹 Vérifie followers
+  const followsRef = doc(db, 'follows', uid);
+  const followsSnap = await getDoc(followsRef);
+  const followerCount = followsSnap.exists() ? (followsSnap.data().filo || 0) : 0;
 
-// 🔹 Met à jour l'icône dans #gagne
-const gagneEl = document.getElementById('gagne');
-if (gagneEl) {
-  if (followerCount >= 100) {
-    gagneEl.innerHTML = '<i class="fas fa-check-circle" style="color:green;"></i>';
-  } else {
-    gagneEl.innerHTML = '<i class="fa-solid fa-xmark" style="color:red;"></i>';
-  }
-}
-
-// 🔹 Bouton "soutenir" si +100 followers
-if (followerCount > 100) {
-  const supportBtn = document.createElement('button');
-  supportBtn.innerHTML = '<i class="fa-solid fa-star"></i> Soutenir (600 XAF)';
-  supportBtn.style.cssText = 'margin-top:6px;background:#ffd700;color:black;padding:4px 8px;border:none;border-radius:4px;cursor:pointer';
-
-  supportBtn.onclick = async () => {
-    try {
-      const walletRef = doc(db, 'wallets', currentUser.uid);
-      const walletSnap = await getDoc(walletRef);
-
-      if (!walletSnap.exists() || (walletSnap.data().balance || 0) < 600) {
-        alert('💸 Solde insuffisant pour soutenir');
-        return;
-      }
-
-      await updateDoc(walletRef, { balance: walletSnap.data().balance - 600 });
-
-      await setDoc(
-        doc(db, 'users', uid),
-        { soutienvues: increment(2500) },
-        { merge: true }
-      );
-
-      alert('✅ Soutien envoyé avec succès !');
-    } catch (err) {
-      console.error('Erreur lors du soutien :', err);
-      alert('❌ Une erreur est survenue');
+  // 🔹 Met à jour l'icône dans #gagne
+  const gagneEl = document.getElementById('gagne');
+  if (gagneEl) {
+    if (followerCount >= 100) {
+      gagneEl.innerHTML = '<i class="fas fa-check-circle" style="color:green;"></i>';
+    } else {
+      gagneEl.innerHTML = '<i class="fa-solid fa-xmark" style="color:red;"></i>';
     }
-  };
+  }
 
-  title.appendChild(supportBtn);
-}
-// 🔹 Compteur de followers depuis follows/{uid} -> champ filo
-onSnapshot(doc(db, 'follows', uid), snap => {
-  const nbFollowers = snap.exists() ? snap.data()?.filo || 0 : 0;
-  fol.textContent = `${fmt(nbFollowers)} followers`;
-});
+  // 🔹 Bouton "soutenir" si +100 followers
+  if (followerCount > 100) {
+    const supportBtn = document.createElement('button');
+    supportBtn.innerHTML = '<i class="fa-solid fa-star"></i> Soutenir (600 XAF)';
+    supportBtn.style.cssText = 'margin-top:6px;background:#ffd700;color:black;padding:4px 8px;border:none;border-radius:4px;cursor:pointer';
+
+    supportBtn.onclick = async () => {
+      try {
+        const walletRef = doc(db, 'wallets', currentUser.uid);
+        const walletSnap = await getDoc(walletRef);
+
+        if (!walletSnap.exists() || (walletSnap.data().balance || 0) < 600) {
+          alert('💸 Solde insuffisant pour soutenir');
+          return;
+        }
+
+        await updateDoc(walletRef, { balance: walletSnap.data().balance - 600 });
+
+        await setDoc(
+          doc(db, 'users', uid),
+          { soutienvues: increment(2500) },
+          { merge: true }
+        );
+
+        alert('✅ Soutien envoyé avec succès !');
+      } catch (err) {
+        console.error('Erreur lors du soutien :', err);
+        alert('❌ Une erreur est survenue');
+      }
+    };
+
+    infoBlock.appendChild(supportBtn);
+  }
+
+  // 🔹 Compteur de followers en live
+  onSnapshot(doc(db, 'follows', uid), snap => {
+    const nbFollowers = snap.exists() ? snap.data()?.filo || 0 : 0;
+    fol.textContent = `${fmt(nbFollowers)} followers`;
+  });
+
   // 🔹 Flux des publications
   onSnapshot(
     query(
