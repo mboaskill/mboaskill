@@ -2281,49 +2281,46 @@ window.addEventListener("DOMContentLoaded", () => {
 
   btn.addEventListener("click", async () => {
     const montantInput = document.getElementById("montant");
-    const m = parseFloat(montantInput.value);
-    if (isNaN(m) || m < 10) return alert("Montant min 50 XAF");
-    if (!currentUser) return alert("Connectez-vous");
+    const amount = parseFloat(montantInput.value);
 
-    const reference = `tx_${Date.now()}`;
+    if (isNaN(amount) || amount < 10) { // Montant minimum 50 XAF
+      return alert("Montant minimum 50 XAF");
+    }
+
+    if (!currentUser) {
+      return alert("Veuillez vous connecter");
+    }
 
     try {
-      const res = await fetch("https://api.notchpay.co/payments", {
+      // 🔹 Appel à la fonction Supabase create-payment
+      const res = await fetch("https://hhwbfmkpciktpukvzztf.supabase.co/functions/v1/create-payment", {
         method: "POST",
-        headers: {
-          "Authorization": "pk.azYHHFMqVKLHlDNxzCbiqKlOfDh9oULJ6HQ52MPqgytU7dHwoODNkxKvV1xBECeeHxTBZ0Og31aCrJ11nDGI7iNtBcXD42ctowdIDyFbGG6KEeoiXCOjZJy5yg2PW",
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: m,
-          currency: "XAF",
-          description: "Recharge Wallet",
-          reference: reference,
-          customer: {
-            email: currentUser.email,
-            name: currentUser.displayName || "Utilisateur"
-          },
-          // 🔹 Ton webhook Supabase Edge Function
-          callback: "https://hhwbfmkpciktpukvzztf.supabase.co/functions/v1/swift-responder",
-          // 🔹 Passe l'UID de l'utilisateur pour que la fonction Edge incrémente le bon wallet
-          metadata: {
-            uid: currentUser.uid
-          }
+          amount: amount,
+          email: currentUser.email,
+          name: currentUser.displayName || "Utilisateur",
+          uid: currentUser.uid
         })
       });
 
       const data = await res.json();
-      if (data && data.authorization_url) {
-        window.location.href = data.authorization_url; // Redirection vers NotchPay
+
+      if (data.authorization_url) {
+        // 🔹 Redirection vers NotchPay
+        window.location.href = data.authorization_url;
       } else {
-        alert("Erreur : impossible de démarrer le paiement.");
+        console.error("Erreur paiement :", data);
+        alert("Impossible de démarrer le paiement.\n" + JSON.stringify(data, null, 2));
       }
+
     } catch (err) {
-      console.error("Erreur NotchPay :", err);
-      alert("Erreur de connexion à NotchPay.");
+      console.error("Erreur front NotchPay :", err);
+      alert("Erreur de connexion au serveur de paiement.");
     }
   });
 });
+  
   // SIGNUP  LOGIN EMAIL
 window.signupWithEmail = async () => {
   const n = qs('signupName').value.trim();
