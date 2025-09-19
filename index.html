@@ -2283,7 +2283,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const montantInput = document.getElementById("montant");
     const amount = parseFloat(montantInput.value);
 
-    if (isNaN(amount) || amount < 10) { // Montant minimum 50 XAF
+    if (isNaN(amount) || amount < 50) { // Montant minimum 50 XAF
       return alert("Montant minimum 50 XAF");
     }
 
@@ -2291,8 +2291,10 @@ window.addEventListener("DOMContentLoaded", () => {
       return alert("Veuillez vous connecter");
     }
 
+    btn.disabled = true;
+    btn.textContent = "Chargement...";
+
     try {
-      // 🔹 Appel à la fonction Supabase create-payment
       const res = await fetch("https://hhwbfmkpciktpukvzztf.supabase.co/functions/v1/swift-responder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -2304,18 +2306,29 @@ window.addEventListener("DOMContentLoaded", () => {
         })
       });
 
+      if (!res.ok) {
+        const text = await res.text();
+        console.error("Erreur serveur :", res.status, text);
+        btn.disabled = false;
+        btn.textContent = "Payer";
+        return alert("Impossible de démarrer le paiement.");
+      }
+
       const data = await res.json();
 
       if (data.authorization_url) {
-        // 🔹 Redirection vers NotchPay
         window.location.href = data.authorization_url;
       } else {
         console.error("Erreur paiement :", data);
+        btn.disabled = false;
+        btn.textContent = "Payer";
         alert("Impossible de démarrer le paiement.\n" + JSON.stringify(data, null, 2));
       }
 
     } catch (err) {
       console.error("Erreur front NotchPay :", err);
+      btn.disabled = false;
+      btn.textContent = "Payer";
       alert("Erreur de connexion au serveur de paiement.");
     }
   });
