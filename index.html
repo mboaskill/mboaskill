@@ -2275,6 +2275,7 @@ async function getTotalViews(uid, sinceReset = false) {
 
   return total;
 }
+
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("notchpayBtn");
   if (!btn) return console.error("Bouton introuvable");
@@ -2290,28 +2291,47 @@ window.addEventListener("DOMContentLoaded", () => {
     btn.textContent = "Chargement...";
 
     try {
-      const res = await fetch("https://hhwbfmkpciktpukvzztf.supabase.co/functions/v1/swift-responder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount,
-          email: currentUser.email,
-          name: currentUser.displayName || "Utilisateur",
-          uid: currentUser.uid
-        })
-      });
+      const res = await fetch(
+        "https://hhwbfmkpciktpukvzztf.supabase.co/functions/v1/swift-responder",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount,
+            email: currentUser.email,
+            name: currentUser.displayName || "Utilisateur",
+            uid: currentUser.uid
+          })
+        }
+      );
 
       const text = await res.text();
-      console.log("Réponse backend:", text);
 
-      btn.disabled = false;
-      btn.textContent = "Payer";
+      console.log("Status HTTP:", res.status);
+      console.log("Réponse brute:", text);
 
-      alert("Vérifie la console pour la réponse backend");
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { message: text };
+      }
+
+      console.log("Réponse JSON:", data);
+
+      if (res.ok && data.authorization_url) {
+        window.location.href = data.authorization_url;
+      } else {
+        alert("Erreur backend :\n" + JSON.stringify(data, null, 2));
+      }
 
     } catch (err) {
-      console.error("Erreur front NotchPay:", err);
-      alert("Impossible de contacter le serveur de paiement");
+      console.error("Erreur front NotchPay :", err);
+      alert(
+        "Impossible de contacter le serveur de paiement.\n" +
+        (err.message || err)
+      );
+    } finally {
       btn.disabled = false;
       btn.textContent = "Payer";
     }
