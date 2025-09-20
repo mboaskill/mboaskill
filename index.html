@@ -2281,13 +2281,22 @@ async function getTotalViews(uid, sinceReset = false) {
 
   btn.addEventListener("click", async () => {
     const montantInput = document.getElementById("montant");
-    const m = parseFloat(montantInput.value);
-    if (isNaN(m) || m < 10) return alert("Montant min 50 XAF");
+    const amount = parseFloat(montantInput.value);
+
+    if (isNaN(amount) || amount < 500) return alert("Montant min 500 XAF");
     if (!currentUser) return alert("Connectez-vous");
 
-    const reference = `tx_${Date.now()}`;
+    const walletRef = doc(db, "wallets", currentUser.uid);
 
     try {
+      // 🔹 Crée le wallet si il n'existe pas
+      const walletSnap = await getDoc(walletRef);
+      if (!walletSnap.exists()) {
+        await setDoc(walletRef, { balance: 0 });
+      }
+
+      // 🔹 Ensuite, crée la transaction NotchPay
+      const reference = `tx_${Date.now()}`;
       const res = await fetch("https://api.notchpay.co/payments", {
         method: "POST",
         headers: {
@@ -2295,7 +2304,7 @@ async function getTotalViews(uid, sinceReset = false) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          amount: m,
+          amount: amount,
           currency: "XAF",
           description: "Recharge Wallet",
           reference: reference,
@@ -2304,7 +2313,7 @@ async function getTotalViews(uid, sinceReset = false) {
             name: currentUser.displayName || "Utilisateur"
           },
           metadata: {
-            uid: currentUser.uid // ✅ envoi de l'UID pour le backend / webhook
+            uid: currentUser.uid // envoi de l'UID pour le webhook
           },
           callback: "https://hhwbfmkpciktpukvzztf.supabase.co/functions/v1/swift-responder"
         })
@@ -2317,12 +2326,12 @@ async function getTotalViews(uid, sinceReset = false) {
         alert("Erreur : impossible de démarrer le paiement.");
       }
     } catch (err) {
-      console.error("Erreur NotchPay :", err);
-      alert("Erreur de connexion à NotchPay.");
+      console.error("Erreur :", err);
+      alert("Erreur lors de l'initialisation du paiement.");
     }
   });
 });
-  
+
   // SIGNUP  LOGIN EMAIL
 window.signupWithEmail = async () => {
   const n = qs('signupName').value.trim();
