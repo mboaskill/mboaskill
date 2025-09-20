@@ -2275,68 +2275,54 @@ async function getTotalViews(uid, sinceReset = false) {
 
   return total;
 }
-
-window.addEventListener("DOMContentLoaded", () => {
+  window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("notchpayBtn");
-  if (!btn) return console.error("Bouton introuvable");
+  if (!btn) return console.error("Bouton notchpayBtn introuvable !");
 
   btn.addEventListener("click", async () => {
     const montantInput = document.getElementById("montant");
-    const amount = parseFloat(montantInput.value);
+    const m = parseFloat(montantInput.value);
+    if (isNaN(m) || m < 10) return alert("Montant min 50 XAF");
+    if (!currentUser) return alert("Connectez-vous");
 
-    if (isNaN(amount) || amount < 50) return alert("Montant minimum 50 XAF");
-    if (!currentUser) return alert("Veuillez vous connecter");
-
-    btn.disabled = true;
-    btn.textContent = "Chargement...";
+    const reference = `tx_${Date.now()}`;
 
     try {
-      const res = await fetch(
-        "https://hhwbfmkpciktpukvzztf.supabase.co/functions/v1/swift-responder",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount,
+      const res = await fetch("https://api.notchpay.co/payments", {
+        method: "POST",
+        headers: {
+          "Authorization": "pk.azYHHFMqVKLHlDNxzCbiqKlOfDh9oULJ6HQ52MPqgytU7dHwoODNkxKvV1xBECeeHxTBZ0Og31aCrJ11nDGI7iNtBcXD42ctowdIDyFbGG6KEeoiXCOjZJy5yg2PW",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          amount: m,
+          currency: "XAF",
+          description: "Recharge Wallet",
+          reference: reference,
+          customer: {
             email: currentUser.email,
-            name: currentUser.displayName || "Utilisateur",
-            uid: currentUser.uid
-          })
-        }
-      );
+            name: currentUser.displayName || "Utilisateur"
+          },
+          metadata: {
+            uid: currentUser.uid // ✅ envoi de l'UID pour le backend / webhook
+          },
+          callback: "https://hhwbfmkpciktpukvzztf.supabase.co/functions/v1/swift-responder"
+        })
+      });
 
-      const text = await res.text();
-
-      console.log("Status HTTP:", res.status);
-      console.log("Réponse brute:", text);
-
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { message: text };
-      }
-
-      console.log("Réponse JSON:", data);
-
-      if (res.ok && data.authorization_url) {
-        window.location.href = data.authorization_url;
+      const data = await res.json();
+      if (data && data.authorization_url) {
+        window.location.href = data.authorization_url; // Redirection vers NotchPay
       } else {
-        alert("Erreur backend :\n" + JSON.stringify(data, null, 2));
+        alert("Erreur : impossible de démarrer le paiement.");
       }
-
     } catch (err) {
-      console.error("Erreur front NotchPay :", err);
-      alert(
-        "Impossible de contacter le serveur de paiement.\n" +
-        (err.message || err)
-      );
-    } finally {
-      btn.disabled = false;
-      btn.textContent = "Payer";
+      console.error("Erreur NotchPay :", err);
+      alert("Erreur de connexion à NotchPay.");
     }
   });
 });
+  
   // SIGNUP  LOGIN EMAIL
 window.signupWithEmail = async () => {
   const n = qs('signupName').value.trim();
