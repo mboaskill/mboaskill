@@ -18,9 +18,9 @@
     header{
       position:fixed;top:0;left:0;right:0;
       display:flex;justify-content:space-around;align-items:center;
-      padding:1rem;background:#fff;border-bottom:1px solid #ddd;z-index:99999
+      padding:1rem;background:#888;border-bottom:1px solid #ddd;z-index:99999
     }
-    header i{font-size:1.4rem;color:black;cursor:pointer}
+    header i{font-size:1.4rem;color:#fff;cursor:pointer}
     header i.selected{color:gold}
     .tabcontent{display:none;padding:6rem 1rem 1rem;max-width:600px;margin:auto}
     .tabcontent.active{display:block}
@@ -2283,7 +2283,7 @@ async function getTotalViews(uid, sinceReset = false) {
     const montantInput = document.getElementById("montant");
     const amount = parseFloat(montantInput.value);
 
-    if (isNaN(amount) || amount < 500) return alert("Montant min 500 XAF");
+    if (isNaN(amount) || amount < 10) return alert("Montant min 500 XAF");
     if (!currentUser) return alert("Connectez-vous");
 
     const walletRef = doc(db, "wallets", currentUser.uid);
