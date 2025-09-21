@@ -1781,55 +1781,91 @@ async function toggleLike(pid, icon, cnt) {
 }
 /* COMMENTS */
 async function loadComments(pid, container, cnt) {
-  const s = await getDocs(query(collection(db, 'posts', pid, 'comments'), orderBy('createdAt')));
+  // Récupérer tous les commentaires
+  const s = await getDocs(
+    query(collection(db, 'posts', pid, 'comments'), orderBy('createdAt'))
+  );
+
   container.innerHTML = '';
   cnt.textContent = s.size;
 
-  // Pour gérer les promesses, on utilise for...of sur s.docs
-  for (const docSnap of s.docs) {
-    const c = docSnap.data();
+  if (s.empty) return;
 
+  // 1️⃣ Préparer toutes les requêtes utilisateurs et badges en parallèle
+  const userPromises = s.docs.map(docSnap => {
+    const c = docSnap.data();
+    const userRef = doc(db, 'users', c.userId);
+    const verifiedRef = doc(db, 'verified', c.userId);
+    return Promise.all([getDoc(userRef), getDoc(verifiedRef)]);
+  });
+
+  // Attendre que toutes les requêtes se terminent
+  const usersData = await Promise.all(userPromises);
+
+  // 2️⃣ Boucle pour créer les commentaires
+  s.docs.forEach((docSnap, i) => {
+    const c = docSnap.data();
+    const [userSnap, verifiedSnap] = usersData[i];
+    const userData = userSnap.exists() ? userSnap.data() : {};
+    const isVerified = verifiedSnap.exists() && verifiedSnap.data().status === true;
+
+    // Conteneur principal
     const div = document.createElement('div');
     div.className = 'comment';
+    div.style.display = 'flex';
+    div.style.alignItems = 'flex-start';
+    div.style.marginBottom = '12px';
 
-    // Créer le lien du username
+    // Avatar
+    const avatar = document.createElement('img');
+    avatar.src = userData.photoURL || 'https://via.placeholder.com/40';
+    avatar.alt = 'Avatar';
+    avatar.style.width = '40px';
+    avatar.style.height = '40px';
+    avatar.style.borderRadius = '50%';
+    avatar.style.marginRight = '10px';
+
+    // Conteneur texte
+    const textContainer = document.createElement('div');
+    textContainer.style.display = 'flex';
+    textContainer.style.flexDirection = 'column';
+
+    // Nom utilisateur
     const name = document.createElement('a');
     name.className = 'username';
     name.href = `https://mboaskill.cm/${c.userId}`;
     name.style.cursor = 'pointer';
-    name.style.color = 'gold';
-
+    name.style.fontWeight = 'bold';
+    name.style.color = 'black';
+    name.style.textDecoration = 'none';
     name.onclick = (e) => {
       e.preventDefault();
       openUserFeed(c.userId);
     };
 
-    // Vérifier si l'utilisateur est certifié
-    const verifiedRef = doc(db, 'verified', c.userId);
-    const verifiedSnap = await getDoc(verifiedRef);
-
-    if (verifiedSnap.exists() && verifiedSnap.data().status === true) {
-      name.innerHTML = `
-        ${c.userName || c.userEmail || 'Utilisateur'}
+    if (isVerified) {
+      name.innerHTML = `${userData.displayName || c.userName || c.userEmail || 'Utilisateur'}
         <span class="verified-badge" style="margin-left: 6px; color: #1da1f2;">
           <i class="fas fa-certificate"></i>
           <i class="fas fa-check checkmark"></i>
-        </span>
-      `;
+        </span>`;
     } else {
-      name.textContent = c.userName || c.userEmail || 'Utilisateur';
+      name.textContent = userData.displayName || c.userName || c.userEmail || 'Utilisateur';
     }
 
+    // Texte du commentaire
     const span = document.createElement('span');
-    span.innerHTML = ' : ' + linkifyText(c.text || '');
+    span.innerHTML = linkifyText(c.text || '');
+    span.style.marginTop = '2px';
+    span.style.color = '#333';
 
-    div.appendChild(name);
-    div.appendChild(span);
+    textContainer.appendChild(name);
+    textContainer.appendChild(span);
+
+    div.appendChild(avatar);
+    div.appendChild(textContainer);
     container.appendChild(div);
-
-    // Ajout d'un saut de ligne entre les commentaires
-    container.appendChild(document.createElement('br'));
-  }
+  });
 }
 async function addComment(pid,text){
   if(!currentUser)return;
