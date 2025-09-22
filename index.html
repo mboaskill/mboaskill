@@ -503,8 +503,10 @@ hr {
     Deposer
   </button>
 </div> 
+    <div id="emailLoginBox">
   <p>Argent: <span id="argent">0</span> XAF</p>
-<hr>
+    </div>
+      <hr>
  <div id="boostPanel" style="display:none;margin-bottom:10px">
   <span id="boostStatus" style="font-weight:bold"></span>
   <input type="number" id="boostViews" placeholder="Nombres de personnes/jour" min="4000"/>
@@ -2391,7 +2393,7 @@ async function getTotalViews(uid, sinceReset = false) {
           metadata: {
             uid: currentUser.uid // envoi de l'UID pour le webhook
           },
-          callback: "https://hhwbfmkpciktpukvzztf.supabase.co/functions/v1/swift-responder"
+          callback: "https://mboaskill.cm"
         })
       });
 
