@@ -315,6 +315,7 @@ hr {
 
 <!-- ============ POST ============ -->
 <section id="post" class="tabcontent">
+   <div id="emailLoginBox">
   <h2>Publier du texte</h2>
   <textarea id="postText" placeholder="Exprimez-vous..." style="height:15%"></textarea>
   
@@ -326,6 +327,7 @@ hr {
     <i class="fas fa-palette" style="color: orange;"></i>
     <input type="color" id="bgColor" value="#FFA500"/>
   </label>
+  </div>
   <hr/>
 
   <h2>Publier une image</h2>
@@ -352,25 +354,19 @@ hr {
   <option value="month">Dernier mois</option>
   <option value="year">Dernière année</option>
 </select>
+    <div id="emailLoginBox">
 <div class="row-info">
   <span class="label">Vues:</span>
   <span class="value">
     <p id="totalViewsCount" style="background-color:orange">Chargement...</p>
   </span>
 </div>
-
-<div class="row-info">
-  <span class="label">Solde brut:</span>
-  <span class="value">
-    <p id="grossBalance">XAF</p>
-  </span>
-</div>
-
 <div class="row-info">
   <span class="label">Disponible à retirer:</span>
   <span class="value">
     <p id="currentBalance">XAF</p>
   </span>
+</div>
 </div>
 <div class="row-info">
   <span class="label">texte+image:</span>
@@ -401,6 +397,7 @@ hr {
   <div id="searchResults"></div>
 </section>
 <section id="retrait" class="tabcontent">
+  <div id="emailLoginBox">
   <label for="withdrawAmount">Montant à retirer :</label><br>
   <input type="number" id="withdrawAmount" placeholder="min: 5000 XAF" min="5000" required style="width: 100%; margin-bottom: 10px;"><br>
 
@@ -411,7 +408,9 @@ hr {
     Retirer
   </button>
   <p id="withdrawStatus"></p>
-  <p><i class="fas fa-info-circle" style="color:#fff"></i>NB: n'oubliez pas l'indicatif du pays (Ex: +237)</p>
+  <p><i class="fas fa-info-circle" style="color:#gold"></i>NB: n'oubliez pas 
+  l'indicatif du pays (Ex: +237)</p>
+</div>
 </section>
 <section id="choises" class="tabcontent">
  <img src="https://ucarecdn.com/9e557b3e-8112-4472-9858-129187eb3749/-/preview/300x168/" style="width:100%;height:100px" onclick="openTab(event,'retrait')">MTN Momo
@@ -422,14 +421,15 @@ hr {
 </section>
 <!-- ============ ACCOUNT ============ -->
 <section id="account" class="tabcontent">
+   <div id="emailLoginBox">
   <div class="post-header">
 <button onclick="openTab(event,'profilimg')">mon pays <i class="fas fa-flag"></i></button></div>
-
       <div class="boutons">
     <button onclick="openTab(event,'conect')">Connexion</button>
     <button onclick="openTab(event,'inscrip')">Inscription</button>
     
   <button onclick="signInWithGoogle()"><i class="fab fa-google"></i> Continuer avec Google</button>
+  </div>
   </div>
   </div>
   <hr/>
@@ -496,17 +496,19 @@ hr {
 
 <!-- ============ BOOST PANEL ============ -->
 <section id="vibo" class="tabcontent">
-  <h3>Booster une publication</h3>
+ <h3>Recharger mon compte</h3>
+  <div id="emailLoginBox">
   <div class="post-header">
   <input type="number" id="montant" placeholder="Montant min: 500 XAF" min="500" style="padding: 6px; width: 150px;">
   <button id="notchpayBtn" style="padding: 6px 12px; background-color: #1877f2; color: white; border: none; border-radius: 4px; cursor: pointer;">
     Deposer
   </button>
 </div> 
-    <div id="emailLoginBox">
+   
   <p>Argent: <span id="argent">0</span> XAF</p>
     </div>
       <hr>
+       <h3>Booster une publication</h3>
  <div id="boostPanel" style="display:none;margin-bottom:10px">
   <span id="boostStatus" style="font-weight:bold"></span>
   <input type="number" id="boostViews" placeholder="Nombres de personnes/jour" min="4000"/>
@@ -520,7 +522,7 @@ hr {
   </select>
   <button onclick="boostPost()">Booster</button>
 </div>  <br>
-  <p><i class="fas fa-info-circle" style="color:#fff"></i> Le nombre de personnes à entrer est une estimation du nombres de vues par jour. minimum 2000 (2K pour 4600 XAF)</p>
+  <p><i class="fas fa-info-circle" style="color:#fff"></i> Le nombre de personnes à entrer est une estimation du nombres de vues par jour. minimum 200 vues (min: 200/5j pour 4600 XAF)</p>
 </section>
 
 <!-- ============ LOGIN FORM ============ -->
@@ -2163,32 +2165,34 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingEl = document.getElementById('loadingMessage');
     const balanceWrapperEl = document.getElementById('balanceWrapper');
 
-    if (user) {
-      if (loadingEl) loadingEl.style.display = 'none';
-      if (balanceWrapperEl) balanceWrapperEl.style.display = 'block';
-      loadTotalViewsAndBalance();
-    } else {
-      if (loadingEl) loadingEl.textContent = "Utilisateur non connecté";
-      if (balanceWrapperEl) balanceWrapperEl.style.display = 'none';
-      currentBalance = 0;
+    if (user) {  
+      if (loadingEl) loadingEl.style.display = 'none';  
+      if (balanceWrapperEl) balanceWrapperEl.style.display = 'block';  
+
+      loadTotalViewsAndBalance(); // 👉 maintenant gère VUES + SOLDE
+    } else {  
+      if (loadingEl) loadingEl.textContent = "Utilisateur non connecté";  
+      if (balanceWrapperEl) balanceWrapperEl.style.display = 'none';  
+      currentBalance = 0;  
     }
   });
 });
 
-// charge total vues + calcule solde disponible
-async function loadTotalViewsAndBalance(period = 'all') {
+// 🔹 Charger vues + calculer solde
+// ==========================
+async function loadTotalViewsAndBalance() {
   if (!currentUser) {
     console.warn("loadTotalViewsAndBalance: currentUser null");
     return;
   }
 
   try {
-    // 1) total vues des posts
+    // ---- 1) calcul des vues ----
     const postsRef = collection(db, 'posts');
     const q = query(postsRef, where('userId', '==', currentUser.uid));
     const snap = await getDocs(q);
-    let totalViews = 0;
 
+    let totalViews = 0;
     snap.forEach(d => {
       const v = d.data();
       const views = Number(v.views) || 0;
@@ -2199,161 +2203,85 @@ async function loadTotalViewsAndBalance(period = 'all') {
       totalViews += views + boosted + vuesParLike + totalviewcontent;
     });
 
-    // 2) soutienvues depuis users/{uid}
-    const userDocRef = doc(db, 'users', currentUser.uid);
-    const userDoc = await getDoc(userDocRef);
-    const soutienvues = userDoc.exists() ? Number(userDoc.data().soutienvues || 0) : 0;
-    totalViews += soutienvues;
-
-    // récupérer lastResetViews
-    let lastResetViews = 0;
+    // soutienvues depuis users/{uid}
+    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
     if (userDoc.exists()) {
-      lastResetViews = Number(userDoc.data().lastResetViews || 0);
+      totalViews += Number(userDoc.data().soutienvues || 0);
     }
 
-    console.log("DEBUG totalViews =", totalViews);
-    console.log("DEBUG lastResetViews =", lastResetViews);
+    // ---- 2) conversion en argent (200 XAF par 1000 vues) ----
+    const montant = Math.floor(totalViews / 1000) * 200;
 
-    // 3) calcul des nouvelles vues depuis le dernier retrait total
-    const newViews = Math.max(0, totalViews - lastResetViews);
+    // ---- 3) stocker le solde dans soldes/{uid} ----
+    const soldeDocRef = doc(db, "soldes", currentUser.uid);
+    await setDoc(soldeDocRef, {
+      montant,
+      totalViews,
+      updatedAt: new Date()
+    }, { merge: true });
 
-    // 4) calcul gains bruts (raw) sur ces nouvelles vues
-    const raw = Math.floor(newViews / 1000) * 200;
-    console.log("DEBUG newViews =", newViews);
-    console.log("DEBUG raw (gains bruts) =", raw);
-
-    // 5) somme des retraits validés depuis le dernier reset
-    const withdrawalsSnap = await getDocs(
-      query(
-        collection(db, 'withdrawals'),
-        where('userId', '==', currentUser.uid),
-        where('status', '==', 'valide')
-      )
-    );
-    const withdrawn = withdrawalsSnap.docs.reduce(
-      (sum, d) => {
-        const data = d.data();
-        const ts = data.date?.toMillis ? data.date.toMillis() : (data.date?.seconds ? data.date.seconds * 1000 : 0);
-        // on ne compte que les retraits après le reset
-        if (userDoc.exists() && userDoc.data().lastResetAt) {
-          const resetAt = userDoc.data().lastResetAt.toMillis ? userDoc.data().lastResetAt.toMillis() : 0;
-          if (ts <= resetAt) return sum;
-        }
-        return sum + Number(data.amount || 0);
-      },
-      0
-    );
-    console.log("DEBUG withdrawn (validés depuis reset) =", withdrawn);
-
-    // 6) disponible pour retrait = raw - withdrawn (jamais négatif)
-    const available = Math.max(0, raw - withdrawn);
-    console.log("DEBUG available =", available);
-
-    // mise à jour interface (solde affiché = disponible)
-    const totalViewsCounterEl = document.getElementById('totalViewsCounter');
-    if (totalViewsCounterEl) totalViewsCounterEl.textContent = `Total vues: ${fmt(totalViews)}`;
-
+    // ---- 4) mise à jour interface ----
     const totalViewsCountEl = document.getElementById('totalViewsCount');
     if (totalViewsCountEl) totalViewsCountEl.textContent = fmt(totalViews);
 
     const currentBalanceEl = document.getElementById('currentBalance');
-    if (currentBalanceEl) currentBalanceEl.textContent = available + ' FCFA';
+    if (currentBalanceEl) currentBalanceEl.textContent = montant + " FCFA";
 
-    currentBalance = available;
-
+    currentBalance = montant;
   } catch (err) {
     console.error("Erreur loadTotalViewsAndBalance :", err);
   }
 }
 
-// retrait progressif
+// ==========================
+// 🔹 Retrait progressif
+// ==========================
 window.withdrawBalance = async () => {
   try {
     const amountInput = document.getElementById("withdrawAmount");
     const phoneInput = document.getElementById("withdrawPhone");
 
-    const a = amountInput ? amountInput.valueAsNumber : 0;
-    const phone = phoneInput ? phoneInput.value.trim() : "";
+    const a = amountInput ? amountInput.valueAsNumber : 0;  
+    const phone = phoneInput ? phoneInput.value.trim() : "";  
 
-    if (!currentUser || !currentUser.uid) return alert("Utilisateur non authentifié.");
-    if (!Number.isFinite(a) || a < 5000) return alert("Montant minimum : 5 000 XAF");
-    if (!phone || phone.length < 8) return alert("Veuillez entrer un numéro valide.");
+    if (!currentUser || !currentUser.uid) return alert("Utilisateur non authentifié.");  
+    if (!Number.isFinite(a) || a < 5000) return alert("Montant minimum : 5 000 XAF");  
+    if (!phone || phone.length < 8) return alert("Veuillez entrer un numéro valide.");  
 
-    // mettre à jour le solde avant retrait
-    await loadTotalViewsAndBalance();
+    // mettre à jour le solde avant retrait  
+    await loadTotalViewsAndBalance();  
 
-    if (a > currentBalance) return alert("Solde insuffisant. Votre solde actuel est " + currentBalance + " FCFA");
+    if (a > currentBalance) return alert("Solde insuffisant. Votre solde actuel est " + currentBalance + " FCFA");  
 
-    // enregistrer le retrait
-    await addDoc(collection(db, "withdrawals"), {
-      userId: currentUser.uid,
-      amount: a,
-      phone: phone,
-      date: new Date(),
-      status: "en attente",
+    // enregistrer le retrait  
+    await addDoc(collection(db, "withdrawals"), {  
+      userId: currentUser.uid,  
+      amount: a,  
+      phone: phone,  
+      date: new Date(),  
+      status: "en attente",  
+    });  
+
+    // mettre à jour le solde (déduction du retrait)
+    await updateDoc(doc(db, "soldes", currentUser.uid), {
+      montant: currentBalance - a,
+      updatedAt: new Date()
     });
 
-    // si le retrait est total, on fait le reset
-    if (a === currentBalance) {
-      await updateDoc(doc(db, "users", currentUser.uid), {
-        lastResetViews: await getTotalViews(currentUser.uid),
-        lastResetAt: new Date()
-      });
-    }
+    // recharger solde et vues
+    await loadTotalViewsAndBalance();  
 
-    // sinon pour retrait partiel, pas besoin de reset, le solde baisse naturellement
-    // recharger le solde disponible
-    await loadTotalViewsAndBalance();
-
-    // vider les inputs
-    if (amountInput) amountInput.value = "";
-    if (phoneInput) phoneInput.value = "";
+    // vider les inputs  
+    if (amountInput) amountInput.value = "";  
+    if (phoneInput) phoneInput.value = "";  
 
     alert("✅ Demande de retrait enregistrée !");
-
   } catch (err) {
     console.error("Erreur de retrait :", err);
     alert("❌ Une erreur est survenue lors du retrait.");
   }
 };
-async function getTotalViews(uid, sinceReset = false) {
-  let total = 0;
-  const postsRef = collection(db, 'posts');
-  const q = query(postsRef, where('userId', '==', uid));
-  const snap = await getDocs(q);
-
-  // récupérer lastResetViews si on veut compter depuis le reset
-  let lastResetViews = 0;
-  if (sinceReset) {
-    const userDoc = await getDoc(doc(db, 'users', uid));
-    if (userDoc.exists()) {
-      lastResetViews = Number(userDoc.data().lastResetViews || 0);
-    }
-  }
-
-  snap.forEach(d => {
-    const v = d.data();
-    const views = Number(v.views) || 0;
-    const boosted = Number(v.boosted) || 0;
-    const likes = Number(v.likes) || 0;
-    const vuesParLike = likes * 5;
-    const totalviewcontent = Number(v.totalviewcontent) || 0;
-    total += views + boosted + vuesParLike + totalviewcontent;
-  });
-
-  const userDoc = await getDoc(doc(db, 'users', uid));
-  if (userDoc.exists()) {
-    total += Number(userDoc.data().soutienvues || 0);
-  }
-
-  // si sinceReset = true, on soustrait lastResetViews pour avoir uniquement les nouvelles vues
-  if (sinceReset) {
-    total = Math.max(0, total - lastResetViews);
-  }
-
-  return total;
-}
-  window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("notchpayBtn");
   if (!btn) return console.error("Bouton notchpayBtn introuvable !");
 
