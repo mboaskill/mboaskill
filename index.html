@@ -2158,6 +2158,8 @@ d.append(img,span);if(btn)d.append(btn);d.onclick=()=>openUserFeed(u.uid);res.ap
 /*──────────────────────────────────────────────────────────
  14. VIEWS & RETRAIT
 ──────────────────────────────────────────────────────────*/
+
+// ==========================
 // attendre que le DOM soit prêt
 document.addEventListener('DOMContentLoaded', () => {
   onAuthStateChanged(auth, (user) => {
@@ -2169,7 +2171,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (loadingEl) loadingEl.style.display = 'none';  
       if (balanceWrapperEl) balanceWrapperEl.style.display = 'block';  
 
-      loadTotalViewsAndBalance(); // 👉 maintenant gère VUES + SOLDE
+      loadTotalViewsAndBalance(); // 👉 calcule les vues + affiche le solde
     } else {  
       if (loadingEl) loadingEl.textContent = "Utilisateur non connecté";  
       if (balanceWrapperEl) balanceWrapperEl.style.display = 'none';  
@@ -2178,13 +2180,10 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// 🔹 Charger vues + calculer solde
-// ==========================
+// 🔹 Charger VUES + calculer gain automatique
+// ===========================================
 async function loadTotalViewsAndBalance() {
-  if (!currentUser) {
-    console.warn("loadTotalViewsAndBalance: currentUser null");
-    return;
-  }
+  if (!currentUser) return console.warn("loadTotalViewsAndBalance: currentUser null");
 
   try {
     // ---- 1) calcul des vues ----
@@ -2209,78 +2208,95 @@ async function loadTotalViewsAndBalance() {
       totalViews += Number(userDoc.data().soutienvues || 0);
     }
 
-    // ---- 2) conversion en argent (200 XAF par 1000 vues) ----
-    const montant = Math.floor(totalViews / 1000) * 200;
+    // ---- 2) conversion en gain (200 XAF par 1000 vues) ----
+    const gainVues = Math.floor(totalViews / 1000) * 200;
 
-    // ---- 3) stocker le solde dans soldes/{uid} ----
-    const soldeDocRef = doc(db, "soldes", currentUser.uid);
-    await setDoc(soldeDocRef, {
-      montant,
+    // ---- 3) mettre à jour uniquement gainVues et totalViews ----
+    const soldeRef = doc(db, "soldes", currentUser.uid);
+    await setDoc(soldeRef, {
+      gainVues,
       totalViews,
       updatedAt: new Date()
     }, { merge: true });
 
-    // ---- 4) mise à jour interface ----
+    // ---- 4) récupérer le solde réel existant ----
+    const soldeSnap = await getDoc(soldeRef);
+    let soldeReel = 0;
+    if (soldeSnap.exists()) {
+      soldeReel = Number(soldeSnap.data().montant || 0);
+    }
+
+    // ---- 5) mise à jour interface ----
     const totalViewsCountEl = document.getElementById('totalViewsCount');
     if (totalViewsCountEl) totalViewsCountEl.textContent = fmt(totalViews);
 
     const currentBalanceEl = document.getElementById('currentBalance');
-    if (currentBalanceEl) currentBalanceEl.textContent = montant + " FCFA";
+    if (currentBalanceEl) currentBalanceEl.textContent = soldeReel + " FCFA";
 
-    currentBalance = montant;
+    currentBalance = soldeReel;
   } catch (err) {
     console.error("Erreur loadTotalViewsAndBalance :", err);
   }
 }
 
-// ==========================
-// 🔹 Retrait progressif
-// ==========================
+// 🔹 Retrait du solde réel
+// ========================
 window.withdrawBalance = async () => {
   try {
     const amountInput = document.getElementById("withdrawAmount");
-    const phoneInput = document.getElementById("withdrawPhone");
+    const phoneInput  = document.getElementById("withdrawPhone");
 
-    const a = amountInput ? amountInput.valueAsNumber : 0;  
-    const phone = phoneInput ? phoneInput.value.trim() : "";  
+    const a     = amountInput ? amountInput.valueAsNumber : 0;
+    const phone = phoneInput  ? phoneInput.value.trim()   : "";
 
-    if (!currentUser || !currentUser.uid) return alert("Utilisateur non authentifié.");  
-    if (!Number.isFinite(a) || a < 5000) return alert("Montant minimum : 5 000 XAF");  
-    if (!phone || phone.length < 8) return alert("Veuillez entrer un numéro valide.");  
+    if (!currentUser || !currentUser.uid) return alert("Utilisateur non authentifié.");
+    if (!Number.isFinite(a) || a < 5000)  return alert("Montant minimum : 5 000 XAF");
+    if (!phone || phone.length < 8)       return alert("Veuillez entrer un numéro valide.");
 
-    // mettre à jour le solde avant retrait  
-    await loadTotalViewsAndBalance();  
+    await loadTotalViewsAndBalance();
 
-    if (a > currentBalance) return alert("Solde insuffisant. Votre solde actuel est " + currentBalance + " FCFA");  
+    if (a > currentBalance) return alert("Solde insuffisant. Votre solde actuel est " + currentBalance + " FCFA");
 
-    // enregistrer le retrait  
-    await addDoc(collection(db, "withdrawals"), {  
-      userId: currentUser.uid,  
-      amount: a,  
-      phone: phone,  
-      date: new Date(),  
-      status: "en attente",  
-    });  
+    const soldeRef  = doc(db, "soldes", currentUser.uid);
+    const soldeSnap = await getDoc(soldeRef);
 
-    // mettre à jour le solde (déduction du retrait)
-    await updateDoc(doc(db, "soldes", currentUser.uid), {
-      montant: currentBalance - a,
+    if (!soldeSnap.exists()) return alert("❌ Aucun solde trouvé pour cet utilisateur.");
+
+    const soldeData   = soldeSnap.data();
+    const currentSolde = Number(soldeData.montant || 0);
+    const newBalance   = currentSolde - a;
+
+    // Mettre à jour le solde réel uniquement
+    await updateDoc(soldeRef, {
+      montant: newBalance,
       updatedAt: new Date()
     });
 
-    // recharger solde et vues
-    await loadTotalViewsAndBalance();  
+    // Enregistrer l'opération dans withdrawals
+    await addDoc(collection(db, "withdrawals"), {
+      userId: currentUser.uid,
+      amount: a,
+      phone: phone,
+      date: new Date(),
+      status: "en attente"
+    });
 
-    // vider les inputs  
-    if (amountInput) amountInput.value = "";  
-    if (phoneInput) phoneInput.value = "";  
+    currentBalance = newBalance;
 
-    alert("✅ Demande de retrait enregistrée !");
+    // Mise à jour immédiate de l'affichage
+    const currentBalanceEl = document.getElementById('currentBalance');
+    if (currentBalanceEl) currentBalanceEl.textContent = newBalance + " FCFA";
+
+    if (amountInput) amountInput.value = "";
+    if (phoneInput)  phoneInput.value  = "";
+
+    alert("✅ Retrait de " + a + " XAF effectué ! Solde restant : " + newBalance + " XAF");
   } catch (err) {
     console.error("Erreur de retrait :", err);
     alert("❌ Une erreur est survenue lors du retrait.");
   }
 };
+
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("notchpayBtn");
   if (!btn) return console.error("Bouton notchpayBtn introuvable !");
