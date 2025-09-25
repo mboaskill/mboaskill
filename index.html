@@ -2735,6 +2735,7 @@ window.certifyUser = async function () {
     alert("❌ Une erreur est survenue. Veuillez réessayer.");
   }
 };
+
 window.publishMusic = async function () {
     const nom = document.getElementById('nom').value.trim();
     const titre = document.getElementById('titre').value.trim();
@@ -2808,6 +2809,7 @@ window.publishMusic = async function () {
       statusMsg.textContent = "❌ Erreur lors de la publication.";
     }
   }
+  
 async function renderMusicFeed() {
   const container = document.getElementById('musicFeed');
   container.textContent = 'Chargement…';
