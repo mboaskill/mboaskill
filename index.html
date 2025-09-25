@@ -2202,7 +2202,7 @@ async function loadTotalViewsAndBalance() {
       const views = Number(v.views) || 0;
       const boosted = Number(v.boosted) || 0;
       const likes = Number(v.likes) || 0;
-      const vuesParLike = likes * 5;
+      const vuesParLike = likes * 1;
       const totalviewcontent = Number(v.totalviewcontent) || 0;
       totalViews += views + boosted + vuesParLike + totalviewcontent;
     });
@@ -2226,7 +2226,7 @@ async function loadTotalViewsAndBalance() {
     // ---- 3) calcul des nouvelles vues non comptées ----
     const newViews = totalViews - lastViewsCount;
     if (newViews > 0) {
-      const newGain = Math.floor(newViews / 1000) * 200; // 1k vues = 200 FCFA
+      const newGain = Math.floor(newViews / 10) * 2; // 1k vues = 200 FCFA
       gainVues += newGain;
       await setDoc(soldeRef, {
         gainVues,
