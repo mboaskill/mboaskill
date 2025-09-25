@@ -581,7 +581,7 @@ hr {
 </div>
 </section>
 <section id="music" class="tabcontent">
- <button onclick="openTab(event,'mus')" id="bouton-lundi">importer ma musique <i class="fas fa-download"></i></button>  
+ <button onclick="openTab(event,'mus')">importer ma musique <i class="fas fa-download"></i></button>  
   <p id='s'></p>
  <h2>Musiques expire dans 10 jours 🎧</h2>
 <div id="musicFeed"></div>
@@ -2226,7 +2226,7 @@ async function loadTotalViewsAndBalance() {
     // ---- 3) calcul des nouvelles vues non comptées ----
     const newViews = totalViews - lastViewsCount;
     if (newViews > 0) {
-      const newGain = Math.floor(newViews / 10) * 2; // 1k vues = 200 FCFA
+      const newGain = Math.floor(newViews / 1) * 0.2; // 1k vues = 200 FCFA
       gainVues += newGain;
       await setDoc(soldeRef, {
         gainVues,
