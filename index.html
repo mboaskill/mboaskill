@@ -7,6 +7,8 @@
 <script src="https://js.notchpay.co/v1/checkout.js"></script>
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
 
   <style>
     /* === GLOBAL STYLES ================================= */
@@ -15,14 +17,46 @@
       font-family:Arial,Helvetica,sans-serif;
      background-color: #888; 
           }
-    header{
-      position:fixed;top:0;left:0;right:0;
-      display:flex;justify-content:space-around;align-items:center;
-      padding:1rem;background:#888;border-bottom:1px solid #ddd;z-index:99999
-    }
-    header i{font-size:1.4rem;color:#fff;cursor:pointer}
-    header i.selected{color:gold}
-    .tabcontent{display:none;padding:6rem 1rem 1rem;max-width:600px;margin:auto}
+   header {
+  background-color: #fff;
+  display: flex;
+  flex-direction: column; /* Logo en haut, icônes en bas */
+  border-bottom: 1px solid #ccc;
+  position: fixed;
+  width: 100%;
+  margin: 0;
+  padding: 15px;
+  top: 0;
+  left: 0;
+  z-index: 999999;
+}
+
+header .logo {
+  color: gold;
+  font-size: 1.8rem;
+  font-weight: bold;
+  align-self: flex-start; /* Logo collé à gauche */
+}
+
+header .icons {
+  margin-top: 10px; /* espace entre logo et icônes */
+  display: flex;
+  justify-content: center; /* Icônes centrées */
+  width: 100%; /* pour que le centrage marche bien */
+}
+
+header .icons i {
+  margin: 0 1rem;
+  font-size: 1.8rem;
+  color: #555;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  width: 100%;
+}
+ header .icons i:hover {
+  color: gold;
+}    
+        .tabcontent{display:none;padding:6rem 1rem 1rem;max-width:600px;margin:auto}
     .tabcontent.active{display:block}
     input,textarea,button,select{
       display:block;width:100%;padding:10px;margin-bottom:10px;
@@ -289,13 +323,16 @@ hr {
  </style>
 </head>
 <body>
-<header>  
-  <i class="fas fa-home tablinks selected" onclick="openTab(event,'home'); window.scrollTo({ top: 0, behavior: 'smooth' });"></i>  
-  <i class="fas fa-music tablinks"           onclick="openTab(event,'music')"></i>  
-  <i class="far fa-image tablinks"           onclick="openTab(event,'videoFeed')"></i>  
-  <i class="fas fa-plus tablinks"            onclick="openTab(event,'post')"></i>  
-  <i class="fas fa-search tablinks"          onclick="openTab(event,'search')"></i>  
-  <i class="fas fa-user tablinks"            onclick="openTab(event,'account')"></i>  
+<header>
+  <div class="logo">Mboa Skills</div>
+  <div class="icons">
+    <i class="material-icons-outlined tablinks selected" onclick="openTab(event,'home'); window.scrollTo({ top: 0, behavior: 'smooth' });">home</i>
+    <i class="material-icons-outlined tablinks" onclick="openTab(event,'music')">music_note</i>
+    <i class="material-icons-outlined tablinks" onclick="openTab(event,'videoFeed')">image</i>
+    <i class="material-icons-outlined tablinks" onclick="openTab(event,'post')">add</i>
+    <i class="material-icons-outlined tablinks" onclick="openTab(event,'search')">search</i>
+    <i class="material-icons-outlined tablinks" onclick="openTab(event,'account')">person</i>
+  </div>
 </header>
 <!-- ============ HOME ============ -->
 <section id="home" class="tabcontent active">
