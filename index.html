@@ -897,6 +897,17 @@ function shuffleFeed() {
 
 // Lancer le mélange au chargement
 window.addEventListener('load', shuffleFeed);
+  // On récupère toutes les icônes
+const icons = document.querySelectorAll("header .icons i");
+
+icons.forEach(icon => {
+  icon.addEventListener("click", () => {
+    // Supprime la classe active de toutes les icônes
+    icons.forEach(i => i.classList.remove("active"));
+    // Ajoute la classe active à l’icône cliquée
+    icon.classList.add("active");
+  });
+});
 /*──────────────────────────────────────────────────────────
   5. AUTH
 ──────────────────────────────────────────────────────────*/
