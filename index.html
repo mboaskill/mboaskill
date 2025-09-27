@@ -53,9 +53,9 @@ header .icons i {
   transition: color 0.3s ease;
   width: 100%;
 }
- header .icons i:hover {
+  header .icons i.active {
   color: gold;
-}    
+}
         .tabcontent{display:none;padding:6rem 1rem 1rem;max-width:600px;margin:auto}
     .tabcontent.active{display:block}
     input,textarea,button,select{
@@ -2862,12 +2862,12 @@ async function renderMusicFeed() {
       const d = docSnap.data();
       const musicId = docSnap.id;
 
-      // 🎯 1. Ne pas afficher les musiques expirées (10 jours)
+      // 🎯 1. Ne pas afficher les musiques expirées (30 jours)
       const createdAt = d.createdAt?.toDate?.() || new Date();
       const now = new Date();
       const ageInMs = now - createdAt;
       const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
-      if (ageInDays > 10) continue;
+      if (ageInDays > 30) continue;
 
       // 🎯 2. Bloc musique
       const div = document.createElement('div');
