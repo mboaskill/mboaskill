@@ -2920,6 +2920,69 @@ async function renderMusicFeed() {
           return;
         }
 
+async function renderMusicFeed() {
+  const container = document.getElementById('musicFeed');
+  container.textContent = 'Chargement…';
+
+  try {
+    const q = query(collection(db, 'musfeed'), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    container.innerHTML = '';
+    const user = currentUser;
+
+    for (const docSnap of snapshot.docs) {
+      const d = docSnap.data();
+      const musicId = docSnap.id;
+
+      // 🎯 1. Ne pas afficher les musiques expirées (30 jours)
+      const createdAt = d.createdAt?.toDate?.() || new Date();
+      const now = new Date();
+      const ageInMs = now - createdAt;
+      const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
+      if (ageInDays > 30) continue;
+
+      // 🎯 2. Bloc musique
+      const div = document.createElement('div');
+      div.style.border = '1px solid #ccc';
+      div.style.borderRadius = '10px';
+      div.style.padding = '1rem';
+      div.style.marginBottom = '1rem';
+
+      div.innerHTML = `
+        <strong>${d.nom} - ${d.titre}</strong><br/>
+        <audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>
+        <div style="margin-top: 10px; font-size: 14px; color: #555; display: flex; align-items: center;">
+          <i class="fa-solid fa-headphone" style="margin-right: 6px;"></i>
+          <span id="views_${musicId}">${d.views || 0}</span>
+        </div>
+      `;
+
+      // 🎯 3. Ajout de la logique quand on clique sur Play
+      const audio = div.querySelector('audio');
+      const viewsEl = div.querySelector(`#views_${musicId}`);
+
+      audio.addEventListener('play', async () => {
+        if (!user) {
+          audio.pause();
+          return alert("Connectez-vous pour écouter");
+        }
+
+        const viewDocRef = doc(db, 'views', `${musicId}_${user.uid}`);
+        const viewDocSnap = await getDoc(viewDocRef);
+
+        // Déjà écouté ou c'est l'artiste lui-même → on ne fait rien
+        if (viewDocSnap.exists() || user.uid === d.userId) return;
+
+        // Vérifier le solde
+        const walletRef = doc(db, 'wallets', user.uid);
+        const walletSnap = await getDoc(walletRef);
+        const balance = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
+
+        if (balance < 55) {
+          audio.pause();
+          return alert("💸 Solde insuffisant pour écouter cette musique.");
+        }
+
         // ➖ Déduire 55
         await updateDoc(walletRef, { balance: increment(-55) });
 
@@ -2930,9 +2993,15 @@ async function renderMusicFeed() {
           playedAt: new Date()
         });
 
-        // ➕ Ajouter 270 vues à l’artiste
+        // ➕ Ajouter 250 vues à l’artiste
         const statsRef = doc(db, 'totalviewcontent', d.userId);
-        await setDoc(statsRef, { views: increment(250) }, { merge: true });
+        const statsSnap = await getDoc(statsRef);
+
+        if (statsSnap.exists()) {
+          await updateDoc(statsRef, { views: increment(250) });
+        } else {
+          await setDoc(statsRef, { views: 250 });
+        }
 
         // 🔄 Mettre à jour le compteur à l’écran
         let currentViews = parseInt(viewsEl.textContent) || 0;
