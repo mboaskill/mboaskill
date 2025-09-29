@@ -2193,7 +2193,7 @@ window.openUserFeed = async uid => {
         // ➕ Ajouter des vues fictives (soutien)
         await setDoc(
           doc(db, 'users', uid),
-          { soutienvues: increment(2500) },
+          { soutienvues: increment(1) },
           { merge: true }
         );
 
