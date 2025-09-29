@@ -2187,13 +2187,22 @@ window.openUserFeed = async uid => {
           return;
         }
 
+        // ➖ Déduction du wallet du supporter
         await updateDoc(walletRef, { balance: walletSnap.data().balance - 600 });
 
+        // ➕ Ajouter des vues fictives (soutien)
         await setDoc(
           doc(db, 'users', uid),
           { soutienvues: increment(2500) },
           { merge: true }
         );
+
+        // 🎯 Créditer le solde de l’artiste directement
+        const artistSoldeRef = doc(db, 'soldes', uid);
+        await setDoc(artistSoldeRef, {
+          gainVues: increment(500),
+          updatedAt: new Date()
+        }, { merge: true });
 
         alert('✅ Soutien envoyé avec succès !');
       } catch (err) {
@@ -2227,23 +2236,70 @@ window.openUserFeed = async uid => {
       }
     }
   );
-};      
-window.searchUser=async()=>{
-const q=qs('searchUserInput').value.trim().toLowerCase();
-if(!q)return alert('Entrez un nom ou e-mail');
-const s=await getDocs(collection(db,'posts'));const map=new Map();
-s.forEach(d=>{const v=d.data();if((v.userName||'').toLowerCase().includes(q)||(v.userEmail||'').toLowerCase().includes(q))map.set(v.userId,{uid:v.userId,name:v.userName,email:v.userEmail,photo:v.userPhoto});});
-const res=qs('searchResults');res.innerHTML='';
-if(map.size===0)return res.textContent='Aucun utilisateur trouvé';
-map.forEach(u=>{
-const d=document.createElement('div');d.style.cssText='cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:8px';
-const img=document.createElement('img');img.src=u.photo||'https://via.placeholder.com/40';img.style.cssText='width:40px;height:40px;border-radius:50%';
-const span=document.createElement('span');span.textContent=u.name||u.email;span.style.cssText='color:#1877f2;font-weight:bold';
-const btn=renderFollowBtn(u.uid);
-d.append(img,span);if(btn)d.append(btn);d.onclick=()=>openUserFeed(u.uid);res.appendChild(d);
-});
 };
 
+window.searchUser = async () => {
+  const q = qs('searchUserInput').value.trim().toLowerCase();
+  if (!q) return alert('Entrez un nom ou e-mail');
+
+  // 🔹 On part toujours des posts pour trouver les userIds correspondants
+  const s = await getDocs(collection(db, 'posts'));
+  const map = new Map();
+
+  s.forEach(d => {
+    const v = d.data();
+    if (
+      (v.userName || '').toLowerCase().includes(q) ||
+      (v.userEmail || '').toLowerCase().includes(q)
+    ) {
+      map.set(v.userId, { uid: v.userId });
+    }
+  });
+
+  const res = qs('searchResults');
+  res.innerHTML = '';
+
+  if (map.size === 0) return (res.textContent = 'Aucun utilisateur trouvé');
+
+  // 🔹 Pour chaque userId trouvé → récupère ses infos actuelles dans "users"
+  for (const [uid, u] of map) {
+    try {
+      const userSnap = await getDoc(doc(db, 'users', uid));
+      let name = 'Utilisateur';
+      let email = '';
+      let photo = 'https://via.placeholder.com/40';
+
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        name = data.name || name;
+        email = data.email || '';
+        photo = data.photoURL || photo;
+      }
+
+      const d = document.createElement('div');
+      d.style.cssText =
+        'cursor:pointer;display:flex;align-items:center;gap:8px;margin-bottom:8px';
+
+      const img = document.createElement('img');
+      img.src = photo;
+      img.style.cssText = 'width:40px;height:40px;border-radius:50%';
+
+      const span = document.createElement('span');
+      span.textContent = name || email;
+      span.style.cssText = 'color:#1877f2;font-weight:bold';
+
+      const btn = renderFollowBtn(uid);
+
+      d.append(img, span);
+      if (btn) d.append(btn);
+
+      d.onclick = () => openUserFeed(uid);
+      res.appendChild(d);
+    } catch (err) {
+      console.error('Erreur récupération user :', err);
+    }
+  }
+};
   
 /*──────────────────────────────────────────────────────────
  14. VIEWS & RETRAIT
@@ -2972,20 +3028,20 @@ window.publishMusic = async function () {
         // ➕ Incrémenter les vues et totalviewcontent pour l’artiste
         const musicRef = doc(db, 'musfeed', musicId);
         await updateDoc(musicRef, {
-          views: increment(250),
+          views: increment(1),
           totalviewcontent: increment(250)
         });
 
         // 🎯 Créditer le solde de l’artiste (comme le soutien)
         const artistSoldeRef = doc(db, 'soldes', d.userId);
         await setDoc(artistSoldeRef, {
-          gainVues: increment(55),
+          gainVues: increment(50),
           updatedAt: new Date()
         }, { merge: true });
 
         // 🔄 Mise à jour locale
         let currentViews = parseInt(viewsEl.textContent) || 0;
-        viewsEl.textContent = currentViews + 250;
+        viewsEl.textContent = currentViews + 1;
 
         console.log(`Écoute validée → +1 vue et +55 FCFA au solde de l'artiste ${d.userId}`);
       });
