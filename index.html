@@ -635,13 +635,27 @@ hr {
   <div id="suggestionsList">Chargement…</div>
 </div>
 </section>
+<!-- ============ MUSIC FEED ============ -->
 <section id="music" class="tabcontent">
-    <br><br/>
- <button onclick="openTab(event,'mus')">importer ma musique <i class="fas fa-download"></i></button>  
- <h2>Musiques expire dans 30 jours 🎧</h2>
-<div id="musicFeed"></div>
-</section>
+  <br><br/>
 
+  <!-- Bouton importer musique -->
+  <div class="boutons">
+    <button onclick="openTab(event,'mus')">
+      Importer ma musique <i class="fas fa-upload"></i>
+    </button>
+  </div>
+
+  <!-- Titre -->
+  <h2 style="text-align:center; margin: 1rem 0; color: gold;">
+    🎧 Musiques valides (30 jours max)
+  </h2>
+
+  <!-- Conteneur du feed musique -->
+  <div id="musicFeed">
+    <p style="text-align:center; color:#888;">Chargement des musiques…</p>
+  </div>
+</section>
 <section id="mus" class="tabcontent"> 
 <br><br/>
   <div id="emailLoginBox">
@@ -2881,8 +2895,8 @@ window.publishMusic = async function () {
       statusMsg.textContent = "❌ Erreur lors de la publication.";
     }
   }
-  
-async function renderMusicFeed() {
+
+ async function renderMusicFeed() {
   const container = document.getElementById('musicFeed');
   container.textContent = 'Chargement…';
 
@@ -2899,8 +2913,7 @@ async function renderMusicFeed() {
       // 🎯 1. Ne pas afficher les musiques expirées (30 jours)
       const createdAt = d.createdAt?.toDate?.() || new Date();
       const now = new Date();
-      const ageInMs = now - createdAt;
-      const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
+      const ageInDays = (now - createdAt) / (1000 * 60 * 60 * 24);
       if (ageInDays > 30) continue;
 
       // 🎯 2. Bloc musique
@@ -2929,13 +2942,14 @@ async function renderMusicFeed() {
           return alert("Connectez-vous pour écouter");
         }
 
-        const viewDocRef = doc(db, 'views', `${musicId}_${user.uid}`);
+        // ✅ Vérifie si l’utilisateur a déjà écouté
+        const viewDocRef = doc(db, 'musfeed', musicId, 'viewsByUser', user.uid);
         const viewDocSnap = await getDoc(viewDocRef);
 
-        // Déjà écouté ou c'est l'artiste lui-même → on ne fait rien
+        // Déjà écouté ou c’est l’artiste lui-même → on arrête
         if (viewDocSnap.exists() || user.uid === d.userId) return;
 
-        // Vérifier le solde
+        // Vérifier le solde de l’auditeur
         const walletRef = doc(db, 'wallets', user.uid);
         const walletSnap = await getDoc(walletRef);
         const balance = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
@@ -2945,27 +2959,35 @@ async function renderMusicFeed() {
           return alert("💸 Solde insuffisant pour écouter cette musique.");
         }
 
-        // ➖ Déduire 55
+        // ➖ Déduire 55 au listener
         await updateDoc(walletRef, { balance: increment(-55) });
 
-        // ✅ Marquer comme écouté
+        // ✅ Marquer comme écouté (comme les publications)
         await setDoc(viewDocRef, {
           userId: user.uid,
           musicId,
           playedAt: new Date()
         });
 
-        // ➕ Ajouter 250 vues au champ totalviewcontent de ce morceau
+        // ➕ Incrémenter les vues et totalviewcontent pour l’artiste
         const musicRef = doc(db, 'musfeed', musicId);
         await updateDoc(musicRef, {
+          views: increment(250),
           totalviewcontent: increment(250)
         });
 
-        // 🔄 Mettre à jour le compteur à l’écran (local)
-        let currentViews = parseInt(viewsEl.textContent) || 0;
-        viewsEl.textContent = currentViews + 1;
+        // 🎯 Créditer le solde de l’artiste (comme le soutien)
+        const artistSoldeRef = doc(db, 'soldes', d.userId);
+        await setDoc(artistSoldeRef, {
+          gainVues: increment(55),
+          updatedAt: new Date()
+        }, { merge: true });
 
-        console.log(`Écoute validée et compteur mis à jour pour ${musicId}`);
+        // 🔄 Mise à jour locale
+        let currentViews = parseInt(viewsEl.textContent) || 0;
+        viewsEl.textContent = currentViews + 250;
+
+        console.log(`Écoute validée → +1 vue et +55 FCFA au solde de l'artiste ${d.userId}`);
       });
 
       container.appendChild(div);
