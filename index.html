@@ -68,7 +68,7 @@ header .icons i {
     /* === POST CARD ===================================== */
 .post {
   background: #fff;
-  border-radius: 10px;
+  border-radius: 2px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   padding: 1rem;
   margin-bottom: 1rem;
@@ -127,7 +127,7 @@ header .icons i {
 .post video,
 .post .text-bg {
   width: 100%;
-  border-radius: 10px;
+  border-radius: 1px;
   margin-top: 10px;
 }
 
@@ -216,7 +216,7 @@ header .icons i {
       background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,.1);margin-bottom:15px
     }
     #emailLoginBox input,#emailSignupBox input{margin-bottom:10px}
-    #emailLoginBox button,#emailSignupBox button{background:#1877f2;color:#fff;border:none;padding:10px;font-weight:bold;border-radius:6px;cursor:pointer;width:100%}
+    #emailLoginBox button,#emailSignupBox button{color:#fff;border:none;padding:10px;font-weight:bold;border-radius:6px;cursor:pointer;width:100%}
     #emailLoginBox button:hover,#emailSignupBox button:hover{background:#145ec1}
     #accountStatus{margin-top:10px;font-weight:bold;color:gold}
     #authStatus{margin-top:10px;font-weight:bold;color:#555}
@@ -353,6 +353,7 @@ hr {
 
 <!-- ============ POST ============ -->
 <section id="post" class="tabcontent">
+     <br><br/>
    <div id="emailLoginBox">
   <h2>Publier du texte</h2>
   <textarea id="postText" placeholder="Exprimez-vous..." style="height:15%"></textarea>
@@ -365,16 +366,21 @@ hr {
     <i class="fas fa-palette" style="color: orange;"></i>
     <input type="color" id="bgColor" value="#FFA500"/>
   </label>
+      <!-- Bouton de publication -->
+  <button onclick="publishPost()">Publier</button>
+
   </div>
   <hr/>
-
+<div id="emailLoginBox">
   <h2>Publier une image</h2>
   <input type="file" id="imageFile" accept="image/*" />
   <textarea id="imageTitle" placeholder="Titre de l'image" style="height:8%"></textarea>
-
-  <!-- Bouton de publication -->
+    <!-- Bouton de publication -->
   <button onclick="publishPost()">Publier</button>
-  <p id="status"></p>
+
+  </div>
+
+  <p id="status" style="color:limegreen"></p>
 </section>
 <!-- ============ VIDEO FEED ============ -->
 <section id="videoFeed" class="tabcontent">
@@ -436,9 +442,12 @@ hr {
   <h3>Rechercher un utilisateur</h3>
   <input type="text" id="searchUserInput" placeholder="Nom ou e-mail de l'utilisateur" />
   <button onclick="searchUser()">Rechercher</button>
+    <div id="emailLoginBox">
   <div id="searchResults"></div>
+  </div>
 </section>
 <section id="retrait" class="tabcontent">
+  <br><br/>
   <div id="emailLoginBox">
   <label for="withdrawAmount">Montant à retirer :</label><br>
   <input type="number" id="withdrawAmount" placeholder="min: 5000 XAF" min="5000" required style="width: 100%; margin-bottom: 10px;"><br>
@@ -455,6 +464,7 @@ hr {
 </div>
 </section>
 <section id="choises" class="tabcontent">
+ <br><br/>
  <img src="https://ucarecdn.com/9e557b3e-8112-4472-9858-129187eb3749/-/preview/300x168/" style="width:100%;height:100px" onclick="openTab(event,'retrait')">MTN Momo
  <br><br/>
  <img src="https://ucarecdn.com/8213fd5f-4a33-4603-8bc3-98bb69e55ac0/-/preview/258x195/" style="width:100%;height:100px" onclick="openTab(event,'retrait')">Orange Money
@@ -463,6 +473,7 @@ hr {
 </section>
 <!-- ============ ACCOUNT ============ -->
 <section id="account" class="tabcontent">
+   <br><br/>
    <div id="emailLoginBox">
   <div class="post-header">
 <button onclick="openTab(event,'profilimg')">mon pays <i class="fas fa-flag"></i></button></div>
@@ -511,6 +522,8 @@ hr {
   <div id="myFeed"></div>
 </section>
 <section id="profilimg" class="tabcontent">
+      <br><br/>
+    <div id="emailLoginBox">
   <label for="userCountry">Votre pays :</label>
   <select id="userCountry">
     <option value="1">Cameroun 🇨🇲</option>
@@ -520,6 +533,7 @@ hr {
     <option value="5">Bénin 🇧🇯</option>
     <option value="6">RDC Congo 🇨🇩</option>
   </select>
+  </div>
   <p>
     <i class="fas fa-info-circle" style="color:white"></i>
     Vous verrez plus de publications dans ce pays. NB : il s'enregistre selon votre choix.
@@ -580,11 +594,14 @@ hr {
   </div>
 </section>
 <section id="oublie" class="tabcontent">
+<br><br/> 
+  <div id="emailLoginBox">
   <h3>Réinitialiser le mot de passe</h3>
   
   <input type="email" id="resetEmail" placeholder="Votre email" />
   
   <button onclick="sendResetLink()">Envoyer le lien</button>
+  </div>
 </section>
 <!-- ============ SIGNUP FORM ============ -->
 <section id="inscrip" class="tabcontent">
@@ -619,17 +636,21 @@ hr {
 </div>
 </section>
 <section id="music" class="tabcontent">
+    <br><br/>
  <button onclick="openTab(event,'mus')">importer ma musique <i class="fas fa-download"></i></button>  
-  <p id='s'></p>
- <h2>Musiques expire dans 10 jours 🎧</h2>
+ <h2>Musiques expire dans 30 jours 🎧</h2>
 <div id="musicFeed"></div>
 </section>
-<section id="mus" class="tabcontent">  
+
+<section id="mus" class="tabcontent"> 
+<br><br/>
+  <div id="emailLoginBox">
   <h2>Publier un morceau</h2>  
   <input type="text" id="nom" placeholder="Votre nom d'artiste" />  
   <input type="text" id="titre" placeholder="Titre de la musique" />  
   <input type="file" id="audioFile" accept="audio/*" />  
   <button onclick="publishMusic()">Publier</button>  
+  </div>
   <div id="statusMsg"></div>  
 </section>  
 
@@ -895,6 +916,7 @@ function shuffleFeed() {
   });
 }
 
+
 // Lancer le mélange au chargement
 window.addEventListener('load', shuffleFeed);
   // On récupère toutes les icônes
@@ -908,6 +930,7 @@ icons.forEach(icon => {
     icon.classList.add("active");
   });
 });
+
 /*──────────────────────────────────────────────────────────
   5. AUTH
 ──────────────────────────────────────────────────────────*/
@@ -1670,7 +1693,7 @@ function card(id, d, isMine) {
   if (d.imageUrl) {
     const imgEl = document.createElement('img');
     imgEl.src = d.imageUrl;
-    imgEl.style.cssText = 'max-width:100%;border-radius:8px;';
+    imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
     cont.appendChild(imgEl);
 
     if (d.imageTitle) {
@@ -2896,68 +2919,7 @@ async function renderMusicFeed() {
         </div>
       `;
 
-      // 🎯 3. Ajout de la logique quand on clique sur Play
-      const audio = div.querySelector('audio');
-      const viewsEl = div.querySelector(`#views_${musicId}`);
-
-      audio.addEventListener('play', async () => {
-        if (!user) return alert("Connectez-vous pour écouter");
-
-        const viewDocRef = doc(db, 'views', `${musicId}_${user.uid}`);
-        const viewDocSnap = await getDoc(viewDocRef);
-
-        // Déjà écouté → on ne refait rien
-        if (viewDocSnap.exists() || user.uid === d.userId) return;
-
-        // Vérifier le solde
-        const walletRef = doc(db, 'wallets', user.uid);
-        const walletSnap = await getDoc(walletRef);
-        const balance = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
-
-        if (balance < 55) {
-          audio.pause();
-          alert("💸 Solde insuffisant pour écouter cette musique.");
-          return;
-        }
-
-async function renderMusicFeed() {
-  const container = document.getElementById('musicFeed');
-  container.textContent = 'Chargement…';
-
-  try {
-    const q = query(collection(db, 'musfeed'), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
-    container.innerHTML = '';
-    const user = currentUser;
-
-    for (const docSnap of snapshot.docs) {
-      const d = docSnap.data();
-      const musicId = docSnap.id;
-
-      // 🎯 1. Ne pas afficher les musiques expirées (30 jours)
-      const createdAt = d.createdAt?.toDate?.() || new Date();
-      const now = new Date();
-      const ageInMs = now - createdAt;
-      const ageInDays = ageInMs / (1000 * 60 * 60 * 24);
-      if (ageInDays > 30) continue;
-
-      // 🎯 2. Bloc musique
-      const div = document.createElement('div');
-      div.style.border = '1px solid #ccc';
-      div.style.borderRadius = '10px';
-      div.style.padding = '1rem';
-      div.style.marginBottom = '1rem';
-
-      div.innerHTML = `
-        <strong>${d.nom} - ${d.titre}</strong><br/>
-        <audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>
-        <div style="margin-top: 10px; font-size: 14px; color: #555; display: flex; align-items: center;">
-          <i class="fa-solid fa-headphone" style="margin-right: 6px;"></i>
-          <span id="views_${musicId}">${d.views || 0}</span>
-        </div>
-      `;
-
-      // 🎯 3. Ajout de la logique quand on clique sur Play
+      // 🎯 3. Logique quand on clique sur Play
       const audio = div.querySelector('audio');
       const viewsEl = div.querySelector(`#views_${musicId}`);
 
@@ -2993,17 +2955,13 @@ async function renderMusicFeed() {
           playedAt: new Date()
         });
 
-        // ➕ Ajouter 250 vues à l’artiste
-        const statsRef = doc(db, 'totalviewcontent', d.userId);
-        const statsSnap = await getDoc(statsRef);
+        // ➕ Ajouter 250 vues au champ totalviewcontent de ce morceau
+        const musicRef = doc(db, 'musfeed', musicId);
+        await updateDoc(musicRef, {
+          totalviewcontent: increment(250)
+        });
 
-        if (statsSnap.exists()) {
-          await updateDoc(statsRef, { views: increment(250) });
-        } else {
-          await setDoc(statsRef, { views: 250 });
-        }
-
-        // 🔄 Mettre à jour le compteur à l’écran
+        // 🔄 Mettre à jour le compteur à l’écran (local)
         let currentViews = parseInt(viewsEl.textContent) || 0;
         viewsEl.textContent = currentViews + 1;
 
@@ -3012,17 +2970,19 @@ async function renderMusicFeed() {
 
       container.appendChild(div);
     }
+
   } catch (err) {
     console.error(err);
     container.textContent = 'Erreur de chargement des musiques.';
   }
 }
 
-// ⚡ Rendu seulement → la logique de paiement se déclenche sur "play"
+// ⚡ Rendu automatique → la logique de paiement se déclenche sur "play"
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   renderMusicFeed();
 });
+
 const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
     const jour = maintenant.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
