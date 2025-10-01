@@ -667,7 +667,11 @@ hr {
   </div>
   <div id="statusMsg"></div>  
 </section>  
-
+<!-- ============ MUSIC PLAYER UNIQUE ============ -->
+<section id="musicPlayer" class="tabcontent">
+  <h3>🎵 Musique</h3>
+  <div id="openMusicById"></div>
+</section>
 <section id="condis" class="tabcontent">
   <h2> Critères generales de monetisation :
 
@@ -3076,7 +3080,6 @@ onAuthStateChanged(auth, (user) => {
 /*──────────────────────────────────────────────────────────
   13. MUSIC CARD + OPEN BY ID
 ──────────────────────────────────────────────────────────*/
-
 async function openMusicById(musicId) {
   try {
     const docRef = doc(db, "musfeed", musicId);
@@ -3084,10 +3087,10 @@ async function openMusicById(musicId) {
     if (!snap.exists()) return alert("❌ Musique introuvable");
 
     const d = snap.data();
-    const c = document.getElementById("musicFeed");
+    const c = document.getElementById("openMusicById"); // ✅ zone dédiée
     c.innerHTML = "";
 
-    // Recréer la même carte musique que dans renderMusicFeed
+    // Recréer la carte musique
     const div = document.createElement('div');
     div.className = "post";
     div.style.borderRadius = '10px';
@@ -3176,34 +3179,26 @@ async function openMusicById(musicId) {
 
     c.appendChild(div);
 
-    // Ouvrir l’onglet musique
-    openTab({ currentTarget: document.querySelector('[onclick*="music"]') }, "music");
+    // ✅ Ouvrir la section musique unique
+    openTab({ currentTarget: document.querySelector('[onclick*="music"]') }, "musicPlayer");
 
   } catch (err) {
     console.error("Erreur openMusicById:", err);
     alert("Erreur chargement musique");
   }
 }
+
 /*──────────────────────────────────────────────────────────
   14. INTERCEPTER URL DIRECTE
 ──────────────────────────────────────────────────────────*/
-
-  window.addEventListener("load", () => {
+window.addEventListener("load", () => {
   const path = window.location.pathname;
-
-  // Profils
-  if (path.startsWith("/user/")) {
-    const userId = path.split("/user/")[1];
-    if (userId) openUserFeed(userId);
-  }
-
-  // Musiques
   if (path.startsWith("/music/")) {
-    const musicId = path.split("/music/")[1];
+    const musicId = path.replace("/music/", "").replace(/\/$/, ""); 
     if (musicId) openMusicById(musicId);
   }
 });
-  
+
 const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
     const jour = maintenant.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
