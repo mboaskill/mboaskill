@@ -2952,7 +2952,7 @@ window.publishMusic = async function () {
     }
   }
 
- async function renderMusicFeed() {
+async function renderMusicFeed() {
   const container = document.getElementById('musicFeed');
   container.textContent = 'Chargement…';
 
@@ -2966,15 +2966,15 @@ window.publishMusic = async function () {
       const d = docSnap.data();
       const musicId = docSnap.id;
 
-      // 🎯 1. Ne pas afficher les musiques expirées (30 jours)
+      // 🎯 1. Vérifier expiration (30 jours max)
       const createdAt = d.createdAt?.toDate?.() || new Date();
       const now = new Date();
       const ageInDays = (now - createdAt) / (1000 * 60 * 60 * 24);
       if (ageInDays > 30) continue;
 
-      // 🎯 2. Bloc musique
+      // 🎯 2. Créer la carte musique
       const div = document.createElement('div');
-      div.style.border = '1px solid #ccc';
+      div.className = "post";
       div.style.borderRadius = '10px';
       div.style.padding = '1rem';
       div.style.marginBottom = '1rem';
@@ -2982,13 +2982,27 @@ window.publishMusic = async function () {
       div.innerHTML = `
         <strong>${d.nom} - ${d.titre}</strong><br/>
         <audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>
-        <div style="margin-top: 10px; font-size: 14px; color: #555; display: flex; align-items: center;">
-          <i class="fa-solid fa-headphone" style="margin-right: 6px;"></i>
-          <span id="views_${musicId}">${d.views || 0}</span>
+
+        <div style="margin-top: 10px; font-size: 14px; color: #555; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display:flex;align-items:center;">
+            <i class="fa-solid fa-headphone" style="margin-right: 6px;"></i>
+            <span id="views_${musicId}">${d.views || 0}</span>
+          </div>
+          <button class="share-btn" style="background:none;border:none;cursor:pointer;color:gold;" title="Copier le lien">
+            <i class="fas fa-share"></i>
+          </button>
         </div>
       `;
 
-      // 🎯 3. Logique quand on clique sur Play
+      // 🎯 3. Copier le lien musique
+      const shareBtn = div.querySelector('.share-btn');
+      shareBtn.addEventListener('click', () => {
+        const link = `https://mboaskill.cm/music/${musicId}`;
+        navigator.clipboard.writeText(link);
+        alert("Lien copié : " + link);
+      });
+
+      // 🎯 4. Logique de paiement à l’écoute
       const audio = div.querySelector('audio');
       const viewsEl = div.querySelector(`#views_${musicId}`);
 
@@ -2998,11 +3012,10 @@ window.publishMusic = async function () {
           return alert("Connectez-vous pour écouter");
         }
 
-        // ✅ Vérifie si l’utilisateur a déjà écouté
         const viewDocRef = doc(db, 'musfeed', musicId, 'viewsByUser', user.uid);
         const viewDocSnap = await getDoc(viewDocRef);
 
-        // Déjà écouté ou c’est l’artiste lui-même → on arrête
+        // Déjà écouté ou artiste lui-même → pas de déduction
         if (viewDocSnap.exists() || user.uid === d.userId) return;
 
         // Vérifier le solde de l’auditeur
@@ -3018,21 +3031,21 @@ window.publishMusic = async function () {
         // ➖ Déduire 55 au listener
         await updateDoc(walletRef, { balance: increment(-55) });
 
-        // ✅ Marquer comme écouté (comme les publications)
+        // ✅ Marquer comme écouté
         await setDoc(viewDocRef, {
           userId: user.uid,
           musicId,
           playedAt: new Date()
         });
 
-        // ➕ Incrémenter les vues et totalviewcontent pour l’artiste
+        // ➕ Incrémenter vues & totalviewcontent
         const musicRef = doc(db, 'musfeed', musicId);
         await updateDoc(musicRef, {
           views: increment(1),
           totalviewcontent: increment(250)
         });
 
-        // 🎯 Créditer le solde de l’artiste (comme le soutien)
+        // 🎯 Créditer le solde de l’artiste
         const artistSoldeRef = doc(db, 'soldes', d.userId);
         await setDoc(artistSoldeRef, {
           gainVues: increment(50),
@@ -3043,7 +3056,7 @@ window.publishMusic = async function () {
         let currentViews = parseInt(viewsEl.textContent) || 0;
         viewsEl.textContent = currentViews + 1;
 
-        console.log(`Écoute validée → +1 vue et +55 FCFA au solde de l'artiste ${d.userId}`);
+        console.log(`Écoute validée → +1 vue & +50 FCFA pour l'artiste ${d.userId}`);
       });
 
       container.appendChild(div);
@@ -3055,10 +3068,131 @@ window.publishMusic = async function () {
   }
 }
 
-// ⚡ Rendu automatique → la logique de paiement se déclenche sur "play"
+// ⚡ Rendu auto après connexion
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
   renderMusicFeed();
+});
+/*──────────────────────────────────────────────────────────
+  13. MUSIC CARD + OPEN BY ID
+──────────────────────────────────────────────────────────*/
+
+async function openMusicById(musicId) {
+  try {
+    const docRef = doc(db, "musfeed", musicId);
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) return alert("❌ Musique introuvable");
+
+    const d = snap.data();
+    const c = document.getElementById("musicFeed");
+    c.innerHTML = "";
+
+    // Recréer la même carte musique que dans renderMusicFeed
+    const div = document.createElement('div');
+    div.className = "post";
+    div.style.borderRadius = '10px';
+    div.style.padding = '1rem';
+    div.style.marginBottom = '1rem';
+
+    div.innerHTML = `
+      <strong>${d.nom} - ${d.titre}</strong><br/>
+      <audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>
+
+      <div style="margin-top: 10px; font-size: 14px; color: #555; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display:flex;align-items:center;">
+          <i class="fa-solid fa-headphone" style="margin-right: 6px;"></i>
+          <span id="views_${musicId}">${d.views || 0}</span>
+        </div>
+        <button class="share-btn" style="background:none;border:none;cursor:pointer;color:gold;" title="Copier le lien">
+          <i class="fas fa-share"></i>
+        </button>
+      </div>
+    `;
+
+    // Bouton partager
+    const shareBtn = div.querySelector('.share-btn');
+    shareBtn.addEventListener('click', () => {
+      const link = `https://mboaskill.cm/music/${musicId}`;
+      navigator.clipboard.writeText(link);
+      alert("Lien copié : " + link);
+    });
+
+    // Logique paiement/vues
+    const audio = div.querySelector('audio');
+    const viewsEl = div.querySelector(`#views_${musicId}`);
+
+    audio.addEventListener('play', async () => {
+      if (!currentUser) {
+        audio.pause();
+        return alert("Connectez-vous pour écouter");
+      }
+
+      const viewDocRef = doc(db, 'musfeed', musicId, 'viewsByUser', currentUser.uid);
+      const viewDocSnap = await getDoc(viewDocRef);
+
+      // Déjà écouté ou artiste lui-même
+      if (viewDocSnap.exists() || currentUser.uid === d.userId) return;
+
+      // Vérifier solde
+      const walletRef = doc(db, 'wallets', currentUser.uid);
+      const walletSnap = await getDoc(walletRef);
+      const balance = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
+
+      if (balance < 55) {
+        audio.pause();
+        return alert("💸 Solde insuffisant pour écouter cette musique.");
+      }
+
+      // Déduire 55
+      await updateDoc(walletRef, { balance: increment(-55) });
+
+      // Marquer écoute
+      await setDoc(viewDocRef, {
+        userId: currentUser.uid,
+        musicId,
+        playedAt: new Date()
+      });
+
+      // Incrémenter vues
+      const musicRef = doc(db, 'musfeed', musicId);
+      await updateDoc(musicRef, {
+        views: increment(1),
+        totalviewcontent: increment(250)
+      });
+
+      // Créditer artiste
+      const artistSoldeRef = doc(db, 'soldes', d.userId);
+      await setDoc(artistSoldeRef, {
+        gainVues: increment(50),
+        updatedAt: new Date()
+      }, { merge: true });
+
+      // Mettre à jour affichage
+      let currentViews = parseInt(viewsEl.textContent) || 0;
+      viewsEl.textContent = currentViews + 1;
+
+      console.log(`🎵 +1 vue et crédit artiste ${d.userId}`);
+    });
+
+    c.appendChild(div);
+
+    // Ouvrir l’onglet musique
+    openTab({ currentTarget: document.querySelector('[onclick*="music"]') }, "music");
+
+  } catch (err) {
+    console.error("Erreur openMusicById:", err);
+    alert("Erreur chargement musique");
+  }
+}
+/*──────────────────────────────────────────────────────────
+  14. INTERCEPTER URL DIRECTE
+──────────────────────────────────────────────────────────*/
+window.addEventListener("load", () => {
+  const path = window.location.pathname;
+  if (path.startsWith("/music/")) {
+    const musicId = path.split("/music/")[1];
+    if (musicId) openMusicById(musicId);
+  }
 });
 
 const boutonLundi = document.getElementById('bouton-lundi');
