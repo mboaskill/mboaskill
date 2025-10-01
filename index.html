@@ -3072,10 +3072,23 @@ async function renderMusicFeed() {
   }
 }
 
-// ⚡ Rendu auto après connexion
 onAuthStateChanged(auth, (user) => {
   currentUser = user;
-  renderMusicFeed();
+
+  const path = window.location.pathname;
+
+  // 🎯 Si lien direct musique
+  if (path.startsWith("/music/")) {
+    const musicId = path.replace("/music/", "").replace(/\/$/, "");
+    if (musicId) {
+      // attendre un peu pour que le DOM soit prêt
+      setTimeout(() => openMusicById(musicId), 300);
+    }
+  } 
+  // 🎯 Sinon flux complet
+  else {
+    renderMusicFeed();
+  }
 });
 /*──────────────────────────────────────────────────────────
   13. MUSIC CARD + OPEN BY ID
@@ -3191,13 +3204,11 @@ async function openMusicById(musicId) {
 /*──────────────────────────────────────────────────────────
   14. INTERCEPTER URL DIRECTE
 ──────────────────────────────────────────────────────────*/
-window.addEventListener("load", () => {
-  const path = window.location.pathname;
-  if (path.startsWith("/music/")) {
-    const musicId = path.replace("/music/", "").replace(/\/$/, ""); 
-    if (musicId) openMusicById(musicId);
-  }
-});
+const path = window.location.pathname;
+if (path.startsWith("/music/")) {
+  const musicId = path.replace("/music/", "").replace(/\/$/, "");
+  if (musicId) setTimeout(() => openMusicById(musicId), 500);
+}
 
 const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
