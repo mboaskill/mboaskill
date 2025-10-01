@@ -669,8 +669,18 @@ hr {
 </section>  
 <!-- ============ MUSIC PLAYER UNIQUE ============ -->
 <section id="musicPlayer" class="tabcontent">
-  <h3>🎵 Musique</h3>
-  <div id="openMusicById"></div>
+  <div style="padding: 6rem 1rem 1rem;">
+    <div style="display: flex; align-items: center; margin-bottom: 20px;">
+      <i class="fas fa-arrow-left" style="cursor: pointer; margin-right: 15px; font-size: 1.2rem;" 
+         onclick="openTab(event, 'music')"></i>
+      <h3 style="margin: 0; color: gold;">🎵 Écouter</h3>
+    </div>
+    <div id="openMusicById">
+      <p style="text-align: center; color: #888;">
+        Chargement de la musique...
+      </p>
+    </div>
+  </div>
 </section>
 <section id="condis" class="tabcontent">
   <h2> Critères generales de monetisation :
@@ -3095,15 +3105,27 @@ onAuthStateChanged(auth, (user) => {
 ──────────────────────────────────────────────────────────*/
 async function openMusicById(musicId) {
   try {
+    console.log("Tentative d'ouverture musique ID:", musicId); // Debug
+    
     const docRef = doc(db, "musfeed", musicId);
     const snap = await getDoc(docRef);
-    if (!snap.exists()) return alert("❌ Musique introuvable");
+    
+    if (!snap.exists()) {
+      alert("❌ Musique introuvable ou supprimée");
+      return;
+    }
 
     const d = snap.data();
-    const c = document.getElementById("openMusicById"); // ✅ zone dédiée
+    const c = document.getElementById("openMusicById");
+    
+    if (!c) {
+      console.error("Element openMusicById introuvable");
+      return;
+    }
+
     c.innerHTML = "";
 
-    // Recréer la carte musique
+    // Créer la carte musique
     const div = document.createElement('div');
     div.className = "post";
     div.style.borderRadius = '10px';
@@ -3111,16 +3133,19 @@ async function openMusicById(musicId) {
     div.style.marginBottom = '1rem';
 
     div.innerHTML = `
-      <strong>${d.nom} - ${d.titre}</strong><br/>
+      <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <i class="fas fa-music" style="color: gold; margin-right: 10px; font-size: 1.2rem;"></i>
+        <strong style="font-size: 1.1rem;">${d.nom || 'Artiste inconnu'} - ${d.titre || 'Titre inconnu'}</strong>
+      </div>
       <audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>
 
       <div style="margin-top: 10px; font-size: 14px; color: #555; display: flex; justify-content: space-between; align-items: center;">
         <div style="display:flex;align-items:center;">
           <i class="fa-solid fa-headphone" style="margin-right: 6px;"></i>
-          <span id="views_${musicId}">${d.views || 0}</span>
+          <span id="views_${musicId}">${d.views || 0}</span> vues
         </div>
-        <button class="share-btn" style="background:none;border:none;cursor:pointer;color:gold;" title="Copier le lien">
-          <i class="fas fa-share"></i>
+        <button class="share-btn" style="background:gold;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;" title="Copier le lien">
+          <i class="fas fa-share"></i> Partager
         </button>
       </div>
     `;
@@ -3128,9 +3153,10 @@ async function openMusicById(musicId) {
     // Bouton partager
     const shareBtn = div.querySelector('.share-btn');
     shareBtn.addEventListener('click', () => {
-      const link = `https://mboaskill.cm/music/${musicId}`;
-      navigator.clipboard.writeText(link);
-      alert("Lien copié : " + link);
+      const link = `${window.location.origin}/music/${musicId}`;
+      navigator.clipboard.writeText(link).then(() => {
+        alert("✅ Lien copié : " + link);
+      });
     });
 
     // Logique paiement/vues
@@ -3140,14 +3166,19 @@ async function openMusicById(musicId) {
     audio.addEventListener('play', async () => {
       if (!currentUser) {
         audio.pause();
-        return alert("Connectez-vous pour écouter");
+        alert("🔒 Connectez-vous pour écouter cette musique");
+        openTab({ currentTarget: document.querySelector('[onclick*="conect"]') }, "conect");
+        return;
       }
 
       const viewDocRef = doc(db, 'musfeed', musicId, 'viewsByUser', currentUser.uid);
       const viewDocSnap = await getDoc(viewDocRef);
 
       // Déjà écouté ou artiste lui-même
-      if (viewDocSnap.exists() || currentUser.uid === d.userId) return;
+      if (viewDocSnap.exists() || currentUser.uid === d.userId) {
+        console.log("Musique déjà écoutée ou artiste propriétaire");
+        return;
+      }
 
       // Vérifier solde
       const walletRef = doc(db, 'wallets', currentUser.uid);
@@ -3156,69 +3187,108 @@ async function openMusicById(musicId) {
 
       if (balance < 55) {
         audio.pause();
-        return alert("💸 Solde insuffisant pour écouter cette musique.");
+        alert("💸 Solde insuffisant (55 FCFA requis) pour écouter cette musique.");
+        return;
       }
 
-      // Déduire 55
-      await updateDoc(walletRef, { balance: increment(-55) });
+      try {
+        // Déduire 55 FCFA
+        await updateDoc(walletRef, { balance: increment(-55) });
 
-      // Marquer écoute
-      await setDoc(viewDocRef, {
-        userId: currentUser.uid,
-        musicId,
-        playedAt: new Date()
-      });
+        // Marquer écoute
+        await setDoc(viewDocRef, {
+          userId: currentUser.uid,
+          musicId,
+          playedAt: new Date()
+        });
 
-      // Incrémenter vues
-      const musicRef = doc(db, 'musfeed', musicId);
-      await updateDoc(musicRef, {
-        views: increment(1),
-        totalviewcontent: increment(250)
-      });
+        // Incrémenter vues
+        const musicRef = doc(db, 'musfeed', musicId);
+        await updateDoc(musicRef, {
+          views: increment(1),
+          totalviewcontent: increment(250)
+        });
 
-      // Créditer artiste
-      const artistSoldeRef = doc(db, 'soldes', d.userId);
-      await setDoc(artistSoldeRef, {
-        gainVues: increment(50),
-        updatedAt: new Date()
-      }, { merge: true });
+        // Créditer artiste
+        const artistSoldeRef = doc(db, 'soldes', d.userId);
+        await setDoc(artistSoldeRef, {
+          gainVues: increment(50),
+          updatedAt: new Date()
+        }, { merge: true });
 
-      // Mettre à jour affichage
-      let currentViews = parseInt(viewsEl.textContent) || 0;
-      viewsEl.textContent = currentViews + 1;
+        // Mettre à jour affichage
+        let currentViews = parseInt(viewsEl.textContent) || 0;
+        viewsEl.textContent = currentViews + 1;
 
-      console.log(`🎵 +1 vue et crédit artiste ${d.userId}`);
+        console.log(`🎵 +1 vue et crédit artiste ${d.userId}`);
+        
+      } catch (error) {
+        console.error("Erreur lors de l'écoute:", error);
+        alert("❌ Erreur lors de la lecture");
+        audio.pause();
+      }
     });
 
     c.appendChild(div);
-
-    // ✅ Ouvrir la section musique unique
-    openTab({ currentTarget: document.querySelector('[onclick*="music"]') }, "musicPlayer");
+    console.log("✅ Musique chargée avec succès");
 
   } catch (err) {
-    console.error("Erreur openMusicById:", err);
-    alert("Erreur chargement musique");
+    console.error("❌ Erreur openMusicById:", err);
+    alert("❌ Erreur lors du chargement de la musique");
   }
 }
 
-// ✅ Gestion des liens directs vers une musique
+// Fonction utilitaire pour ouvrir une musique depuis n'importe où
+window.openMusicByLink = function(musicId) {
+  if (!musicId) {
+    console.error("ID de musique manquant");
+    return;
+  }
+  
+  // Ouvrir l'onglet musicPlayer
+  openTab({ currentTarget: document.querySelector('.tablinks[onclick*="musicPlayer"]') }, "musicPlayer");
+  
+  // Attendre que l'onglet soit visible puis charger la musique
+  setTimeout(() => {
+    openMusicById(musicId);
+  }, 300);
+};
+// ✅ Gestion des liens directs vers une musique - CORRIGÉ
 window.addEventListener("load", () => {
   const path = window.location.pathname;
+  const hash = window.location.hash;
 
-  // Vérifie si l’URL est de type /music/:id
+  console.log("Path:", path, "Hash:", hash); // Debug
+
+  // Vérifie si l'URL est de type /music/:id
   const match = path.match(/^\/music\/([^/]+)$/);
-  if (match) {
+  if (match && match[1]) {
     const musicId = match[1];
+    console.log("Music ID trouvé:", musicId); // Debug
 
-    // Activer l’onglet du lecteur
-    document.querySelectorAll(".tabcontent").forEach(t => t.classList.remove("active"));
-    document.getElementById("musicPlayer").classList.add("active");
+    // Attendre que l'authentification soit prête
+    const checkAuthAndOpen = setInterval(() => {
+      if (typeof openMusicById === 'function' && currentUser !== undefined) {
+        clearInterval(checkAuthAndOpen);
+        
+        // Activer l'onglet du lecteur
+        document.querySelectorAll(".tabcontent").forEach(t => t.classList.remove("active"));
+        document.getElementById("musicPlayer").classList.add("active");
+        
+        // Mettre à jour la navigation
+        document.querySelectorAll('.tablinks').forEach(l => l.classList.remove('selected'));
+        const musicTab = document.querySelector('.tablinks[onclick*="musicPlayer"]');
+        if (musicTab) musicTab.classList.add('selected');
 
-    // Charger la musique
-    openMusicById(musicId);
+        // Charger la musique
+        openMusicById(musicId);
+      }
+    }, 100);
+
+    // Timeout de sécurité
+    setTimeout(() => clearInterval(checkAuthAndOpen), 5000);
   }
 });
-
 const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
     const jour = maintenant.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
