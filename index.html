@@ -3187,14 +3187,20 @@ async function openMusicById(musicId) {
 /*──────────────────────────────────────────────────────────
   14. INTERCEPTER URL DIRECTE
 ──────────────────────────────────────────────────────────*/
+// ✅ Détection des URLs /music/{id} pour Netlify SPA
 window.addEventListener("load", () => {
   const path = window.location.pathname;
+
+  // Vérifie si l'URL commence par /music/
   if (path.startsWith("/music/")) {
-    const musicId = path.split("/music/")[1];
-    if (musicId) openMusicById(musicId);
+    const musicId = path.split("/music/")[1]; // récupère l'ID après /music/
+    if (musicId) {
+      console.log("Chargement musique depuis URL :", musicId);
+      openMusicById(musicId); // affiche la musique directement
+    }
   }
 });
-
+  
 const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
     const jour = maintenant.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
