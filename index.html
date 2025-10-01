@@ -3240,13 +3240,23 @@ window.checkMusicFromURL = function () {
       window.openMusicById(musicId);
     }
   }, 100);
+
+  // ⚡ AJOUTER CE TIMEOUT DE SÉCURITÉ :
+  setTimeout(() => {
+    clearInterval(waitForUser);
+    console.log("Timeout - Utilisateur non chargé après 5 secondes");
+  }, 5000); // Stop après 5 secondes
 };
 
-// Appel immédiat + popstate pour navigation interne
-window.checkMusicFromURL();
+// ATTENDRE que le DOM soit complètement chargé
+window.addEventListener('DOMContentLoaded', function() {
+    window.checkMusicFromURL();
+});
+
+// Gérer aussi les navigations (bouton retour/avant)
 window.addEventListener("popstate", window.checkMusicFromURL);
 
-const boutonLundi = document.getElementById('bouton-lundi');
+  const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
     const jour = maintenant.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
 
