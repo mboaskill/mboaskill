@@ -3201,14 +3201,23 @@ async function openMusicById(musicId) {
   }
 }
 
-/*──────────────────────────────────────────────────────────
-  14. INTERCEPTER URL DIRECTE
-──────────────────────────────────────────────────────────*/
-const path = window.location.pathname;
-if (path.startsWith("/music/")) {
-  const musicId = path.replace("/music/", "").replace(/\/$/, "");
-  if (musicId) setTimeout(() => openMusicById(musicId), 500);
-}
+// ✅ Gestion des liens directs vers une musique
+window.addEventListener("load", () => {
+  const path = window.location.pathname;
+
+  // Vérifie si l’URL est de type /music/:id
+  const match = path.match(/^\/music\/([^/]+)$/);
+  if (match) {
+    const musicId = match[1];
+
+    // Activer l’onglet du lecteur
+    document.querySelectorAll(".tabcontent").forEach(t => t.classList.remove("active"));
+    document.getElementById("musicPlayer").classList.add("active");
+
+    // Charger la musique
+    openMusicById(musicId);
+  }
+});
 
 const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
