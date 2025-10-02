@@ -3226,13 +3226,17 @@ window.openMusicById = async function (musicId) {
     alert("❌ Erreur lors du chargement de la musique");
   }
 };
+
 // Votre nouveau code - Ouvre via URL :
 window.checkMusicFromURL = function () {
   const path = window.location.pathname;
   const match = path.match(/^\/music\/([^/]+)$/);
   if (!match) return;
+
   const musicId = match[1];
-  window.openMusicById(musicId); // ← Même fonction!
+  // ouvre le lecteur
+  openTab({ currentTarget: null }, 'musicPlayer');
+  window.openMusicById(musicId);
 };
 // Vérifie si l'URL actuelle correspond à une musique
 window.addEventListener('DOMContentLoaded', () => {
