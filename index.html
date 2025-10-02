@@ -555,7 +555,7 @@ hr {
  <h3>Recharger mon compte</h3>
   <div id="emailLoginBox">
   <div class="post-header">
-  <input type="number" id="montant" placeholder="Montant min: 500 XAF" min="500" style="padding: 6px; width: 150px;">
+  <input type="number" id="montant" placeholder="Montant min: 100 XAF" min="100" style="padding: 6px; width: 150px;">
   <button id="notchpayBtn" style="padding: 6px 12px; background-color: #1877f2; color: white; border: none; border-radius: 4px; cursor: pointer;">
     Deposer
   </button>
@@ -578,7 +578,7 @@ hr {
   </select>
   <button onclick="boostPost()">Booster</button>
 </div>  <br>
-  <p><i class="fas fa-info-circle" style="color:#fff"></i> Le nombre de personnes à entrer est une estimation du nombres de vues par jour. minimum 200 vues (min: 200/5j pour 4600 XAF)</p>
+  <p><i class="fas fa-info-circle" style="color:#fff"></i> Le nombre de personnes à entrer est une estimation du nombres de vues par jour. minimum 200 vues (min: 200/5j pour 3500 XAF)</p>
 </section>
 
 <!-- ============ LOGIN FORM ============ -->
@@ -2043,9 +2043,9 @@ async function debit(cost){
 window.boostPost = async () => {
   if (!boostId) return alert('Choisissez une publication');
   const v = parseInt(qs('boostViews').value);
-  if (isNaN(v) || v < 200) return alert('Min 2 000 vues (4600 XAF)');
+  if (isNaN(v) || v < 200) return alert('Min 200 vues (3500 XAF)');
 
-  const cost = Math.ceil(v / 100) * 2300;
+  const cost = Math.ceil(v / 100) * 1750;
   if (!(await debit(cost))) return;
 
   const countryIndex = parseInt(qs('boostCountry').value);
