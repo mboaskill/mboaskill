@@ -3269,43 +3269,60 @@ window.openMusicById = async function (musicId) {
   }
 };
 
-// 🎵 Gestion unifiée des URLs musique
-function handleMusicURL() {
+window.addEventListener('DOMContentLoaded', () => {
   const path = window.location.pathname;
-  const match = path.match(/^\/music\/([^/]+)$/);
-  
-  if (!match) return; // Pas une URL musique
-  
-  const musicId = match[1];
-  console.log("🎧 URL musique détectée:", musicId);
 
-  // Fonction pour ouvrir la musique
-  const openMusicFromURL = () => {
-    if (typeof window.openMusicById !== "function") {
-      console.log("⏳ En attente de openMusicById...");
-      setTimeout(openMusicFromURL, 300);
-      return;
+  // 🟡 Cas : route utilisateur /u/:uid
+  const matchUser = path.match(/^\/u\/([^\/]+)/);
+  if (matchUser && matchUser[1]) {
+    const uid = matchUser[1];
+    if (typeof window.openUserFeed === 'function') {
+      window.openUserFeed(uid);
+    } else {
+      const check = setInterval(() => {
+        if (typeof window.openUserFeed === 'function') {
+          clearInterval(check);
+          window.openUserFeed(uid);
+        }
+      }, 200);
     }
+    return; // ⛔ stop ici
+  }
 
-    // 1. Ouvrir l'onglet musicPlayer
-    const musicIcon = document.querySelector('.tablinks[onclick*="music"]');
-    if (musicIcon) {
-      openTab({ currentTarget: musicIcon }, 'musicPlayer');
-    }
-
-    // 2. Charger la musique après un petit délai pour laisser le DOM se mettre à jour
-    setTimeout(() => {
+  // 🟡 Cas : route musique /music/:id
+  const matchMusic = path.match(/^\/music\/([^\/]+)/);
+  if (matchMusic && matchMusic[1]) {
+    const musicId = matchMusic[1];
+    if (typeof window.openMusicById === 'function') {
+      // ouvre le player avec la musique
       window.openMusicById(musicId);
-      // Nettoyer l'URL
-      history.replaceState({}, '', '/');
-    }, 500);
-  };
+    } else {
+      const check = setInterval(() => {
+        if (typeof window.openMusicById === 'function') {
+          clearInterval(check);
+          window.openMusicById(musicId);
+        }
+      }, 200);
+    }
+    return; // ⛔ stop ici
+  }
 
-  openMusicFromURL();
-}
+  // Autres routes déjà présentes
+  switch (path) {
+    case '/#music':
+      window.openTab('music');
+      break;
+    case '/#image':
+      window.openTab('videoFeed');
+      break;
+    case '/#feedme':
+      window.openTab('feedme');
+      break;
+  }
 
-// Lancer au chargement de la page
-window.addEventListener("DOMContentLoaded", handleMusicURL);
+  // Nettoyer l’URL visuellement
+  history.replaceState({}, '', '/');
+});
 
 const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
