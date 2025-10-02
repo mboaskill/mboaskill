@@ -2341,7 +2341,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // 🔹 Charger VUES + calcul gain automatique
 // ===========================================
 // 🔹 Charger VUES + calcul gain automatique
-// ===========================================
 async function loadTotalViewsAndBalance() {
   if (!currentUser) return console.warn("loadTotalViewsAndBalance: currentUser null");
 
@@ -2377,22 +2376,22 @@ async function loadTotalViewsAndBalance() {
 
     const lastViewsCount = Number(soldeData.lastViewsCount || 0);
     let gainVues = Number(soldeData.gainVues || 0);
+    let montant  = Number(soldeData.montant || 0);
 
     // ---- 3) calcul des nouvelles vues non comptées ----
     const newViews = totalViews - lastViewsCount;
     if (newViews > 0) {
-      const newGain = newViews * 0.2; // 1 vue = 0.2 FCFA (soit 1000 vues = 200 FCFA)
+      const newGain = newViews * 0.2; // 1 vue = 0.2 FCFA
       gainVues += newGain;
 
       await setDoc(soldeRef, {
         gainVues,
-        lastViewsCount: totalViews, // ✅ Mis à jour uniquement ici
+        lastViewsCount: totalViews, // ✅ avance uniquement avec les nouvelles vues
         totalViews,
+        montant,
         updatedAt: new Date()
       }, { merge: true });
     }
-
-    const montant = Number(soldeData.montant || 0);
 
     // ---- 4) mise à jour interface ----
     const totalViewsCountEl = document.getElementById('totalViewsCount');
@@ -2409,7 +2408,6 @@ async function loadTotalViewsAndBalance() {
     console.error("Erreur loadTotalViewsAndBalance :", err);
   }
 }
-
 // ===================================
 // 🔹 Retrait du solde réel + gainVues
 // ===================================
