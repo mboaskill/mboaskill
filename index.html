@@ -3228,18 +3228,37 @@ window.openMusicById = async function (musicId) {
 };
 
 // Votre nouveau code - Ouvre via URL :
+// Fonction pour ouvrir une musique depuis l'URL
+// 🚀 Vérifie si on ouvre une URL directe type /music/ID
 window.checkMusicFromURL = function () {
   const path = window.location.pathname;
   const match = path.match(/^\/music\/([^/]+)$/);
   if (!match) return;
 
   const musicId = match[1];
-  // ouvre le lecteur
-  openTab({ currentTarget: null }, 'music');
-  window.openMusicById(musicId);
+
+  const checkAuthAndOpen = () => {
+    if (currentUser) {
+      // Ouvre directement l’onglet musicPlayer
+      openTab({ currentTarget: document.querySelector("i[onclick*='music_note']") }, 'musicPlayer');
+
+      // Charge la musique (⚠️ bien utiliser openMusicById)
+      if (typeof window.openMusicById === "function") {
+        window.openMusicById(musicId);
+      } else {
+        console.error("❌ Fonction openMusicById introuvable !");
+      }
+    } else {
+      // Si pas connecté, on réessaie
+      setTimeout(checkAuthAndOpen, 500);
+    }
+  };
+
+  checkAuthAndOpen();
 };
-// Vérifie si l'URL actuelle correspond à une musique
-window.addEventListener('DOMContentLoaded', () => {
+
+// Lancer au chargement de la page
+window.addEventListener("DOMContentLoaded", () => {
   checkMusicFromURL();
 });
 
