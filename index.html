@@ -3350,6 +3350,17 @@ function myMusicCard(id, d) {
 
   return div;
 }
+  document.addEventListener("DOMContentLoaded", () => {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      console.log("✅ Utilisateur connecté :", user.uid);
+      renderMyMusic(); // ⚡ seulement ici
+    } else {
+      console.log("❌ Aucun utilisateur connecté");
+    }
+  });
+});
   const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
     const jour = maintenant.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
