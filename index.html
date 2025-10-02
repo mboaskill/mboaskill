@@ -3226,61 +3226,15 @@ window.openMusicById = async function (musicId) {
     alert("❌ Erreur lors du chargement de la musique");
   }
 };
-// 🔹 Vérifier URL et charger musique automatiquement
+// Votre nouveau code - Ouvre via URL :
 window.checkMusicFromURL = function () {
   const path = window.location.pathname;
   const match = path.match(/^\/music\/([^/]+)$/);
   if (!match) return;
-
   const musicId = match[1];
-  console.log("🎵 Musique détectée dans l'URL:", musicId);
-
-  // Vérifier si l'utilisateur est déjà authentifié
-  if (currentUser !== null && currentUser !== undefined) {
-    console.log("✅ Utilisateur déjà connecté, ouverture musique...");
-    window.openMusicById(musicId);
-    return;
-  }
-
-  // Attendre l'authentification Firebase
-  const waitForUser = setInterval(() => {
-    console.log("⏳ Vérification auth... currentUser:", currentUser);
-    
-    if (currentUser !== null && currentUser !== undefined) {
-      console.log("✅ Utilisateur connecté, ouverture musique!");
-      clearInterval(waitForUser);
-      window.openMusicById(musicId);
-      
-      // Nettoyer l'URL
-      history.replaceState({}, '', '/');
-    }
-  }, 200);
-
-  // Timeout de sécurité
-  setTimeout(() => {
-    console.log("⏰ Timeout - Arrêt de l'attente");
-    clearInterval(waitForUser);
-    
-    // Si toujours pas d'utilisateur, rediriger vers login
-    if (currentUser === null) {
-      console.log("🔒 Redirection vers login");
-      openTab({currentTarget: document.querySelector('[onclick*="conect"]')}, "conect");
-    }
-  }, 8000);
+  window.openMusicById(musicId); // ← Même fonction!
 };
-
-// Initialisation
-window.addEventListener('DOMContentLoaded', function() {
-    console.log("🚀 DOM chargé, vérification musique...");
-    window.checkMusicFromURL();
-});
-
-window.addEventListener("popstate", function() {
-    console.log("🔁 Navigation détectée, vérification musique...");
-    setTimeout(window.checkMusicFromURL, 100);
-});
-  
-  const boutonLundi = document.getElementById('bouton-lundi');
+const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
     const jour = maintenant.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
 
