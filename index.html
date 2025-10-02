@@ -3228,7 +3228,31 @@ window.openMusicById = async function (musicId) {
 };
 
 // Votre nouveau code - Ouvre via URL :
-// Fonction pour ouvrir une musique depuis l'URL
+// 🚀 Vérifie si l'URL correspond à une musique et ouvre directement le player
+function handleDirectMusicURL() {
+  const path = window.location.pathname;
+  const match = path.match(/^\/music\/([^/]+)$/);
+  if (!match) return; // pas d'URL musique
+
+  const musicId = match[1];
+  console.log("🎧 URL musique détectée:", musicId);
+
+  // Attendre que openMusicById soit bien défini
+  const waitForReady = () => {
+    if (typeof window.openMusicById === "function") {
+      // ✅ Ouvrir directement la section musicPlayer avec la musique
+      window.openMusicById(musicId);
+    } else {
+      // Si pas encore défini → on réessaye
+      setTimeout(waitForReady, 300);
+    }
+  };
+
+  waitForReady();
+}
+
+// Lancer quand la page est chargée
+window.addEventListener("DOMContentLoaded", handleDirectMusicURL);
 // 🚀 Vérifie si on ouvre une URL directe type /music/ID
 window.checkMusicFromURL = function () {
   const path = window.location.pathname;
