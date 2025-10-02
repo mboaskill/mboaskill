@@ -2340,6 +2340,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // 🔹 Charger VUES + calcul gain automatique
 // ===========================================
+// 🔹 Charger VUES + calcul gain automatique
+// ===========================================
 async function loadTotalViewsAndBalance() {
   if (!currentUser) return console.warn("loadTotalViewsAndBalance: currentUser null");
 
@@ -2379,11 +2381,12 @@ async function loadTotalViewsAndBalance() {
     // ---- 3) calcul des nouvelles vues non comptées ----
     const newViews = totalViews - lastViewsCount;
     if (newViews > 0) {
-      const newGain = Math.floor(newViews / 1) * 0.2; // 1k vues = 200 FCFA
+      const newGain = newViews * 0.2; // 1 vue = 0.2 FCFA (soit 1000 vues = 200 FCFA)
       gainVues += newGain;
+
       await setDoc(soldeRef, {
         gainVues,
-        lastViewsCount: totalViews,
+        lastViewsCount: totalViews, // ✅ Mis à jour uniquement ici
         totalViews,
         updatedAt: new Date()
       }, { merge: true });
@@ -2407,6 +2410,7 @@ async function loadTotalViewsAndBalance() {
   }
 }
 
+// ===================================
 // 🔹 Retrait du solde réel + gainVues
 // ===================================
 window.withdrawBalance = async () => {
@@ -2452,7 +2456,7 @@ window.withdrawBalance = async () => {
       if (gainVues < 0) gainVues = 0;
     }
 
-    // Mettre à jour Firestore
+    // Mettre à jour Firestore (⚠️ sans toucher à lastViewsCount)
     await updateDoc(soldeRef, {
       montant,
       gainVues,
@@ -2484,7 +2488,6 @@ window.withdrawBalance = async () => {
     alert("❌ Une erreur est survenue lors du retrait.");
   }
 };
-
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("notchpayBtn");
   if (!btn) return console.error("Bouton notchpayBtn introuvable !");
@@ -2493,7 +2496,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const montantInput = document.getElementById("montant");
     const amount = parseFloat(montantInput.value);
 
-    if (isNaN(amount) || amount < 10) return alert("Montant min 500 XAF");
+    if (isNaN(amount) || amount < 0) return alert("Montant min 500 XAF");
     if (!currentUser) return alert("Connectez-vous");
 
     const walletRef = doc(db, "wallets", currentUser.uid);
