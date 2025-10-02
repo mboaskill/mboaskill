@@ -3199,6 +3199,95 @@ window.openMusicById = async function (musicId) {
   }
 };
 
+window.addEventListener('DOMContentLoaded', () => {
+  const path = window.location.pathname;
+
+  // Création d'une fonction globale pour ouvrir une section
+  window.openSection = function(tabName) {
+    const tryOpen = () => {
+      const el = document.querySelector(`.tablinks[onclick*="${tabName}"]`);
+      if (el && typeof window.openTab === 'function') {
+        openTab({ currentTarget: el }, tabName);
+        return true;
+      }
+      return false;
+    };
+
+    if (!tryOpen()) {
+      const check = setInterval(() => {
+        if (tryOpen()) clearInterval(check);
+      }, 200);
+    }
+  };
+
+  // Gestion de la route /u/:uid
+  const matchUser = path.match(/^\/u\/([^\/]+)/);
+  if (matchUser && matchUser[1]) {
+    const uid = matchUser[1];
+    const tryUser = () => {
+      if (typeof window.openUserFeed === 'function') {
+        window.openUserFeed(uid);
+        return true;
+      }
+      return false;
+    };
+    if (!tryUser()) {
+      const check = setInterval(() => {
+        if (tryUser()) clearInterval(check);
+      }, 200);
+    }
+  } 
+
+  // Gestion de la route /music/:mid
+  const matchMusic = path.match(/^\/music\/([^\/]+)/);
+  if (matchMusic && matchMusic[1]) {
+    const mid = matchMusic[1];
+    const tryMusic = () => {
+      if (typeof window.openMusicById === 'function') {
+        // Active l’onglet musicPlayer
+        const el = document.querySelector('.tablinks[onclick*="music"]');
+        if (el) {
+          openTab({ currentTarget: el }, "musicPlayer");
+          openMusicById(mid);
+          return true;
+        }
+      }
+      return false;
+    };
+    if (!tryMusic()) {
+      const check = setInterval(() => {
+        if (tryMusic()) clearInterval(check);
+      }, 200);
+    }
+  }
+
+  // Gestion des routes avec hash (#)
+  if (location.hash) {
+    const hash = location.hash.substring(1);
+    switch (hash) {
+      case 'music':
+        window.openSection('music');
+        break;
+      case 'image':
+        window.openSection('videoFeed');
+        break;
+      case 'feedme':
+        window.openSection('feedme');
+        break;
+    }
+  }
+
+  // Nettoyer l’URL visuellement (⚠️ garde le hash si présent)
+  if (!location.hash && !path.startsWith("/music/") && !path.startsWith("/u/")) {
+    history.replaceState({}, '', '/');
+  }
+});
+
+let suggestionInterval;
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadSuggestions();
+});
 
 const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
