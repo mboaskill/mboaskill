@@ -3299,8 +3299,14 @@ document.addEventListener("DOMContentLoaded", () => {
   loadSuggestions();
 });
 
+// Fonction pour afficher uniquement les musiques de l'utilisateur connecté
 async function renderMyMusic() {
   const c = document.getElementById("myMusicList");
+  if (!c) {
+    console.error("❌ Élément #myMusicList introuvable dans le DOM.");
+    return;
+  }
+
   c.textContent = "Chargement…";
 
   if (!currentUser) {
@@ -3308,14 +3314,12 @@ async function renderMyMusic() {
     return;
   }
 
-  // 🔎 On récupère toutes les musiques dont le userId = utilisateur connecté
   const q = query(
     collection(db, "musfeed"),
     where("userId", "==", currentUser.uid),
     orderBy("createdAt", "desc")
   );
 
-  // 🔄 Lecture en temps réel
   onSnapshot(q, snap => {
     c.innerHTML = "";
 
@@ -3324,18 +3328,18 @@ async function renderMyMusic() {
     } else {
       snap.forEach(docSnap => {
         const d = docSnap.data();
-        c.appendChild(myMusicCard(docSnap.id, d));
+        const id = docSnap.id;
+        c.appendChild(myMusicCard(id, d));
       });
     }
   });
 }
 
-// 🔹 Carte musique
+// Template d’une musique avec lien partageable
 function myMusicCard(id, d) {
   const div = document.createElement("div");
   div.className = "post";
 
-  // Lien partageable
   const musicLink = `https://mboaskill.cm/music/${id}`;
 
   div.innerHTML = `
@@ -3350,14 +3354,18 @@ function myMusicCard(id, d) {
 
   return div;
 }
-  document.addEventListener("DOMContentLoaded", () => {
+
+// ⚡ Exécution seulement après que le DOM et Firebase soient prêts
+document.addEventListener("DOMContentLoaded", () => {
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUser = user;
       console.log("✅ Utilisateur connecté :", user.uid);
-      renderMyMusic(); // ⚡ seulement ici
+      renderMyMusic();
     } else {
       console.log("❌ Aucun utilisateur connecté");
+      const c = document.getElementById("myMusicList");
+      if (c) c.textContent = "Connectez-vous pour voir vos musiques.";
     }
   });
 });
