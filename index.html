@@ -3117,18 +3117,22 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
+// 🎵 Fonction pour ouvrir une musique par son ID (version améliorée)
 window.openMusicById = async function (musicId) {
   try {
     console.log("Tentative d'ouverture musique ID:", musicId);
 
-    // 🎯 OUVERTURE DE L'ONGLET MUSIC PLAYER
+    // 1. OUVERTURE DE L'ONGLET MUSIC PLAYER
     document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
     const musicPlayerTab = document.getElementById('musicPlayer');
     if (musicPlayerTab) {
       musicPlayerTab.classList.add('active');
+    } else {
+      console.error("❌ Onglet musicPlayer introuvable");
+      return;
     }
 
-    // 🎯 METTRE À JOUR L'ICÔNE ACTIVE DANS LE HEADER
+    // 2. METTRE À JOUR L'ICÔNE ACTIVE DANS LE HEADER
     document.querySelectorAll('header .icons i').forEach(icon => {
       icon.classList.remove('active');
     });
@@ -3137,6 +3141,7 @@ window.openMusicById = async function (musicId) {
       musicIcon.classList.add('active');
     }
 
+    // 3. CHARGEMENT DES DONNÉES DE LA MUSIQUE
     const docRef = doc(db, "musfeed", musicId);
     const snap = await getDoc(docRef);
 
@@ -3155,6 +3160,7 @@ window.openMusicById = async function (musicId) {
 
     c.innerHTML = "";
 
+    // 4. CRÉATION DE L'INTERFACE MUSIQUE
     const div = document.createElement("div");
     div.className = "post";
     div.innerHTML = `
@@ -3162,7 +3168,10 @@ window.openMusicById = async function (musicId) {
         <i class="fas fa-music" style="color: gold; margin-right: 10px; font-size: 1.2rem;"></i>
         <strong>${d.nom || "Artiste inconnu"} - ${d.titre || "Titre inconnu"}</strong>
       </div>
-      <audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>
+      ${d.audioUrl ? 
+        `<audio controls src="${d.audioUrl}" style="width: 100%; margin-top: 8px;"></audio>` : 
+        '<p style="color:red;">Audio non disponible</p>'
+      }
       <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #555;">
         <div style="display:flex;align-items:center;">
           <i class="fa-solid fa-headphone" style="margin-right:6px;"></i>
@@ -3174,49 +3183,82 @@ window.openMusicById = async function (musicId) {
       </div>
     `;
 
-    // Partage
+    // Gestion du partage
     div.querySelector(".share-btn").addEventListener("click", () => {
       const link = `${window.location.origin}/music/${musicId}`;
       navigator.clipboard.writeText(link).then(() => alert("✅ Lien copié : " + link));
     });
 
+    // Gestion de la lecture audio avec paiement
     const audio = div.querySelector("audio");
     const viewsEl = div.querySelector(`#views_${musicId}`);
 
-    audio.addEventListener("play", async () => {
-      if (!currentUser) {
-        audio.pause();
-        alert("🔒 Connectez-vous pour écouter cette musique");
-        openTab({ currentTarget: document.querySelector('[onclick*="conect"]') }, "conect");
-        return;
-      }
+    if (audio) {
+      audio.addEventListener("play", async () => {
+        if (!currentUser) {
+          audio.pause();
+          alert("🔒 Connectez-vous pour écouter cette musique");
+          // Rediriger vers la connexion
+          const connectIcon = document.querySelector('.tablinks[onclick*="conect"]');
+          if (connectIcon) {
+            openTab({ currentTarget: connectIcon }, "conect");
+          }
+          return;
+        }
 
-      const viewDocRef = doc(db, "musfeed", musicId, "viewsByUser", currentUser.uid);
-      const viewDocSnap = await getDoc(viewDocRef);
-      if (viewDocSnap.exists() || currentUser.uid === d.userId) return;
+        const viewDocRef = doc(db, "musfeed", musicId, "viewsByUser", currentUser.uid);
+        const viewDocSnap = await getDoc(viewDocRef);
+        
+        // Vérifier si l'utilisateur a déjà écouté ou est le propriétaire
+        if (viewDocSnap.exists() || currentUser.uid === d.userId) return;
 
-      const walletRef = doc(db, "wallets", currentUser.uid);
-      const walletSnap = await getDoc(walletRef);
-      const balance = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
+        const walletRef = doc(db, "wallets", currentUser.uid);
+        const walletSnap = await getDoc(walletRef);
+        const balance = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
 
-      if (balance < 55) {
-        audio.pause();
-        alert("💸 Solde insuffisant (55 FCFA requis)");
-        return;
-      }
+        if (balance < 55) {
+          audio.pause();
+          alert("💸 Solde insuffisant (55 FCFA requis)");
+          return;
+        }
 
-      try {
-        await updateDoc(walletRef, { balance: increment(-55) });
-        await setDoc(viewDocRef, { userId: currentUser.uid, musicId, playedAt: new Date() });
-        await updateDoc(doc(db, "musfeed", musicId), { views: increment(1), totalviewcontent: increment(250) });
-        await setDoc(doc(db, "soldes", d.userId), { gainVues: increment(50), updatedAt: new Date() }, { merge: true });
-        viewsEl.textContent = parseInt(viewsEl.textContent) + 1;
-      } catch (err) {
-        console.error("Erreur lors de l'écoute:", err);
-        audio.pause();
-        alert("❌ Erreur lors de la lecture");
-      }
-    });
+        try {
+          // Débiter l'auditeur
+          await updateDoc(walletRef, { balance: increment(-55) });
+          
+          // Marquer comme écouté
+          await setDoc(viewDocRef, { 
+            userId: currentUser.uid, 
+            musicId, 
+            playedAt: new Date() 
+          });
+          
+          // Incrémenter les vues
+          await updateDoc(doc(db, "musfeed", musicId), { 
+            views: increment(1), 
+            totalviewcontent: increment(250) 
+          });
+          
+          // Payer l'artiste
+          await setDoc(
+            doc(db, "soldes", d.userId), 
+            { 
+              gainVues: increment(50), 
+              updatedAt: new Date() 
+            }, 
+            { merge: true }
+          );
+          
+          // Mettre à jour l'affichage
+          viewsEl.textContent = (parseInt(viewsEl.textContent) || 0) + 1;
+          
+        } catch (err) {
+          console.error("Erreur lors de l'écoute:", err);
+          audio.pause();
+          alert("❌ Erreur lors de la lecture");
+        }
+      });
+    }
 
     c.appendChild(div);
     console.log("✅ Musique chargée avec succès");
@@ -3227,64 +3269,43 @@ window.openMusicById = async function (musicId) {
   }
 };
 
-// Votre nouveau code - Ouvre via URL :
-// 🚀 Vérifie si l'URL correspond à une musique et ouvre directement le player
-function handleDirectMusicURL() {
+// 🎵 Gestion unifiée des URLs musique
+function handleMusicURL() {
   const path = window.location.pathname;
   const match = path.match(/^\/music\/([^/]+)$/);
-  if (!match) return; // pas d'URL musique
-
+  
+  if (!match) return; // Pas une URL musique
+  
   const musicId = match[1];
   console.log("🎧 URL musique détectée:", musicId);
 
-  // Attendre que openMusicById soit bien défini
-  const waitForReady = () => {
-    if (typeof window.openMusicById === "function") {
-      // ✅ Ouvrir directement la section musicPlayer avec la musique
-      window.openMusicById(musicId);
-    } else {
-      // Si pas encore défini → on réessaye
-      setTimeout(waitForReady, 300);
+  // Fonction pour ouvrir la musique
+  const openMusicFromURL = () => {
+    if (typeof window.openMusicById !== "function") {
+      console.log("⏳ En attente de openMusicById...");
+      setTimeout(openMusicFromURL, 300);
+      return;
     }
+
+    // 1. Ouvrir l'onglet musicPlayer
+    const musicIcon = document.querySelector('.tablinks[onclick*="music"]');
+    if (musicIcon) {
+      openTab({ currentTarget: musicIcon }, 'musicPlayer');
+    }
+
+    // 2. Charger la musique après un petit délai pour laisser le DOM se mettre à jour
+    setTimeout(() => {
+      window.openMusicById(musicId);
+      // Nettoyer l'URL
+      history.replaceState({}, '', '/');
+    }, 500);
   };
 
-  waitForReady();
+  openMusicFromURL();
 }
 
-// Lancer quand la page est chargée
-window.addEventListener("DOMContentLoaded", handleDirectMusicURL);
-// 🚀 Vérifie si on ouvre une URL directe type /music/ID
-window.checkMusicFromURL = function () {
-  const path = window.location.pathname;
-  const match = path.match(/^\/music\/([^/]+)$/);
-  if (!match) return;
-
-  const musicId = match[1];
-
-  const checkAuthAndOpen = () => {
-    if (currentUser) {
-      // Ouvre directement l’onglet musicPlayer
-      openTab({ currentTarget: document.querySelector("i[onclick*='music_note']") }, 'musicPlayer');
-
-      // Charge la musique (⚠️ bien utiliser openMusicById)
-      if (typeof window.openMusicById === "function") {
-        window.openMusicById(musicId);
-      } else {
-        console.error("❌ Fonction openMusicById introuvable !");
-      }
-    } else {
-      // Si pas connecté, on réessaie
-      setTimeout(checkAuthAndOpen, 500);
-    }
-  };
-
-  checkAuthAndOpen();
-};
-
 // Lancer au chargement de la page
-window.addEventListener("DOMContentLoaded", () => {
-  checkMusicFromURL();
-});
+window.addEventListener("DOMContentLoaded", handleMusicURL);
 
 const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
