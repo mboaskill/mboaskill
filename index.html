@@ -3234,6 +3234,11 @@ window.checkMusicFromURL = function () {
   const musicId = match[1];
   window.openMusicById(musicId); // ← Même fonction!
 };
+// Vérifie si l'URL actuelle correspond à une musique
+window.addEventListener('DOMContentLoaded', () => {
+  checkMusicFromURL();
+});
+
 const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
     const jour = maintenant.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
