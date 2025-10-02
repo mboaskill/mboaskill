@@ -204,7 +204,7 @@ header .icons i {
   cursor: pointer;
 }
     /* === COMMENTS ===================================== */
-    .comments-section{margin-top:30px;border-top:1px solid #ccc;padding-top:10px;max-height:500px;overflow-y:auto; position: absolute;direction:ltr}
+    .comments-section{margin-top:30px;border-top:1px solid #ccc;padding-top:10px;max-height:500px;overflow-y:auto;direction:ltr}
     .comment{direction:ltr;unicode-bidi:plaintext;text-align:left;word-break:break-word}
     .comment strong{color:#1877f2}
     .comment-input{display:flex;gap:14px;margin-top:14px}
@@ -666,7 +666,7 @@ hr {
   <button onclick="publishMusic()">Publier</button>  
   </div>
   <div id="statusMsg"></div> 
-  <button onclick="openTab(event,'my-music')"> </button>
+  <button onclick="openTab(event,'my-music')">Ma musique </button>
 </section>  
   <!-- ============ MES MUSIQUES ============ -->
 <section id="my-music" class="tabcontent">
@@ -2829,6 +2829,7 @@ window.certifyUser = async function () {
   }
 };
 
+
 window.publishMusic = async function () {
     const nom = document.getElementById('nom').value.trim();
     const titre = document.getElementById('titre').value.trim();
@@ -2902,6 +2903,8 @@ window.publishMusic = async function () {
       statusMsg.textContent = "❌ Erreur lors de la publication.";
     }
   }
+
+
 
 // 🔹 Rend le feed musique
 async function renderMusicFeed() {
@@ -3296,72 +3299,58 @@ document.addEventListener("DOMContentLoaded", () => {
   loadSuggestions();
 });
 
-  async function renderMyMusic() {
-  if (!currentUser) return;
-
+async function renderMyMusic() {
   const c = document.getElementById("myMusicList");
   c.textContent = "Chargement…";
 
+  if (!currentUser) {
+    c.textContent = "Connectez-vous pour voir vos musiques.";
+    return;
+  }
+
+  // 🔎 On récupère toutes les musiques dont le userId = utilisateur connecté
   const q = query(
-    collection(db, "musics"), // 👈 ta collection Firestore des musiques
+    collection(db, "musfeed"),
     where("userId", "==", currentUser.uid),
     orderBy("createdAt", "desc")
   );
 
+  // 🔄 Lecture en temps réel
   onSnapshot(q, snap => {
     c.innerHTML = "";
 
     if (snap.empty) {
-      c.textContent = "Aucune musique publiée.";
-      return;
+      c.textContent = "Tu n’as publié aucune musique.";
+    } else {
+      snap.forEach(docSnap => {
+        const d = docSnap.data();
+        c.appendChild(myMusicCard(docSnap.id, d));
+      });
     }
-
-    snap.forEach(d => {
-      const m = d.data();
-
-      // wrapper musique
-      const div = document.createElement("div");
-      div.className = "post";
-      div.style.marginBottom = "10px";
-
-      // titre
-      const title = document.createElement("p");
-      title.innerHTML = `<strong>${m.titre || "Sans titre"}</strong> - ${m.nom || "Artiste"}`;
-      div.appendChild(title);
-
-      // lecteur audio
-      const audio = document.createElement("audio");
-      audio.controls = true;
-      audio.src = m.audioUrl; // 👈 URL stockée dans Firestore
-      div.appendChild(audio);
-
-      // lien partage
-      const shareDiv = document.createElement("div");
-      shareDiv.className = "boutons";
-
-      const input = document.createElement("input");
-      input.type = "text";
-      input.readOnly = true;
-      input.value = `${location.origin}/music/${d.id}`;
-      input.style.width = "80%";
-      input.onclick = () => input.select();
-
-      const btn = document.createElement("button");
-      btn.innerHTML = '<i class="fas fa-share"></i>';
-      btn.onclick = () => {
-        navigator.clipboard.writeText(input.value);
-        alert("Lien copié !");
-      };
-
-      shareDiv.appendChild(input);
-      shareDiv.appendChild(btn);
-      div.appendChild(shareDiv);
-
-      c.appendChild(div);
-    });
   });
-                                                                         }
-const boutonLundi = document.getElementById('bouton-lundi');
+}
+
+// 🔹 Carte musique
+function myMusicCard(id, d) {
+  const div = document.createElement("div");
+  div.className = "post";
+
+  // Lien partageable
+  const musicLink = `https://mboaskill.cm/music/${id}`;
+
+  div.innerHTML = `
+    <p><strong>${d.nom}</strong> - ${d.titre}</p>
+    <audio controls src="${d.audioUrl}" style="width:100%;"></audio>
+    <div style="margin-top:8px;">
+      <input type="text" value="${musicLink}" readonly style="width:80%">
+      <button onclick="navigator.clipboard.writeText('${musicLink}')">Copier</button>
+    </div>
+    <small style="color:#888">Vues : ${d.views || 0}</small>
+  `;
+
+  return div;
+}
+  const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
     const jour = maintenant.getDay(); // 0 = dimanche, 1 = lundi, ..., 6 = samedi
 
