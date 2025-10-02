@@ -669,18 +669,8 @@ hr {
 </section>  
 <!-- ============ MUSIC PLAYER ============ -->
 <section id="musicPlayer" class="tabcontent">
-  <div style="padding: 6rem 1rem 1rem;">
-    <div style="display: flex; align-items: center; margin-bottom: 20px;">
-      <i class="fas fa-arrow-left" style="cursor: pointer; margin-right: 15px; font-size: 1.2rem;" 
-         onclick="openTab(event, 'music')"></i>
-      <h3 style="margin: 0; color: gold;">🎵 Écouter</h3>
-    </div>
-    <div id="openMusicById">
-      <p style="text-align: center; color: #888;">
-        Sélectionnez une musique à écouter
-      </p>
-    </div>
-  </div>
+    <br><br/>
+  <div id="openMusicById"></div>
 </section>
 <section id="condis" class="tabcontent">
   <h2> Critères generales de monetisation :
@@ -2721,66 +2711,6 @@ onAuthStateChanged(auth, (user) => {
 // Attacher l'événement au bouton
 document.getElementById('copy-link-btn')?.addEventListener('click', profil_link);
 // Vérifie si l’URL est de la forme https://mboaskill.cm/u/<uid>
-window.addEventListener('DOMContentLoaded', () => {
-  const path = window.location.pathname;
-
-  // Création d'une fonction globale pour ouvrir une section
-  window.openSection = function(tabName) {
-    const tryOpen = () => {
-      const el = document.querySelector(`.tablinks[onclick*="${tabName}"]`);
-      if (el && typeof window.openTab === 'function') {
-        openTab({ currentTarget: el }, tabName);
-        return true;
-      }
-      return false;
-    };
-
-    if (!tryOpen()) {
-      const check = setInterval(() => {
-        if (tryOpen()) clearInterval(check);
-      }, 200);
-    }
-  };
-
-  // Gestion de la route /u/:uid
-  const matchUser = path.match(/^\/u\/([^\/]+)/);
-  if (matchUser && matchUser[1]) {
-    const uid = matchUser[1];
-    if (typeof window.openUserFeed === 'function') {
-      window.openUserFeed(uid);
-    } else {
-      const check = setInterval(() => {
-        if (typeof window.openUserFeed === 'function') {
-          clearInterval(check);
-          window.openUserFeed(uid);
-        }
-      }, 200);
-    }
-  } 
-  // Autres routes
-  else {
-    switch (path) {
-      case '/#music':
-        window.openTab('music');
-        break;
-      case '/#image':
-        window.openTab('videoFeed');
-        break;
-      case '/#feedme':
-        window.openTab('feedme');
-        break;
-    }
-  }
-
-  // Nettoyer l’URL visuellement
-  history.replaceState({}, '', '/');
-});
-
-let suggestionInterval;
-
-document.addEventListener("DOMContentLoaded", () => {
-  loadSuggestions();
-});
 
 async function loadSuggestions() {
   const currentUser = auth.currentUser;
@@ -3269,60 +3199,6 @@ window.openMusicById = async function (musicId) {
   }
 };
 
-window.addEventListener('DOMContentLoaded', () => {
-  const path = window.location.pathname;
-
-  // 🟡 Cas : route utilisateur /u/:uid
-  const matchUser = path.match(/^\/u\/([^\/]+)/);
-  if (matchUser && matchUser[1]) {
-    const uid = matchUser[1];
-    if (typeof window.openUserFeed === 'function') {
-      window.openUserFeed(uid);
-    } else {
-      const check = setInterval(() => {
-        if (typeof window.openUserFeed === 'function') {
-          clearInterval(check);
-          window.openUserFeed(uid);
-        }
-      }, 200);
-    }
-    return; // ⛔ stop ici
-  }
-
-  // 🟡 Cas : route musique /music/:id
-  const matchMusic = path.match(/^\/music\/([^\/]+)/);
-  if (matchMusic && matchMusic[1]) {
-    const musicId = matchMusic[1];
-    if (typeof window.openMusicById === 'function') {
-      // ouvre le player avec la musique
-      window.openMusicById(musicId);
-    } else {
-      const check = setInterval(() => {
-        if (typeof window.openMusicById === 'function') {
-          clearInterval(check);
-          window.openMusicById(musicId);
-        }
-      }, 200);
-    }
-    return; // ⛔ stop ici
-  }
-
-  // Autres routes déjà présentes
-  switch (path) {
-    case '/#music':
-      window.openTab('music');
-      break;
-    case '/#image':
-      window.openTab('videoFeed');
-      break;
-    case '/#feedme':
-      window.openTab('feedme');
-      break;
-  }
-
-  // Nettoyer l’URL visuellement
-  history.replaceState({}, '', '/');
-});
 
 const boutonLundi = document.getElementById('bouton-lundi');
     const maintenant = new Date();
