@@ -1721,36 +1721,59 @@ function card(id, d, isMine) {
   /* ---------- CONTENT ---------- */
   const cont = document.createElement('div');
   cont.className = 'post-content';
-
+if (d.imageUrl) {
+  // --- Titre avant image ---
   if (d.imageTitle) {
-  const titleDiv = document.createElement('div');
-  titleDiv.style.fontWeight = 'bold';
-  titleDiv.style.marginBottom = '4px'; // au lieu de marginTop
+    const titleDiv = document.createElement('div');
+    titleDiv.style.fontWeight = 'bold';
+    titleDiv.style.marginBottom = '4px';
 
-  let html = linkifyText(d.imageTitle);
+    let html = linkifyText(d.imageTitle);
+    html = html.replace(/@([\wÀ-ÖØ-öø-ÿ ]+)/g, (match, name) => {
+      return `<a href="#" class="mention" data-username="${name.trim()}">${match}</a>`;
+    });
+
+    titleDiv.innerHTML = html;
+
+    titleDiv.querySelectorAll('.mention').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        openUserFeedByName(a.dataset.username);
+      });
+    });
+
+    cont.appendChild(titleDiv);
+  }
+
+  // --- Image ---
+  const imgEl = document.createElement('img');
+  imgEl.src = d.imageUrl;
+  imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
+  cont.appendChild(imgEl);
+
+} else if (d.text) {
+  // --- Texte sans image ---
+  const textDiv = document.createElement('div');
+  textDiv.className = 'text-bg';
+  textDiv.style.background = d.bgColor || '#000000';
+
+  let html = linkifyText(d.text || '');
   html = html.replace(/@([\wÀ-ÖØ-öø-ÿ ]+)/g, (match, name) => {
     return `<a href="#" class="mention" data-username="${name.trim()}">${match}</a>`;
   });
 
-  titleDiv.innerHTML = html;
+  textDiv.innerHTML = html;
 
-  titleDiv.querySelectorAll('.mention').forEach(a => {
+  textDiv.querySelectorAll('.mention').forEach(a => {
     a.addEventListener('click', e => {
       e.preventDefault();
       openUserFeedByName(a.dataset.username);
     });
   });
 
-  // 🔼 On ajoute le titre avant l'image
-  cont.appendChild(titleDiv);
-}
-
-if (d.imageUrl) {
-  const imgEl = document.createElement('img');
-  imgEl.src = d.imageUrl;
-  imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
-  cont.appendChild(imgEl);
-  }  
+  cont.appendChild(textDiv);
+  }
+  
   w.appendChild(cont);
 
   /* ---------- ACTIONS ---------- */
