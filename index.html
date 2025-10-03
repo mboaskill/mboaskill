@@ -1722,58 +1722,35 @@ function card(id, d, isMine) {
   const cont = document.createElement('div');
   cont.className = 'post-content';
 
-  if (d.imageUrl) {
-    const imgEl = document.createElement('img');
-    imgEl.src = d.imageUrl;
-    imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
-    cont.appendChild(imgEl);
+  if (d.imageTitle) {
+  const titleDiv = document.createElement('div');
+  titleDiv.style.fontWeight = 'bold';
+  titleDiv.style.marginBottom = '4px'; // au lieu de marginTop
 
-    if (d.imageTitle) {
-      const titleDiv = document.createElement('div');
-      titleDiv.style.fontWeight = 'bold';
-      titleDiv.style.marginTop = '4px';
+  let html = linkifyText(d.imageTitle);
+  html = html.replace(/@([\wÀ-ÖØ-öø-ÿ ]+)/g, (match, name) => {
+    return `<a href="#" class="mention" data-username="${name.trim()}">${match}</a>`;
+  });
 
-      let html = linkifyText(d.imageTitle);
+  titleDiv.innerHTML = html;
 
-      // Mentions @nom
-      html = html.replace(/@([\wÀ-ÖØ-öø-ÿ ]+)/g, (match, name) => {
-        return `<a href="#" class="mention" data-username="${name.trim()}">${match}</a>`;
-      });
-
-      titleDiv.innerHTML = html;
-
-      titleDiv.querySelectorAll('.mention').forEach(a => {
-        a.addEventListener('click', e => {
-          e.preventDefault();
-          openUserFeedByName(a.dataset.username);
-        });
-      });
-
-      cont.appendChild(titleDiv);
-    }
-  } else if (d.text) {
-    const textDiv = document.createElement('div');
-    textDiv.className = 'text-bg';
-    textDiv.style.background = d.bgColor || '#000000';
-
-    let html = linkifyText(d.text || '');
-
-    html = html.replace(/@([\wÀ-ÖØ-öø-ÿ ]+)/g, (match, name) => {
-      return `<a href="#" class="mention" data-username="${name.trim()}">${match}</a>`;
+  titleDiv.querySelectorAll('.mention').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      openUserFeedByName(a.dataset.username);
     });
+  });
 
-    textDiv.innerHTML = html;
+  // 🔼 On ajoute le titre avant l'image
+  cont.appendChild(titleDiv);
+}
 
-    textDiv.querySelectorAll('.mention').forEach(a => {
-      a.addEventListener('click', e => {
-        e.preventDefault();
-        openUserFeedByName(a.dataset.username);
-      });
-    });
-
-    cont.appendChild(textDiv);
-  }
-
+if (d.imageUrl) {
+  const imgEl = document.createElement('img');
+  imgEl.src = d.imageUrl;
+  imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
+  cont.appendChild(imgEl);
+  }  
   w.appendChild(cont);
 
   /* ---------- ACTIONS ---------- */
