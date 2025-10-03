@@ -123,7 +123,14 @@ header .icons i {
 .post-content {
   margin-top: 10px;
 }
-
+.post-content a {
+  word-wrap: break-word;       /* Permet de couper les mots trop longs */
+  overflow-wrap: anywhere;     /* Plus moderne, coupe le texte quand nécessaire */
+  white-space: pre-wrap;       /* Garde les retours à la ligne si présents */
+  max-width: 100%;             /* Empêche le dépassement horizontal */
+  display: inline-block;       /* S'assure que le lien respecte le conteneur */
+    }
+                       
 .post video,
 .post .text-bg {
   width: 100%;
