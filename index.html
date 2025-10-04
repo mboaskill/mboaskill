@@ -2551,29 +2551,37 @@ window.withdrawBalance = async () => {
 
 // ===========================================================
 // 🔹 Validation admin du retrait (déduit le solde)
-// ===========================================================
 async function adminApproveWithdrawal(withdrawalId, adminUid = null) {
   const withdrawalRef = doc(db, "withdrawals", withdrawalId);
+
   try {
     await runTransaction(db, async (t) => {
       const wSnap = await t.get(withdrawalRef);
       if (!wSnap.exists()) throw new Error("Demande introuvable.");
+
       const w = wSnap.data();
       if (w.status !== "en attente") throw new Error("Déjà traitée.");
 
+      // ✅ Récupérer le bon UID utilisateur depuis le document de retrait
       const userId = w.userId;
+      if (!userId) throw new Error("userId manquant dans la demande.");
+
       const amount = Number(w.amount || 0);
+      const soldeRef = doc(db, "soldes", userId); // ✅ le bon chemin
 
-      const soldeRef = doc(db, "soldes", userId);
+      // Charger le solde de l'utilisateur
       const sSnap = await t.get(soldeRef);
-      let montant = 0, gainVues = 0;
-      if (sSnap.exists()) {
-        montant = Number(sSnap.data().montant || 0);
-        gainVues = Number(sSnap.data().gainVues || 0);
-      }
+      if (!sSnap.exists()) throw new Error("Solde introuvable pour cet utilisateur.");
 
+      let montant = Number(sSnap.data().montant || 0);
+      let gainVues = Number(sSnap.data().gainVues || 0);
+
+      console.log(`💰 Avant retrait (${userId}): montant=${montant}, gainVues=${gainVues}, retrait=${amount}`);
+
+      // Vérifier si le solde est suffisant
       if (amount > (montant + gainVues)) throw new Error("Solde insuffisant.");
 
+      // Calcul de la réduction
       let reste = amount;
       if (reste <= montant) {
         montant -= reste;
@@ -2587,19 +2595,23 @@ async function adminApproveWithdrawal(withdrawalId, adminUid = null) {
         if (gainVues < 0) gainVues = 0;
       }
 
+      console.log(`💸 Nouveau solde: montant=${montant}, gainVues=${gainVues}`);
+
+      // ✅ Mettre à jour le solde et le statut du retrait
       t.update(soldeRef, { montant, gainVues, updatedAt: new Date() });
-      t.update(withdrawalRef, { status: "valide", processedAt: new Date(), processedBy: adminUid || null });
+      t.update(withdrawalRef, {
+        status: "valide",
+        processedAt: new Date(),
+        processedBy: adminUid || null
+      });
     });
 
-    console.log("✅ Retrait validé et solde ajusté.");
+    console.log("✅ Retrait validé et solde mis à jour !");
   } catch (err) {
-    console.error("Erreur adminApproveWithdrawal:", err);
+    console.error("❌ Erreur adminApproveWithdrawal:", err);
   }
 }
 
-// ===========================================================
-// 🔹 Expose globalement
-// ===========================================================
 window.loadTotalViewsAndBalance = loadTotalViewsAndBalance;
 window.observeRenderedPosts = observeRenderedPosts;
 window.incrementView = incrementView;
