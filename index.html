@@ -821,8 +821,9 @@ const fmt=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':n;
   }
 })();
 // ===================================
-// 🔹 Incrémenter une vue unique + ajouter gain (0.2 FCFA par vue)
-// ===================================
+// ===========================================================
+// 🔹 Incrémenter une vue unique + ajouter gain (0.2 FCFA au propriétaire du post)
+// ===========================================================
 async function incrementView(postId) {
   if (!currentUser) return;
 
@@ -830,40 +831,74 @@ async function incrementView(postId) {
     const postRef = doc(db, "posts", postId);
     const userViewRef = doc(db, "posts", postId, "viewsByUser", currentUser.uid);
 
+    // Vérifier si la vue existe déjà
     const userViewSnap = await getDoc(userViewRef);
-    if (userViewSnap.exists()) return; // déjà compté
+    if (userViewSnap.exists()) {
+      console.log("👀 Vue déjà enregistrée pour ce post:", postId);
+      return;
+    }
+
+    // Récupérer le post pour trouver son propriétaire
+    const postSnap = await getDoc(postRef);
+    if (!postSnap.exists()) {
+      console.warn("⚠️ Post introuvable:", postId);
+      return;
+    }
+    const postData = postSnap.data();
+    const ownerId = postData.userId;
+    if (!ownerId) {
+      console.warn("⚠️ Pas de userId dans le post:", postId);
+      return;
+    }
+
+    // 🔹 Référence du solde du propriétaire du post
+    const soldeRef = doc(db, "soldes", ownerId);
 
     // Marquer la vue
     await setDoc(userViewRef, { seenAt: new Date() });
+    console.log("✅ Nouvelle vue enregistrée:", postId);
 
-    // Incrémenter compteur total
+    // Incrémenter le compteur du post
     await updateDoc(postRef, { views: increment(1) });
+    console.log("📈 Post incrémenté de +1 vue");
 
-    // Créditer 0.2 dans gainVues
-    const soldeRef = doc(db, "soldes", currentUser.uid);
+    // Gérer le gain du propriétaire
     await runTransaction(db, async (t) => {
       const sSnap = await t.get(soldeRef);
+
       if (sSnap.exists()) {
-        t.update(soldeRef, { gainVues: increment(0.2), updatedAt: new Date() });
+        const data = sSnap.data();
+        const currentGain = typeof data.gainVues === "number" ? data.gainVues : 0;
+        const currentTotal = typeof data.totalViews === "number" ? data.totalViews : 0;
+
+        console.log("💰 Solde avant:", currentGain, "Total vues:", currentTotal);
+
+        t.update(soldeRef, {
+          gainVues: currentGain + 0.2,
+          totalViews: currentTotal + 1,
+          updatedAt: new Date()
+        });
+
       } else {
+        console.log("🆕 Création du document solde pour le propriétaire:", ownerId);
         t.set(soldeRef, {
           montant: 0,
           gainVues: 0.2,
-          lastViewsCount: 1,
           totalViews: 1,
+          lastViewsCount: 1,
           createdAt: new Date(),
           updatedAt: new Date()
         });
       }
     });
 
-    refreshBalanceDisplay();
+    console.log("✅ Transaction solde effectuée pour le propriétaire du post !");
+    if (typeof refreshBalanceDisplay === "function") refreshBalanceDisplay();
 
   } catch (e) {
-    console.error("Erreur incrément vue:", e);
+    console.error("❌ Erreur incrément vue:", e);
   }
 }
-
 // ===========================================================
 // 🔹 Observer les posts pour compter les vues visibles ≥ 6s
 // ===========================================================
@@ -876,11 +911,14 @@ const observer = new IntersectionObserver((entries) => {
 
     if (entry.isIntersecting) {
       if (timers.has(postId)) return;
+
       const timer = setTimeout(() => {
+        console.log("👁️ Vue validée après 6s pour:", postId);
         incrementView(postId);
         observer.unobserve(entry.target);
         timers.delete(postId);
       }, 6000);
+
       timers.set(postId, timer);
     } else {
       if (timers.has(postId)) {
@@ -894,8 +932,6 @@ const observer = new IntersectionObserver((entries) => {
 function observeRenderedPosts() {
   document.querySelectorAll('[data-post]').forEach(el => observer.observe(el));
 }
-
-
 /*──────────────────────────────────────────────────────────
   3. DOM READY — Dépôt
 ──────────────────────────────────────────────────────────*/
@@ -1267,6 +1303,9 @@ document.getElementById("profilePhotoInput").addEventListener("change", async (e
 let firstRenderDone = false;
 let cachedPosts = [];
 
+// ===========================================================
+// 🔹 Rendu du fil principal (Feed)
+// ===========================================================
 async function renderFeed() {
   const c = qs('feed');
   c.textContent = 'Chargement…';
@@ -1322,31 +1361,32 @@ async function renderFeed() {
     }
   }
 
-  // --- POSTS DES UTILISATEURS SUIVIS (3 par utilisateur) ---
+  // --- POSTS DES UTILISATEURS SUIVIS (3 récents max par utilisateur) ---
   if (followingIds.size > 0) {
     for (const userId of followingIds) {
       const q = query(
         collection(db, 'posts'),
         where('userId', '==', userId),
         orderBy('createdAt', 'desc'),
-        limit(10) // prendre les 10 derniers posts pour choix aléatoire
+        limit(10) // on prend 10 récents pour pouvoir choisir parmi eux
       );
+
       const snap = await getDocs(q);
       const recentPosts = snap.docs
         .map(d => ({ id: d.id, data: d.data() }))
         .filter(p => (now - (p.data.createdAt?.toMillis?.() || 0)) <= sevenDays);
 
-      // Shuffle local des posts de cet utilisateur
+      // Mélange local des posts récents
       for (let i = recentPosts.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [recentPosts[i], recentPosts[j]] = [recentPosts[j], recentPosts[i]];
       }
 
-      posts.push(...recentPosts.slice(0, 3)); // max 3 posts par utilisateur
+      posts.push(...recentPosts.slice(0, 3)); // on en garde max 3
     }
   }
 
-  // --- Mélange global de tous les posts ---
+  // --- Mélange global complet ---
   for (let i = posts.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [posts[i], posts[j]] = [posts[j], posts[i]];
@@ -1362,8 +1402,9 @@ async function renderFeed() {
     c.appendChild(el);
     observer.observe(el);
   });
-}
 
+  console.log(`✅ Feed affiché : ${posts.length} posts (mélangés aléatoirement)`);
+}
 function loadFollowedPosts(c){
   if(!followingIds.size)return;
   const groups=[...followingIds].reduce((a,u,i)=>{if(i%10===0)a.push([]);a[a.length-1].push(u);return a;},[]);
@@ -1914,6 +1955,12 @@ w.appendChild(act);
     comSec.style.display = show ? 'block' : 'none';
     if (show) loadComments(id, comList, comCnt);
   };
+  // 🔹 Séparateur (ligne fine en bas)
+  const hr = document.createElement('hr');
+  hr.style.border = 'none';
+  hr.style.borderTop = '1px solid #ddd';
+  hr.style.margin = '16px 0';
+  w.appendChild(hr);
 
   return w;
 }
