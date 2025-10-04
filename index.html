@@ -590,7 +590,7 @@ hr {
   </select>
   <button onclick="boostPost()">Booster</button>
 </div>  <br>
-  <p><i class="fas fa-info-circle" style="color:#fff"></i> Le nombre de personnes à entrer est une estimation du nombres de vues par jour. minimum 200 vues (min: 200/5j pour 3500 XAF)</p>
+  <p><i class="fas fa-info-circle" style="color:#fff"></i> minimum 2 jours (min: 2j pour 3500 XAF)</p>
 </section>
 
 <!-- ============ LOGIN FORM ============ -->
@@ -820,6 +820,9 @@ const fmt=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':n;
     }
   }
 })();
+// ===================================
+// 🔹 Incrémenter une vue unique + ajouter gain (0.2 FCFA par vue)
+// ===================================
 async function incrementView(postId) {
   if (!currentUser) return;
 
@@ -827,46 +830,72 @@ async function incrementView(postId) {
     const postRef = doc(db, "posts", postId);
     const userViewRef = doc(db, "posts", postId, "viewsByUser", currentUser.uid);
 
-    // Vérifie si l'utilisateur a déjà vu ce post
     const userViewSnap = await getDoc(userViewRef);
     if (userViewSnap.exists()) return; // déjà compté
 
-    // Marquer comme vu pour cet utilisateur
+    // Marquer la vue
     await setDoc(userViewRef, { seenAt: new Date() });
 
-    // Incrémenter le compteur total
+    // Incrémenter compteur total
     await updateDoc(postRef, { views: increment(1) });
+
+    // Créditer 0.2 dans gainVues
+    const soldeRef = doc(db, "soldes", currentUser.uid);
+    await runTransaction(db, async (t) => {
+      const sSnap = await t.get(soldeRef);
+      if (sSnap.exists()) {
+        t.update(soldeRef, { gainVues: increment(0.2), updatedAt: new Date() });
+      } else {
+        t.set(soldeRef, {
+          montant: 0,
+          gainVues: 0.2,
+          lastViewsCount: 1,
+          totalViews: 1,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+    });
+
+    refreshBalanceDisplay();
 
   } catch (e) {
     console.error("Erreur incrément vue:", e);
   }
 }
 
-// Observer pour compter quand le post devient visible
-const timers = new Map(); // stocke les timers par post
+// ===========================================================
+// 🔹 Observer les posts pour compter les vues visibles ≥ 6s
+// ===========================================================
+const timers = new Map();
 
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     const postId = entry.target.dataset.post;
+    if (!postId) return;
 
     if (entry.isIntersecting) {
-      // Lancer un timer de 6 secondes quand le post est ≥ 80% visible
+      if (timers.has(postId)) return;
       const timer = setTimeout(() => {
         incrementView(postId);
-        observer.unobserve(entry.target); // on ne compte qu'une fois
+        observer.unobserve(entry.target);
         timers.delete(postId);
       }, 6000);
-
       timers.set(postId, timer);
     } else {
-      // Si le post quitte l’écran avant 6s → annuler
       if (timers.has(postId)) {
         clearTimeout(timers.get(postId));
         timers.delete(postId);
       }
     }
   });
-}, { threshold: 0.5 }); // 50% visible
+}, { threshold: 0.5 });
+
+function observeRenderedPosts() {
+  document.querySelectorAll('[data-post]').forEach(el => observer.observe(el));
+}
+
+
 /*──────────────────────────────────────────────────────────
   3. DOM READY — Dépôt
 ──────────────────────────────────────────────────────────*/
@@ -2055,9 +2084,9 @@ async function debit(cost){
 window.boostPost = async () => {
   if (!boostId) return alert('Choisissez une publication');
   const v = parseInt(qs('boostViews').value);
-  if (isNaN(v) || v < 200) return alert('Min 200 vues (3500 XAF)');
+  if (isNaN(v) || v < 2) return alert('Min 2 jours (3500 XAF)');
 
-  const cost = Math.ceil(v / 100) * 1750;
+  const cost = Math.ceil(v / 1) * 1750;
   if (!(await debit(cost))) return;
 
   const countryIndex = parseInt(qs('boostCountry').value);
@@ -2327,37 +2356,36 @@ window.searchUser = async () => {
 /*──────────────────────────────────────────────────────────
  14. VIEWS & RETRAIT
 ──────────────────────────────────────────────────────────*/
-
-// ==========================
-// attendre que le DOM soit prêt
-// 🔹 DOM Ready & Auth
+// 🔹 DOM Ready + Auth
+// ===========================================================
 document.addEventListener('DOMContentLoaded', () => {
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     const loadingEl = document.getElementById('loadingMessage');
     const balanceWrapperEl = document.getElementById('balanceWrapper');
 
-    if (user) {  
-      if (loadingEl) loadingEl.style.display = 'none';  
-      if (balanceWrapperEl) balanceWrapperEl.style.display = 'block';  
+    if (user) {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (balanceWrapperEl) balanceWrapperEl.style.display = 'block';
 
-      loadTotalViewsAndBalance(); // 👉 calcule les vues + affiche le solde
-    } else {  
-      if (loadingEl) loadingEl.textContent = "Utilisateur non connecté";  
-      if (balanceWrapperEl) balanceWrapperEl.style.display = 'none';  
-      currentBalance = 0;  
+      loadTotalViewsAndBalance();
+      refreshBalanceDisplay();
+    } else {
+      if (loadingEl) loadingEl.textContent = "Utilisateur non connecté";
+      if (balanceWrapperEl) balanceWrapperEl.style.display = 'none';
+      currentBalance = 0;
     }
   });
 });
 
-// 🔹 Charger VUES + calcul gain automatique
-// ===========================================
-// 🔹 Charger VUES + calcul gain automatique
+// ===========================================================
+// 🔹 Charger vues + gains (sans recalcul du solde réel)
+// ===========================================================
 async function loadTotalViewsAndBalance() {
   if (!currentUser) return console.warn("loadTotalViewsAndBalance: currentUser null");
 
   try {
-    // ---- 1) calcul des vues totales ----
+    // --- Calcul des vues totales ---
     const postsRef = collection(db, 'posts');
     const q = query(postsRef, where('userId', '==', currentUser.uid));
     const snap = await getDocs(q);
@@ -2379,50 +2407,54 @@ async function loadTotalViewsAndBalance() {
       totalViews += Number(userDoc.data().soutienvues || 0);
     }
 
-    // ---- 2) récupérer solde existant ----
+    // --- Charger solde ---
     const soldeRef = doc(db, "soldes", currentUser.uid);
     const soldeSnap = await getDoc(soldeRef);
-
-    let soldeData = {};
-    if (soldeSnap.exists()) soldeData = soldeSnap.data();
-
-    const lastViewsCount = Number(soldeData.lastViewsCount || 0);
-    let gainVues = Number(soldeData.gainVues || 0);
-    let montant  = Number(soldeData.montant || 0);
-
-    // ---- 3) calcul des nouvelles vues non comptées ----
-    const newViews = totalViews - lastViewsCount;
-    if (newViews > 0) {
-      const newGain = newViews * 0.2; // 1 vue = 0.2 FCFA
-      gainVues += newGain;
-
-      await setDoc(soldeRef, {
-        gainVues,
-        lastViewsCount: totalViews, // ✅ avance uniquement avec les nouvelles vues
-        totalViews,
-        montant,
-        updatedAt: new Date()
-      }, { merge: true });
+    let montant = 0, gainVues = 0;
+    if (soldeSnap.exists()) {
+      const d = soldeSnap.data();
+      montant = Number(d.montant || 0);
+      gainVues = Number(d.gainVues || 0);
     }
 
-    // ---- 4) mise à jour interface ----
+    // --- Mettre à jour interface ---
     const totalViewsCountEl = document.getElementById('totalViewsCount');
     if (totalViewsCountEl) totalViewsCountEl.textContent = fmt(totalViews);
 
+    currentBalance = montant + gainVues;
     const currentBalanceEl = document.getElementById('currentBalance');
-    if (currentBalanceEl) {
-      const totalBalance = montant + gainVues;
-      currentBalanceEl.textContent = totalBalance + " FCFA";
-      currentBalance = totalBalance;
-    }
+    if (currentBalanceEl) currentBalanceEl.textContent = currentBalance + " FCFA";
 
   } catch (err) {
     console.error("Erreur loadTotalViewsAndBalance :", err);
   }
 }
-// ===================================
-// 🔹 Retrait du solde réel + gainVues
-// ===================================
+
+// ===========================================================
+// 🔹 Rafraîchir solde uniquement
+// ===========================================================
+async function refreshBalanceDisplay() {
+  if (!currentUser) return;
+  try {
+    const soldeRef = doc(db, "soldes", currentUser.uid);
+    const soldeSnap = await getDoc(soldeRef);
+    let montant = 0, gainVues = 0;
+    if (soldeSnap.exists()) {
+      const d = soldeSnap.data();
+      montant = Number(d.montant || 0);
+      gainVues = Number(d.gainVues || 0);
+    }
+    currentBalance = montant + gainVues;
+    const el = document.getElementById('currentBalance');
+    if (el) el.textContent = currentBalance + " FCFA";
+  } catch (e) {
+    console.error("Erreur refreshBalanceDisplay:", e);
+  }
+}
+
+
+// 🔹 Demande de retrait (utilisateur)
+// ===========================================================
 window.withdrawBalance = async () => {
   try {
     const amountInput = document.getElementById("withdrawAmount");
@@ -2432,48 +2464,28 @@ window.withdrawBalance = async () => {
     const phone = phoneInput  ? phoneInput.value.trim()   : "";
 
     if (!currentUser || !currentUser.uid) return alert("Utilisateur non authentifié.");
-    if (!Number.isFinite(a) || a < 5000)  return alert("Montant minimum : 5 000 XAF");
+    if (!Number.isFinite(a) || a < 1000)  return alert("Montant minimum : 5 000 XAF");
     if (!phone || phone.length < 8)       return alert("Veuillez entrer un numéro valide.");
 
-    // recharge le solde avec les vues à jour
-    await loadTotalViewsAndBalance();
+    // Vérifie s’il existe déjà une demande en attente
+    const q = query(
+      collection(db, "withdrawals"),
+      where("userId", "==", currentUser.uid),
+      where("status", "==", "en attente")
+    );
+    const pending = await getDocs(q);
+    if (!pending.empty) return alert("⚠️ Vous avez déjà une demande de retrait en attente.");
 
-    if (a > currentBalance) return alert("Solde insuffisant. Votre solde actuel est " + currentBalance + " FCFA");
-
+    // Vérifie solde
     const soldeRef  = doc(db, "soldes", currentUser.uid);
     const soldeSnap = await getDoc(soldeRef);
+    let montant  = soldeSnap.exists() ? Number(soldeSnap.data().montant || 0) : 0;
+    let gainVues = soldeSnap.exists() ? Number(soldeSnap.data().gainVues || 0) : 0;
+    const total = montant + gainVues;
 
-    if (!soldeSnap.exists()) return alert("❌ Aucun solde trouvé pour cet utilisateur.");
+    if (a > total) return alert("Solde insuffisant. Votre solde actuel est " + total + " FCFA");
 
-    const soldeData = soldeSnap.data();
-    let montant = Number(soldeData.montant || 0);
-    let gainVues = Number(soldeData.gainVues || 0);
-
-    let remainingWithdrawal = a;
-
-    // Retirer d'abord du solde réel
-    if (remainingWithdrawal <= montant) {
-      montant -= remainingWithdrawal;
-      remainingWithdrawal = 0;
-    } else {
-      remainingWithdrawal -= montant;
-      montant = 0;
-    }
-
-    // Retirer le reste du gainVues
-    if (remainingWithdrawal > 0) {
-      gainVues -= remainingWithdrawal;
-      if (gainVues < 0) gainVues = 0;
-    }
-
-    // Mettre à jour Firestore (⚠️ sans toucher à lastViewsCount)
-    await updateDoc(soldeRef, {
-      montant,
-      gainVues,
-      updatedAt: new Date()
-    });
-
-    // Enregistrer le retrait
+    // Crée la demande (sans couper)
     await addDoc(collection(db, "withdrawals"), {
       userId: currentUser.uid,
       amount: a,
@@ -2482,22 +2494,71 @@ window.withdrawBalance = async () => {
       status: "en attente"
     });
 
-    currentBalance = montant + gainVues;
-
-    // Mise à jour interface
-    const currentBalanceEl = document.getElementById('currentBalance');
-    if (currentBalanceEl) currentBalanceEl.textContent = currentBalance + " FCFA";
-
-    if (amountInput) amountInput.value = "";
-    if (phoneInput)  phoneInput.value  = "";
-
-    alert("✅ Retrait de " + a + " XAF effectué ! Solde restant : " + currentBalance + " XAF");
+    alert("✅ Demande de retrait envoyée. En attente de validation admin.");
 
   } catch (err) {
-    console.error("Erreur de retrait :", err);
+    console.error("Erreur withdrawBalance:", err);
     alert("❌ Une erreur est survenue lors du retrait.");
   }
 };
+
+// ===========================================================
+// 🔹 Validation admin du retrait (déduit le solde)
+// ===========================================================
+async function adminApproveWithdrawal(withdrawalId, adminUid = null) {
+  const withdrawalRef = doc(db, "withdrawals", withdrawalId);
+  try {
+    await runTransaction(db, async (t) => {
+      const wSnap = await t.get(withdrawalRef);
+      if (!wSnap.exists()) throw new Error("Demande introuvable.");
+      const w = wSnap.data();
+      if (w.status !== "en attente") throw new Error("Déjà traitée.");
+
+      const userId = w.userId;
+      const amount = Number(w.amount || 0);
+
+      const soldeRef = doc(db, "soldes", userId);
+      const sSnap = await t.get(soldeRef);
+      let montant = 0, gainVues = 0;
+      if (sSnap.exists()) {
+        montant = Number(sSnap.data().montant || 0);
+        gainVues = Number(sSnap.data().gainVues || 0);
+      }
+
+      if (amount > (montant + gainVues)) throw new Error("Solde insuffisant.");
+
+      let reste = amount;
+      if (reste <= montant) {
+        montant -= reste;
+        reste = 0;
+      } else {
+        reste -= montant;
+        montant = 0;
+      }
+      if (reste > 0) {
+        gainVues -= reste;
+        if (gainVues < 0) gainVues = 0;
+      }
+
+      t.update(soldeRef, { montant, gainVues, updatedAt: new Date() });
+      t.update(withdrawalRef, { status: "valide", processedAt: new Date(), processedBy: adminUid || null });
+    });
+
+    console.log("✅ Retrait validé et solde ajusté.");
+  } catch (err) {
+    console.error("Erreur adminApproveWithdrawal:", err);
+  }
+}
+
+// ===========================================================
+// 🔹 Expose globalement
+// ===========================================================
+window.loadTotalViewsAndBalance = loadTotalViewsAndBalance;
+window.observeRenderedPosts = observeRenderedPosts;
+window.incrementView = incrementView;
+window.refreshBalanceDisplay = refreshBalanceDisplay;
+window.adminApproveWithdrawal = adminApproveWithdrawal;
+
 window.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("notchpayBtn");
   if (!btn) return console.error("Bouton notchpayBtn introuvable !");
