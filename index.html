@@ -2527,18 +2527,6 @@ window.withdrawBalance = async () => {
       return;
     }
 
-    // --- Vérifie s’il y a déjà une demande en attente ---
-    const q = query(
-      collection(db, "withdrawals"),
-      where("userId", "==", currentUser.uid),
-      where("status", "==", "en attente")
-    );
-    const pending = await getDocs(q);
-    if (!pending.empty) {
-      alert("⚠️ Vous avez déjà une demande de retrait en attente.");
-      return;
-    }
-
     // --- Récupère le solde de l’utilisateur ---
     const soldeRef = doc(db, "soldes", currentUser.uid);
     const soldeSnap = await getDoc(soldeRef);
@@ -2549,33 +2537,50 @@ window.withdrawBalance = async () => {
     }
 
     const data = soldeSnap.data();
-    const montant  = Number(data.montant  || 0);
-    const gainVues = Number(data.gainVues || 0);
-    const total = montant + gainVues;
+    let montant  = Number(data.montant  || 0);
+    let gainVues = Number(data.gainVues || 0);
+    let total = montant + gainVues;
 
     if (a > total) {
       alert(`Solde insuffisant. Votre solde actuel est de ${total} FCFA`);
       return;
     }
 
-    // --- Crée la demande de retrait ---
+    // --- Retire le montant du solde (on puise d'abord dans montant, puis gainVues si besoin) ---
+    if (a <= montant) {
+      montant -= a;
+    } else {
+      const reste = a - montant;
+      montant = 0;
+      gainVues = Math.max(0, gainVues - reste);
+    }
+
+    // --- Mise à jour du solde ---
+    await updateDoc(soldeRef, { montant, gainVues });
+
+    // --- Ajoute l’historique du retrait ---
     await addDoc(collection(db, "withdrawals"), {
       userId: currentUser.uid,
       amount: a,
       phone,
       date: new Date(),
-      status: "en attente"
+      statut: "effectué" // optionnel : juste pour historique clair
     });
 
-    alert("✅ Demande de retrait envoyée avec succès !");
+    alert("✅ Retrait effectué avec succès !");
     
     // --- Réinitialise le formulaire ---
     if (amountInput) amountInput.value = "";
     if (phoneInput) phoneInput.value = "";
 
+    // --- Recharge affichage du solde si fonction dispo ---
+    if (typeof loadTotalViewsAndBalance === "function") {
+      loadTotalViewsAndBalance();
+    }
+
   } catch (err) {
     console.error("Erreur withdrawBalance:", err);
-    alert("❌ Une erreur est survenue lors de la demande de retrait.");
+    alert("❌ Une erreur est survenue lors du retrait.");
   }
 };
 
