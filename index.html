@@ -567,7 +567,7 @@ hr {
  <h3>Recharger mon compte</h3>
   <div id="emailLoginBox">
   <div class="post-header">
-  <input type="number" id="montant" placeholder="Montant min: 100 XAF" min="100" style="padding: 6px; width: 150px;">
+  <input type="number" id="montant" placeholder=" min: 150 XAF" min="150" style="padding: 6px; width: 150px;">
   <button id="notchpayBtn" style="padding: 6px 12px; background-color: #1877f2; color: white; border: none; border-radius: 4px; cursor: pointer;">
     Deposer
   </button>
@@ -2299,7 +2299,7 @@ window.openUserFeed = async uid => {
         // 🎯 Créditer le solde de l’artiste directement
         const artistSoldeRef = doc(db, 'soldes', uid);
         await setDoc(artistSoldeRef, {
-          gainVues: increment(500),
+          gainVues: increment(450),
           updatedAt: new Date()
         }, { merge: true });
 
@@ -2597,7 +2597,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const montantInput = document.getElementById("montant");
     const amount = parseFloat(montantInput.value);
 
-    if (isNaN(amount) || amount < 0) return alert("Montant min 500 XAF");
+    if (isNaN(amount) || amount < 150) return alert("Montant min 150 XAF");
     if (!currentUser) return alert("Connectez-vous");
 
     const walletRef = doc(db, "wallets", currentUser.uid);
