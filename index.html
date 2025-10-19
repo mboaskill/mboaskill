@@ -3060,7 +3060,7 @@ async function renderMusicFeed() {
         <div style="margin-top:10px;font-size:14px;color:#555;display:flex;justify-content:space-between;align-items:center;">
           <div style="display:flex;align-items:center;">
             <i class="fa-solid fa-headphone" style="margin-right:6px;"></i>
-            <span id="views_${musicId}">${d.views || 0}</span> streams
+            <span id="views_${musicId}">${d.views || 0}</span> ets
           </div>
           <button class="share-btn" style="background:gold;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">
             <i class="fas fa-share"></i> Partager
@@ -3219,7 +3219,7 @@ window.openMusicById = async function (musicId) {
       <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #555;">
         <div style="display:flex;align-items:center;">
           <i class="fa-solid fa-headphone" style="margin-right:6px;"></i>
-          <span id="views_${musicId}">${d.views || 0}</span> sts
+          <span id="views_${musicId}">${d.views || 0}</span> ets
         </div>
         <button class="share-btn" style="background:gold;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">
           <i class="fas fa-share"></i> Partager
@@ -3453,7 +3453,7 @@ function myMusicCard(id, d) {
       <input type="text" value="${musicLink}" readonly style="width:80%">
       <button onclick="navigator.clipboard.writeText('${musicLink}')">Copier</button>
     </div>
-    <small style="color:#888">Vues : ${d.views || 0}</small>
+    <small style="color:#888">ets : ${d.views || 0}</small>
   `;
 
   return div;
