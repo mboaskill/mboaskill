@@ -1726,47 +1726,86 @@ async function openUserFeedByName(name) {
     alert("Erreur lors de la recherche d'utilisateur");
   }
 }
+
 function card(id, d, isMine) {
+  // ====== Helpers ======
+  function renderSafeLinkedText(text, container) {
+    const urlRe = /https?:\/\/[^\s'"]+/g;
+    const mentionRe = /@([A-Za-z0-9_À-ÖØ-öø-ÿ][A-Za-z0-9_ À-ÖØ-öø-ÿ\-\.]*)/g;
+    let idx = 0;
+    while (idx < text.length) {
+      urlRe.lastIndex = idx;
+      mentionRe.lastIndex = idx;
+      const u = urlRe.exec(text);
+      const m = mentionRe.exec(text);
+      let next;
+      if (u && m) next = u.index <= m.index ? { type: 'url', match: u } : { type: 'mention', match: m };
+      else if (u) next = { type: 'url', match: u };
+      else if (m) next = { type: 'mention', match: m };
+      else next = null;
+
+      if (!next) {
+        container.appendChild(document.createTextNode(text.slice(idx)));
+        break;
+      }
+
+      if (next.match.index > idx) container.appendChild(document.createTextNode(text.slice(idx, next.match.index)));
+
+      if (next.type === 'url') {
+        const url = next.match[0];
+        const a = document.createElement('a');
+        a.href = url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.textContent = url;
+        container.appendChild(a);
+        idx = next.match.index + url.length;
+      } else {
+        const name = next.match[1].trim();
+        const a = document.createElement('a');
+        a.href = '#';
+        a.className = 'mention';
+        a.dataset.username = name;
+        a.textContent = '@' + name;
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (typeof openUserFeedByName === 'function') openUserFeedByName(name);
+        });
+        container.appendChild(a);
+        idx = next.match.index + next.match[0].length;
+      }
+    }
+  }
+
+  // ====== Bloc principal ======
   const w = document.createElement('div');
   w.className = 'post';
   w.dataset.post = id;
 
-  /* ---------- HEADER ---------- */
+  // ---------- HEADER ----------
   const head = document.createElement('div');
   head.className = 'post-header';
 
   const img = document.createElement('img');
   img.alt = d.userName || d.userEmail || 'Profil';
   img.onclick = () => openUserFeed(d.userId);
-
-  // Photo de profil à jour
-  const userRef = doc(db, 'users', d.userId);
-  getDoc(userRef).then((snap) => {
-    if (snap.exists()) {
-      img.src = snap.data().photoURL || 'https://via.placeholder.com/40';
-    } else {
-      img.src = 'https://via.placeholder.com/40';
-    }
+  getDoc(doc(db, 'users', d.userId)).then((snap) => {
+    img.src = snap.exists() ? (snap.data().photoURL || 'https://via.placeholder.com/40') : 'https://via.placeholder.com/40';
   });
 
   const name = document.createElement('a');
   name.className = 'username';
   name.href = `https://mboaskill.cm/${d.userId}`;
-  name.onclick = (e) => {
-    e.preventDefault();
-    openUserFeed(d.userId);
-  };
+  name.onclick = (e) => { e.preventDefault(); openUserFeed(d.userId); };
 
-  const verifiedRef = doc(db, 'verified', d.userId);
-  getDoc(verifiedRef).then((snap) => {
+  getDoc(doc(db, 'verified', d.userId)).then((snap) => {
     if (snap.exists() && snap.data().status === true) {
       name.innerHTML = `
         ${d.userName || d.userEmail}
         <span class="verified-badge">
           <i class="fas fa-certificate"></i>
           <i class="fas fa-check checkmark"></i>
-        </span>
-      `;
+        </span>`;
     } else {
       name.textContent = d.userName || d.userEmail;
     }
@@ -1775,9 +1814,7 @@ function card(id, d, isMine) {
   const time = document.createElement('small');
   time.style.marginLeft = '8px';
   time.style.color = '#888';
-  if (d.createdAt?.toDate) {
-    time.textContent = `• il y a ${timeSince(d.createdAt.toDate())}`;
-  }
+  if (d.createdAt?.toDate) time.textContent = `• il y a ${timeSince(d.createdAt.toDate())}`;
 
   head.append(img, name, time);
 
@@ -1793,169 +1830,119 @@ function card(id, d, isMine) {
 
   w.appendChild(head);
 
-  /* ---------- CONTENT ---------- */
+  // ---------- CONTENU ----------
   const cont = document.createElement('div');
   cont.className = 'post-content';
-if (d.imageUrl) {
-  // --- Titre avant image ---
-  if (d.imageTitle) {
-    const titleDiv = document.createElement('div');
-    titleDiv.style.fontWeight = 'bold';
-    titleDiv.style.marginBottom = '4px';
 
-    let html = linkifyText(d.imageTitle);
-    html = html.replace(/@([\wÀ-ÖØ-öø-ÿ ]+)/g, (match, name) => {
-      return `<a href="#" class="mention" data-username="${name.trim()}">${match}</a>`;
-    });
-
-    titleDiv.innerHTML = html;
-
-    titleDiv.querySelectorAll('.mention').forEach(a => {
-      a.addEventListener('click', e => {
-        e.preventDefault();
-        openUserFeedByName(a.dataset.username);
-      });
-    });
-
-    cont.appendChild(titleDiv);
+  if (d.imageUrl) {
+    if (d.imageTitle) {
+      const titleDiv = document.createElement('div');
+      titleDiv.style.fontWeight = 'bold';
+      renderSafeLinkedText(d.imageTitle, titleDiv);
+      cont.appendChild(titleDiv);
+    }
+    const imgEl = document.createElement('img');
+    imgEl.src = d.imageUrl;
+    imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
+    cont.appendChild(imgEl);
+  } else if (d.text) {
+    const textDiv = document.createElement('div');
+    textDiv.className = 'text-bg';
+    renderSafeLinkedText(d.text, textDiv);
+    textDiv.style.background = d.bgColor || '#000';
+    textDiv.style.color = d.textColor || '#fff';
+    cont.appendChild(textDiv);
   }
 
-  // --- Image ---
-  const imgEl = document.createElement('img');
-  imgEl.src = d.imageUrl;
-  imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
-  cont.appendChild(imgEl);
-
-} else if (d.text) {
-  // --- Texte sans image ---
-  const textDiv = document.createElement('div');
-  textDiv.className = 'text-bg';
-  textDiv.style.background = d.bgColor || '#000000';
-
-  let html = linkifyText(d.text || '');
-  html = html.replace(/@([\wÀ-ÖØ-öø-ÿ ]+)/g, (match, name) => {
-    return `<a href="#" class="mention" data-username="${name.trim()}">${match}</a>`;
-  });
-
-  textDiv.innerHTML = html;
-
-  textDiv.querySelectorAll('.mention').forEach(a => {
-    a.addEventListener('click', e => {
-      e.preventDefault();
-      openUserFeedByName(a.dataset.username);
-    });
-  });
-
-  cont.appendChild(textDiv);
-  }
-  
   w.appendChild(cont);
 
-  /* ---------- ACTIONS ---------- */
-  const act = document.createElement('div');  
-act.className = 'post-actions';  
+  // ---------- ACTIONS ----------
+  const act = document.createElement('div');
+  act.className = 'post-actions';
 
-// --- LEFT : like + compteur ---
-const left = document.createElement('div');
-left.className = 'left';
+  const left = document.createElement('div');
+  left.className = 'left';
+  const like = document.createElement('i');
+  like.className = 'fa-regular fa-heart like';
+  const lCnt = document.createElement('span');
+  lCnt.textContent = fmt(d.likes || 0);
+  if (currentUser) {
+    const likeRef = doc(db, 'posts', id, 'likes', currentUser.uid);
+    getDoc(likeRef).then(snap => {
+      if (snap.exists()) like.classList.add('fa-solid', 'liked');
+    });
+  }
+  like.onclick = () => toggleLike(id, like, lCnt);
+  left.append(like, lCnt);
 
-const like = document.createElement('i');  
-like.className = 'fa-regular fa-heart';  
-like.classList.add('like');  
+  const center = document.createElement('div');
+  center.className = 'center';
+  const vCnt = document.createElement('span');
+  vCnt.innerHTML = `<i class="fas fa-eye"></i> ${fmt(d.views || 0)}`;
+  center.appendChild(vCnt);
 
-const lCnt = document.createElement('span');  
-lCnt.textContent = fmt(d.likes || 0);  
+  const right = document.createElement('div');
+  right.className = 'right';
+  const comI = document.createElement('i');
+  comI.className = 'fa-regular fa-comment';
+  const comCnt = document.createElement('span');
+  comCnt.textContent = '0';
+  right.append(comI, comCnt);
 
-if (currentUser) {  
-  const likeRef = doc(db, 'posts', id, 'likes', currentUser.uid);  
-  getDoc(likeRef).then(snap => {  
-    if (snap.exists()) {  
-      like.classList.remove('fa-regular');  
-      like.classList.add('fa-solid', 'liked');  
-    }  
-  });  
-}  
+  if (isMine) {
+    const edit = document.createElement('i');
+    edit.className = 'fa-solid fa-pen-to-square';
+    edit.title = 'Modifier';
+    edit.onclick = () => editPost(id, d);
+    left.appendChild(edit);
 
-like.onclick = () => toggleLike(id, like, lCnt);  
-left.append(like, lCnt);
+    const boostBtn = document.createElement('button');
+    boostBtn.className = 'boost-btn';
+    boostBtn.textContent = 'Booster';
+    boostBtn.onclick = () => selectBoostPost(id, d.text || 'Sans titre');
+    right.appendChild(boostBtn);
+  }
 
-// --- CENTER : vues ---
-const center = document.createElement('div');
-center.className = 'center';
+  act.append(left, center, right);
+  w.appendChild(act);
 
-const vCnt = document.createElement('span');  
-const vuesAffichees = (d.views || 0) + (d.boosted || 0) + ((d.likes || 0) * 1);  
-vCnt.innerHTML = `<i class="fas fa-eye"></i> ${fmt(vuesAffichees)}`;  
-center.appendChild(vCnt);
-
-// --- RIGHT : commentaires + booster ---
-const right = document.createElement('div');
-right.className = 'right';
-
-const comI = document.createElement('i');  
-comI.className = 'fa-regular fa-comment';  
-
-const comCnt = document.createElement('span');  
-comCnt.textContent = ' … ';  
-
-right.append(comI, comCnt);
-
-if (isMine) {  
-  const edit = document.createElement('i');  
-  edit.className = 'fa-solid fa-pen-to-square';  
-  edit.style.cursor = 'pointer';  
-  edit.title = 'Modifier';  
-  edit.onclick = () => editPost(id, d);  
-  left.appendChild(edit); // edit à gauche avec like
-}
-
-if (isMine) {  
-  const b = document.createElement('button');  
-  b.className = 'boost-btn';  
-  b.textContent = 'Booster';  
-  b.onclick = () => selectBoostPost(id, d.text || d.videoTitle || 'Sans titre');  
-  right.appendChild(b);
-}
-
-// --- assembler ---
-act.append(left, center, right);
-w.appendChild(act);
-  /* ---------- COMMENTS SECTION ---------- */
+  // ---------- COMMENTAIRES ----------
   const comSec = document.createElement('div');
   comSec.className = 'comments-section';
   comSec.style.display = 'none';
-
   const comList = document.createElement('div');
   comSec.appendChild(comList);
 
   if (currentUser) {
-    const div = document.createElement('div');
-    div.className = 'comment-input';
-
+    const inputBox = document.createElement('div');
+    inputBox.className = 'comment-input';
     const inp = document.createElement('input');
     inp.placeholder = 'Ajouter un commentaire...';
-
     const btn = document.createElement('button');
     btn.textContent = 'Envoyer';
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const t = inp.value.trim();
       if (!t) return;
-      addComment(id, t);
+      await addComment(id, t);
       inp.value = '';
+      await loadComments(id, comList, comCnt);
     };
-
-    div.append(inp, btn);
-    comSec.appendChild(div);
+    inputBox.append(inp, btn);
+    comSec.appendChild(inputBox);
   }
 
   w.appendChild(comSec);
 
-  comI.onclick = () => {
+  // ---------- COMPORTEMENT BOUTON COMMENTAIRES ----------
+  comI.onclick = async () => {
     const show = comSec.style.display === 'none';
     comSec.style.display = show ? 'block' : 'none';
-    if (show) loadComments(id, comList, comCnt);
+    if (show) await loadComments(id, comList, comCnt);
   };
-  // 🔹 Séparateur (ligne fine en bas)
+
+  // ---------- CHARGEMENT INITIAL DES COMMENTAIRES ----------
+  loadComments(id, comList, comCnt).catch(console.error);
+
   const hr = document.createElement('hr');
   hr.style.border = 'none';
   hr.style.borderTop = '1px solid #ddd';
@@ -1964,6 +1951,7 @@ w.appendChild(act);
 
   return w;
 }
+
 async function editPost(postId, data) {
   // Récup valeur actuelle
   const currentText = data.text || '';
@@ -2014,9 +2002,9 @@ async function toggleLike(pid, icon, cnt) {
 }
 /* COMMENTS */
 async function loadComments(pid, container, cnt) {
-  // Récupérer tous les commentaires
+  // 🔹 Récupérer tous les commentaires (les plus récents d'abord)
   const s = await getDocs(
-    query(collection(db, 'posts', pid, 'comments'), orderBy('createdAt'))
+    query(collection(db, 'posts', pid, 'comments'), orderBy('createdAt', 'desc'))
   );
 
   container.innerHTML = '';
@@ -2035,7 +2023,7 @@ async function loadComments(pid, container, cnt) {
   // Attendre que toutes les requêtes se terminent
   const usersData = await Promise.all(userPromises);
 
-  // 2️⃣ Boucle pour créer les commentaires
+  // 2️⃣ Boucle pour créer les commentaires (dans le même ordre que Firestore, donc du plus récent au plus ancien)
   s.docs.forEach((docSnap, i) => {
     const c = docSnap.data();
     const [userSnap, verifiedSnap] = usersData[i];
@@ -2086,7 +2074,7 @@ async function loadComments(pid, container, cnt) {
       name.textContent = userData.displayName || c.userName || c.userEmail || 'Utilisateur';
     }
 
-    // Texte du commentaire
+    // Texte du commentaire (avec liens et mentions)
     const span = document.createElement('span');
     span.innerHTML = linkifyText(c.text || '');
     span.style.marginTop = '2px';
