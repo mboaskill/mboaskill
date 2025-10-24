@@ -874,7 +874,7 @@ async function incrementView(postId) {
         console.log("💰 Solde avant:", currentGain, "Total vues:", currentTotal);
 
         t.update(soldeRef, {
-          gainVues: currentGain + 0.2,
+          gainVues: currentGain + 0.25,
           totalViews: currentTotal + 1,
           updatedAt: new Date()
         });
@@ -883,7 +883,7 @@ async function incrementView(postId) {
         console.log("🆕 Création du document solde pour le propriétaire:", ownerId);
         t.set(soldeRef, {
           montant: 0,
-          gainVues: 0.2,
+          gainVues: 0.25,
           totalViews: 1,
           lastViewsCount: 1,
           createdAt: new Date(),
