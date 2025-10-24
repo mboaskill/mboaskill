@@ -1800,15 +1800,15 @@ function card(id, d, isMine) {
     wrapper.appendChild(textDiv);
     wrapper.appendChild(toggleBtn);
 
-    const fullText = text;
-    const shortText = text.length > maxLen ? text.slice(0, maxLen) + '...' : text;
+    const fullText = text || '';
+    const shortText = fullText.length > maxLen ? fullText.slice(0, maxLen) + '...' : fullText;
     let isShort = true;
 
     function render() {
       textDiv.innerHTML = '';
       renderSafeLinkedText(isShort ? shortText : fullText, textDiv);
       toggleBtn.textContent = isShort ? 'Voir plus' : 'Voir moins';
-      toggleBtn.style.display = text.length > maxLen ? 'block' : 'none';
+      toggleBtn.style.display = fullText.length > maxLen ? 'block' : 'none';
     }
 
     toggleBtn.onclick = () => {
@@ -1878,12 +1878,14 @@ function card(id, d, isMine) {
   cont.className = 'post-content';
 
   if (d.imageUrl) {
+    // ✅ Titre d'image avec Voir plus / Voir moins
     if (d.imageTitle) {
-      const titleDiv = document.createElement('div');
-      titleDiv.style.fontWeight = 'bold';
-      renderSafeLinkedText(d.imageTitle, titleDiv);
-      cont.appendChild(titleDiv);
+      const titleWrapper = createTextBlockWithToggle(d.imageTitle, 200);
+      titleWrapper.querySelector('.text-bg').style.fontWeight = 'bold';
+      titleWrapper.querySelector('.text-bg').style.color = '#fff';
+      cont.appendChild(titleWrapper);
     }
+
     const imgEl = document.createElement('img');
     imgEl.src = d.imageUrl;
     imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
@@ -1989,7 +1991,7 @@ function card(id, d, isMine) {
   w.appendChild(hr);
 
   return w;
-}
+    }
 async function editPost(postId, data) {
   // Récup valeur actuelle
   const currentText = data.text || '';
