@@ -1749,7 +1749,8 @@ function card(id, d, isMine) {
         break;
       }
 
-      if (next.match.index > idx) container.appendChild(document.createTextNode(text.slice(idx, next.match.index)));
+      if (next.match.index > idx)
+        container.appendChild(document.createTextNode(text.slice(idx, next.match.index)));
 
       if (next.type === 'url') {
         const url = next.match[0];
@@ -1777,7 +1778,49 @@ function card(id, d, isMine) {
     }
   }
 
-  // ====== Bloc principal ======
+  // ====== Texte avec bouton Voir plus / Voir moins ======
+  function createTextBlockWithToggle(text, maxLen = 200) {
+    const wrapper = document.createElement('div');
+    const textDiv = document.createElement('div');
+    textDiv.className = 'text-bg';
+    textDiv.style.whiteSpace = 'pre-wrap';
+    textDiv.style.wordBreak = 'break-word';
+    textDiv.style.padding = '8px';
+    textDiv.style.borderRadius = '6px';
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'toggle-btn';
+    toggleBtn.style.display = 'none';
+    toggleBtn.style.marginTop = '6px';
+    toggleBtn.style.background = 'none';
+    toggleBtn.style.border = 'none';
+    toggleBtn.style.color = '#0af';
+    toggleBtn.style.cursor = 'pointer';
+
+    wrapper.appendChild(textDiv);
+    wrapper.appendChild(toggleBtn);
+
+    const fullText = text;
+    const shortText = text.length > maxLen ? text.slice(0, maxLen) + '...' : text;
+    let isShort = true;
+
+    function render() {
+      textDiv.innerHTML = '';
+      renderSafeLinkedText(isShort ? shortText : fullText, textDiv);
+      toggleBtn.textContent = isShort ? 'Voir plus' : 'Voir moins';
+      toggleBtn.style.display = text.length > maxLen ? 'block' : 'none';
+    }
+
+    toggleBtn.onclick = () => {
+      isShort = !isShort;
+      render();
+    };
+
+    render();
+    return wrapper;
+  }
+
+  // ====== Début du post ======
   const w = document.createElement('div');
   w.className = 'post';
   w.dataset.post = id;
@@ -1846,12 +1889,10 @@ function card(id, d, isMine) {
     imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
     cont.appendChild(imgEl);
   } else if (d.text) {
-    const textDiv = document.createElement('div');
-    textDiv.className = 'text-bg';
-    renderSafeLinkedText(d.text, textDiv);
-    textDiv.style.background = d.bgColor || '#000';
-    textDiv.style.color = d.textColor || '#fff';
-    cont.appendChild(textDiv);
+    const textWrapper = createTextBlockWithToggle(d.text, 200);
+    textWrapper.querySelector('.text-bg').style.background = d.bgColor || '#000';
+    textWrapper.querySelector('.text-bg').style.color = d.textColor || '#fff';
+    cont.appendChild(textWrapper);
   }
 
   w.appendChild(cont);
@@ -1933,14 +1974,12 @@ function card(id, d, isMine) {
 
   w.appendChild(comSec);
 
-  // ---------- COMPORTEMENT BOUTON COMMENTAIRES ----------
   comI.onclick = async () => {
     const show = comSec.style.display === 'none';
     comSec.style.display = show ? 'block' : 'none';
     if (show) await loadComments(id, comList, comCnt);
   };
 
-  // ---------- CHARGEMENT INITIAL DES COMMENTAIRES ----------
   loadComments(id, comList, comCnt).catch(console.error);
 
   const hr = document.createElement('hr');
@@ -1951,7 +1990,6 @@ function card(id, d, isMine) {
 
   return w;
 }
-
 async function editPost(postId, data) {
   // Récup valeur actuelle
   const currentText = data.text || '';
