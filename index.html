@@ -1921,7 +1921,7 @@ function card(id, d, isMine) {
   const center = document.createElement('div');
   center.className = 'center';
   const vCnt = document.createElement('span');
-  vCnt.innerHTML = `<i class="fas fa-eye"></i> ${fmt(d.views || 0)}`;
+  vCnt.innerHTML = `<i class="fas fa-eye"></i> ${fmt(d.views || 1)}`;
   center.appendChild(vCnt);
 
   const right = document.createElement('div');
