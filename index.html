@@ -332,6 +332,22 @@ hr {
 #mentionSuggestions {
     display:none; position:absolute; background:#fff; border:1px solid #ccc; border-radius:6px; padding:4px; max-height:400px; overflow-y:auto; z-index:1000;
 }
+    audio::-webkit-media-controls-play-button {
+    background-color: gold;
+    border-radius: 50%;
+    transform: scale(1.4);
+  }
+
+  audio::-moz-media-controls-play-button {
+    background-color: gold;
+    border-radius: 50%;
+    transform: scale(1.4);
+  }
+
+  audio {
+    filter: drop-shadow(0 0 0.75rem rgba(0, 0, 0, 0.1));
+    }
+    
  </style>
 </head>
 <body>
