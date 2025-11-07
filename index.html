@@ -729,6 +729,18 @@ L'application mboa skills est disponible partout dans le monde (la monétisation
    </div> 
    <hr>
 </section>
+<section id="mabio" class="tabcontent" style="display:none;padding:15px">
+ <br><br/>
+  <h2>Modifier ma bio</h2>
+  <textarea id="bioInput" placeholder="Écris quelque chose sur toi..." 
+    style="width:100%;height:120px;padding:8px;border-radius:8px;border:1px solid #ccc;font-size:15px;"></textarea>
+  <br>
+  <button id="saveBioBtn" 
+    style="margin-top:8px;background:#1877f2;color:white;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;">
+    💾 Enregistrer
+  </button>
+  <p id="bioStatus" style="color:green;margin-top:6px;font-size:14px;"></p>
+</section>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -2238,148 +2250,231 @@ window.boostPost = async () => {
  13. USER FEED & SEARCH
 ──────────────────────────────────────────────────────────*/
 // Feed d'un utilisateur
-window.openUserFeed = async uid => {
+// ======================================================
+// 🔹 PROFIL UTILISATEUR (AFFICHAGE + BIO + FOLLOW + SOUTIEN)
+// ======================================================
+window.openUserFeed = async (uid) => {
+  if (!uid) return alert("Utilisateur introuvable.");
+
+  // Ouvre l'onglet userFeed
   openTab(
     { currentTarget: document.querySelector('.tablinks[onclick*="home"]') },
     'userFeed'
   );
 
-  const cont = qs('userFeedContent'),
-        title = qs('userFeedTitle');
-
+  const cont = qs('userFeedContent');
+  const title = qs('userFeedTitle');
   cont.textContent = 'Chargement…';
 
-  let name = 'Utilisateur',
-      photo = 'https://via.placeholder.com/40',
-      verified = false;
+  // Valeurs par défaut
+  let name = 'Utilisateur';
+  let photo = 'https://via.placeholder.com/100';
+  let verified = false;
 
-  // 🔹 Récupère les infos actuelles du profil dans "users"
-  const userRef = doc(db, 'users', uid);
-  const userSnap = await getDoc(userRef);
-
-  if (userSnap.exists()) {
-    const data = userSnap.data();
-    name = data.name || name;
-    photo = data.photoURL || photo;
+  // 🔹 Récupère les infos utilisateur
+  try {
+    const userRef = doc(db, 'users', uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      const data = userSnap.data();
+      name = data.name || name;
+      photo = data.photoURL || photo;
+    }
+  } catch (e) {
+    console.warn("Erreur chargement utilisateur:", e);
   }
 
   // 🔹 Vérifie la certification
-  const verifiedRef = doc(db, 'verified', uid);
-  const verifiedSnap = await getDoc(verifiedRef);
-  if (verifiedSnap.exists() && verifiedSnap.data().status === true) {
-    verified = true;
+  try {
+    const verifiedRef = doc(db, 'verified', uid);
+    const verifiedSnap = await getDoc(verifiedRef);
+    verified = verifiedSnap.exists() && verifiedSnap.data().status === true;
+  } catch (e) {
+    console.warn("Erreur vérification certif:", e);
   }
 
-  // HEADER
+  // === HEADER ===
   title.innerHTML = '';
-  title.style.cssText = 'display:flex;align-items:flex-start;gap:10px;';
+  title.style.cssText = `
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    align-items:flex-start;
+  `;
 
-  // Bloc photo
+  // Bloc haut : photo + infos
+  const topRow = document.createElement('div');
+  topRow.style.cssText = 'display:flex;align-items:flex-start;gap:10px;';
+
+  // Photo
   const img = document.createElement('img');
   img.src = photo;
-  img.style.cssText = 'width:100px;height:100px;border-radius:50%';
+  img.alt = name;
+  img.style.cssText = 'width:100px;height:100px;border-radius:50%;object-fit:cover;';
 
-  // Bloc infos (nom + followers + boutons)
+  // Bloc infos
   const infoBlock = document.createElement('div');
-  infoBlock.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;gap:4px';
+  infoBlock.style.cssText = 'display:flex;flex-direction:column;gap:5px;align-items:flex-start;';
 
   const str = document.createElement('strong');
-  str.innerHTML = name + (verified ? ' <i class="fas fa-check-circle" style="color:#1877f2;margin-left:6px"></i>' : '');
-  str.style.fontSize = "18px";
+  str.innerHTML = `${name}${verified ? ' <i class="fas fa-check-circle" style="color:#1877f2;margin-left:6px"></i>' : ''}`;
+  str.style.fontSize = '18px';
 
   const fol = document.createElement('span');
   fol.dataset.followersOf = uid;
-  fol.style.color = '#555';
-  fol.style.fontSize = '14px';
+  fol.style.cssText = 'color:#555;font-size:14px;';
+  fol.textContent = 'Chargement followers...';
 
-  // 🔹 Bouton suivre/désuivre
-  const btn = renderFollowBtn(uid);
-  if (btn) infoBlock.appendChild(btn);
+  infoBlock.append(str, fol);
 
-  infoBlock.prepend(str, fol);
-  title.append(img, infoBlock);
+  // === Actions ===
+  if (currentUser && uid === currentUser.uid) {
+    // Bouton "Ma bio"
+    const bioBtn = document.createElement('button');
+    bioBtn.innerHTML = 'Modifier ma bio <i class="fas fa-pen"></i>';
+    bioBtn.style.cssText = 'margin-top:6px;background:#1877f2;color:white;padding:4px 8px;border:none;border-radius:4px;cursor:pointer;';
+    bioBtn.onclick = () => {
+      document.querySelectorAll('.tabcontent').forEach(sec => sec.style.display = 'none');
+      document.getElementById('mabio').style.display = 'block';
+      loadMyBio();
+    };
+    infoBlock.appendChild(bioBtn);
+  } else if (currentUser) {
+    // Bouton suivre / désuivre
+    const btn = renderFollowBtn(uid);
+    if (btn) infoBlock.appendChild(btn);
+  }
 
-  // 🔹 Vérifie followers
+  topRow.append(img, infoBlock);
+  title.append(topRow);
+
+  // === Followers en temps réel ===
+  onSnapshot(doc(db, 'follows', uid), snap => {
+    const nbFollowers = snap.exists() ? snap.data()?.filo || 0 : 0;
+    fol.textContent = `${fmt(nbFollowers)} followers`;
+  });
+
+  // === Compteur total followers + bouton soutien ===
   const followsRef = doc(db, 'follows', uid);
   const followsSnap = await getDoc(followsRef);
   const followerCount = followsSnap.exists() ? (followsSnap.data().filo || 0) : 0;
 
-  // 🔹 Met à jour l'icône dans #gagne
+  // 🔹 Met à jour l’icône #gagne
   const gagneEl = document.getElementById('gagne');
   if (gagneEl) {
-    if (followerCount >= 100) {
-      gagneEl.innerHTML = '<i class="fas fa-check-circle" style="color:green;"></i>';
-    } else {
-      gagneEl.innerHTML = '<i class="fa-solid fa-xmark" style="color:red;"></i>';
-    }
+    gagneEl.innerHTML = followerCount >= 100
+      ? '<i class="fas fa-check-circle" style="color:green;"></i>'
+      : '<i class="fa-solid fa-xmark" style="color:red;"></i>';
   }
 
-  // 🔹 Bouton "soutenir" si +100 followers
-  if (followerCount > 100) {
+  // 🔹 Bouton "Soutenir"
+  if (currentUser && followerCount > 100 && uid !== currentUser.uid) {
     const supportBtn = document.createElement('button');
     supportBtn.innerHTML = '<i class="fa-solid fa-star"></i> Soutenir (600 XAF)';
-    supportBtn.style.cssText = 'margin-top:6px;background:#ffd700;color:black;padding:4px 8px;border:none;border-radius:4px;cursor:pointer';
-
+    supportBtn.style.cssText = 'margin-top:6px;background:#ffd700;color:black;padding:4px 8px;border:none;border-radius:4px;cursor:pointer;';
     supportBtn.onclick = async () => {
       try {
         const walletRef = doc(db, 'wallets', currentUser.uid);
         const walletSnap = await getDoc(walletRef);
+        const balance = walletSnap.exists() ? (walletSnap.data().balance || 0) : 0;
 
-        if (!walletSnap.exists() || (walletSnap.data().balance || 0) < 600) {
-          alert('💸 Solde insuffisant pour soutenir');
-          return;
-        }
+        if (balance < 600) return alert('💸 Solde insuffisant pour soutenir.');
 
-        // ➖ Déduction du wallet du supporter
-        await updateDoc(walletRef, { balance: walletSnap.data().balance - 600 });
-
-        // ➕ Ajouter des vues fictives (soutien)
-        await setDoc(
-          doc(db, 'users', uid),
-          { soutienvues: increment(1) },
-          { merge: true }
-        );
-
-        // 🎯 Créditer le solde de l’artiste directement
-        const artistSoldeRef = doc(db, 'soldes', uid);
-        await setDoc(artistSoldeRef, {
+        await updateDoc(walletRef, { balance: balance - 600 });
+        await setDoc(doc(db, 'users', uid), { soutienvues: increment(1) }, { merge: true });
+        await setDoc(doc(db, 'soldes', uid), {
           gainVues: increment(450),
           updatedAt: new Date()
         }, { merge: true });
 
         alert('✅ Soutien envoyé avec succès !');
       } catch (err) {
-        console.error('Erreur lors du soutien :', err);
-        alert('❌ Une erreur est survenue');
+        console.error('Erreur soutien :', err);
+        alert('❌ Une erreur est survenue.');
       }
     };
-
     infoBlock.appendChild(supportBtn);
   }
 
-  // 🔹 Compteur de followers en live
-  onSnapshot(doc(db, 'follows', uid), snap => {
-    const nbFollowers = snap.exists() ? snap.data()?.filo || 0 : 0;
-    fol.textContent = `${fmt(nbFollowers)} followers`;
-  });
-
-  // 🔹 Flux des publications
+  // === Flux des publications ===
   onSnapshot(
-    query(
-      collection(db, 'posts'),
-      where('userId', '==', uid),
-      orderBy('createdAt', 'desc')
-    ),
-    snap => {
+    query(collection(db, 'posts'), where('userId', '==', uid), orderBy('createdAt', 'desc')),
+    async snap => {
       cont.innerHTML = '';
+
+      // 🔹 Afficher la bio AVANT les publications
+      await displayBioUnderProfile(uid);
+
       if (snap.empty) {
-        cont.textContent = 'Aucune publication.';
+        const p = document.createElement('p');
+        p.textContent = 'Aucune publication.';
+        cont.appendChild(p);
       } else {
         snap.forEach(d => cont.appendChild(card(d.id, d.data(), false)));
       }
     }
   );
 };
+
+// ======================================================
+// 🔹 AFFICHER LA BIO SOUS LE PROFIL
+// ======================================================
+async function displayBioUnderProfile(uid) {
+  const cont = qs('userFeedContent');
+  if (!cont) return;
+
+  // Supprimer l'ancienne bio si elle existe
+  const oldBio = cont.querySelector('.user-bio');
+  if (oldBio) oldBio.remove();
+
+  const bioEl = document.createElement('div');
+  bioEl.className = 'user-bio';
+  bioEl.style.cssText = `
+    margin-top:15px;
+    padding:10px;
+    border-top:1px solid #ddd;
+    color:#333;
+    font-size:15px;
+    white-space:pre-line;
+  `;
+  bioEl.textContent = 'Chargement de la bio...';
+  cont.appendChild(bioEl);
+
+  try {
+    const bioRef = doc(db, 'users', uid);
+    const bioSnap = await getDoc(bioRef);
+    if (bioSnap.exists() && bioSnap.data().bio) {
+      bioEl.textContent = bioSnap.data().bio;
+    } else {
+      bioEl.textContent = "Aucune bio enregistrée pour le moment.";
+    }
+
+    // 🔹 Si c’est ton profil → petit bouton de modification
+    if (currentUser && uid === currentUser.uid) {
+      const editBtn = document.createElement('button');
+      editBtn.innerHTML = '<i class="fas fa-pen"></i> Modifier ma bio';
+      editBtn.style.cssText = `
+        margin-top:8px;
+        background:#1877f2;
+        color:white;
+        padding:4px 8px;
+        border:none;
+        border-radius:4px;
+        cursor:pointer;
+      `;
+      editBtn.onclick = () => {
+        document.querySelectorAll('.tabcontent').forEach(sec => sec.style.display = 'none');
+        document.getElementById('mabio').style.display = 'block';
+        loadMyBio();
+      };
+      bioEl.appendChild(editBtn);
+    }
+
+  } catch (e) {
+    console.error("Erreur bio:", e);
+    bioEl.textContent = "Erreur lors du chargement de la bio.";
+  }
+}
 
 window.searchUser = async () => {
   const q = qs('searchUserInput').value.trim().toLowerCase();
@@ -3053,26 +3148,30 @@ window.publishMusic = async function () {
   }
 
 
-
-// 🔹 Rend le feed musique
+// 🔹 Rend le feed musique (trié par nombre d’écoutes)
 async function renderMusicFeed() {
   const container = document.getElementById('musicFeed');
   if (!container) {
     console.error("Container musicFeed introuvable");
     return;
   }
-  
+
   container.textContent = 'Chargement…';
 
   try {
     console.log("🎵 renderMusicFeed appelée");
     console.log("🎵 currentUser:", currentUser);
-    
-    const q = query(collection(db, 'musfeed'), orderBy('createdAt', 'desc'));
+
+    // 🔹 On trie d'abord par views (desc) puis createdAt (desc) pour égalités
+    const q = query(
+      collection(db, 'musfeed'),
+      orderBy('views', 'desc'),
+      orderBy('createdAt', 'desc')
+    );
+
     const snapshot = await getDocs(q);
-    
     console.log("🎵 Nombre de documents musfeed:", snapshot.size);
-    
+
     if (snapshot.empty) {
       container.textContent = 'Aucune musique disponible.';
       return;
@@ -3088,23 +3187,33 @@ async function renderMusicFeed() {
       const now = new Date();
       const ageInDays = (now - createdAt) / (1000 * 60 * 60 * 24);
 
-      if (ageInDays > 30) return; // skip si expiré
+      if (ageInDays > 30) return; // 🔹 Ignore les musiques expirées
 
-      // Carte musique
+      // === Carte musique ===
       const div = document.createElement('div');
       div.className = "post";
-      div.style.cssText = "border-radius:10px;padding:1rem;margin-bottom:1rem;background:#fff;";
+      div.style.cssText = `
+        border-radius:10px;
+        padding:1rem;
+        margin-bottom:1rem;
+        background:#fff;
+        box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      `;
 
       div.innerHTML = `
         <div style="display:flex;align-items:center;margin-bottom:10px;cursor:pointer;" class="music-header">
           <i class="fas fa-music" style="color: gold;margin-right:10px;font-size:1.2rem;"></i>
           <strong class="music-title">${d.nom || "Artiste inconnu"} - ${d.titre || "Titre inconnu"}</strong>
         </div>
-        ${d.audioUrl ? `<audio controls src="${d.audioUrl}" style="width:100%;margin-top:8px;"></audio>` : '<p style="color:red;">Audio non disponible</p>'}
+
+        ${d.audioUrl ? 
+          `<audio controls src="${d.audioUrl}" style="width:100%;margin-top:8px;"></audio>` 
+          : '<p style="color:red;">Audio non disponible</p>'}
+
         <div style="margin-top:10px;font-size:14px;color:#555;display:flex;justify-content:space-between;align-items:center;">
           <div style="display:flex;align-items:center;">
             <i class="fa-solid fa-headphone" style="margin-right:6px;"></i>
-            <span id="views_${musicId}">${d.views || 0}</span> ets
+            <span id="views_${musicId}">${d.views || 0}</span> écoutes
           </div>
           <button class="share-btn" style="background:gold;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">
             <i class="fas fa-share"></i> Partager
@@ -3112,17 +3221,17 @@ async function renderMusicFeed() {
         </div>
       `;
 
-      // 🔹 Clic sur header
+      // 🔹 Clic sur le header → ouvre le détail musique
       div.querySelector('.music-header').addEventListener('click', () => openMusicById(musicId));
 
-      // 🔹 Partage
+      // 🔹 Bouton Partage
       div.querySelector('.share-btn').addEventListener('click', (e) => {
         e.stopPropagation();
         const link = `${window.location.origin}/music/${musicId}`;
         navigator.clipboard.writeText(link).then(() => alert("✅ Lien copié : " + link));
       });
 
-      // 🔹 Lecture audio avec paiement
+      // 🔹 Gestion écoute payante
       const audio = div.querySelector('audio');
       if (audio) {
         const viewsEl = div.querySelector(`#views_${musicId}`);
@@ -3136,6 +3245,7 @@ async function renderMusicFeed() {
           const viewDocRef = doc(db, 'musfeed', musicId, 'viewsByUser', currentUser.uid);
           const viewDocSnap = await getDoc(viewDocRef);
 
+          // Si déjà écoutée ou si c'est ton propre morceau, ne facture pas
           if (viewDocSnap.exists() || currentUser.uid === d.userId) return;
 
           const walletRef = doc(db, 'wallets', currentUser.uid);
@@ -3149,12 +3259,14 @@ async function renderMusicFeed() {
           }
 
           try {
+            // Débit écoute + crédit artiste
             await updateDoc(walletRef, { balance: increment(-55) });
             await setDoc(viewDocRef, { userId: currentUser.uid, musicId, playedAt: new Date() });
             await updateDoc(doc(db, 'musfeed', musicId), { views: increment(1) });
             const artistSoldeRef = doc(db, 'soldes', d.userId);
-            await setDoc(artistSoldeRef, { gainVues: increment(50), updatedAt: new Date() }, { merge: true });
+            await setDoc(artistSoldeRef, { gainVues: increment(35), updatedAt: new Date() }, { merge: true });
 
+            // Met à jour compteur local
             viewsEl.textContent = (parseInt(viewsEl.textContent) || 0) + 1;
           } catch (err) {
             console.error("Erreur lors de l'écoute:", err);
@@ -3167,7 +3279,9 @@ async function renderMusicFeed() {
       container.appendChild(div);
     });
 
-    if (container.children.length === 0) container.textContent = 'Aucune musique récente (30 jours max).';
+    // Si aucune musique récente
+    if (container.children.length === 0)
+      container.textContent = 'Aucune musique récente (30 jours max).';
 
   } catch (err) {
     console.error("Erreur renderMusicFeed:", err);
@@ -3331,7 +3445,7 @@ window.openMusicById = async function (musicId) {
           await setDoc(
             doc(db, "soldes", d.userId), 
             { 
-              gainVues: increment(50), 
+              gainVues: increment(35), 
               updatedAt: new Date() 
             }, 
             { merge: true }
