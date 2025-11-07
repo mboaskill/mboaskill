@@ -2446,7 +2446,7 @@ async function displayBioUnderProfile(uid) {
     if (bioSnap.exists() && bioSnap.data().bio) {
       bioEl.textContent = bioSnap.data().bio;
     } else {
-      bioEl.textContent = "Aucune bio enregistrée pour le moment.";
+      bioEl.textContent = "";
     }
 
     // 🔹 Si c’est ton profil → petit bouton de modification
@@ -2474,6 +2474,72 @@ async function displayBioUnderProfile(uid) {
     console.error("Erreur bio:", e);
     bioEl.textContent = "Erreur lors du chargement de la bio.";
   }
+}
+
+// ======================================================
+// 🔹 BIO UTILISATEUR : CHARGEMENT + SAUVEGARDE
+// ======================================================
+
+// 🔸 Charge la bio de l'utilisateur connecté dans le champ d'édition
+async function loadMyBio() {
+  if (!currentUser) {
+    alert("Connectez-vous pour modifier votre bio !");
+    return;
+  }
+
+  const bioInput = document.getElementById('bioInput');
+  const statusEl = document.getElementById('bioStatus');
+  if (!bioInput) {
+    console.warn("⚠️ Champ bioInput introuvable dans le DOM");
+    return;
+  }
+
+  statusEl.textContent = "Chargement...";
+  try {
+    const ref = doc(db, 'users', currentUser.uid);
+    const snap = await getDoc(ref);
+    if (snap.exists()) {
+      bioInput.value = snap.data().bio || "";
+      statusEl.textContent = "✅ Bio chargée.";
+    } else {
+      bioInput.value = "";
+      statusEl.textContent = "Aucune bio enregistrée.";
+    }
+  } catch (err) {
+    console.error("Erreur lors du chargement de la bio:", err);
+    statusEl.textContent = "❌ Erreur de chargement.";
+  }
+}
+
+// 🔸 Sauvegarde la bio modifiée
+async function saveMyBio() {
+  if (!currentUser) {
+    alert("Connectez-vous pour enregistrer votre bio !");
+    return;
+  }
+
+  const bioInput = document.getElementById('bioInput');
+  const statusEl = document.getElementById('bioStatus');
+  if (!bioInput) {
+    console.warn("⚠️ Champ bioInput introuvable");
+    return;
+  }
+
+  const bioText = bioInput.value.trim();
+  statusEl.textContent = "Enregistrement...";
+  try {
+    await updateDoc(doc(db, 'users', currentUser.uid), { bio: bioText });
+    statusEl.textContent = "✅ Bio mise à jour avec succès !";
+  } catch (err) {
+    console.error("Erreur lors de la sauvegarde de la bio:", err);
+    statusEl.textContent = "❌ Erreur d’enregistrement.";
+  }
+}
+
+// 🔸 Bouton "Enregistrer ma bio"
+const saveBioBtn = document.getElementById('saveBioBtn');
+if (saveBioBtn) {
+  saveBioBtn.addEventListener('click', saveMyBio);
 }
 
 window.searchUser = async () => {
