@@ -1339,7 +1339,7 @@ let firstRenderDone = false;
 let cachedPosts = [];
 
 // ===========================================================
-// 🔹 Rendu du fil principal (Feed) + Suggestions aléatoires (filtrées par pays)
+// 🔹 Rendu du fil principal (Feed) + Suggestions aléatoires (filtrées par pays, excluant les suivis et mélangées)
 // ===========================================================
 async function renderFeed() {
   const c = qs('feed');
@@ -1443,16 +1443,16 @@ async function renderFeed() {
       suggestionsContainer.style.background = '#fff';
       suggestionsContainer.style.borderRadius = '10px';
       suggestionsContainer.style.padding = '10px';
-      suggestionsContainer.innerHTML = `<h3 style="color:#111;">vous connaissez peut être:</h3>`;
+      suggestionsContainer.innerHTML = `<h3 style="color:#111;">Vous connaissez peut-être :</h3>`;
       c.appendChild(suggestionsContainer);
 
       try {
-        // 🔹 On filtre par pays et par score
+        // 🔹 On filtre par pays et score
         const qUsers = query(
           collection(db, "users"),
           where("suggestScore", ">=", 45),
           where("countryIndex", "==", userCountry),
-          limit(10)
+          limit(20)
         );
 
         const snapUsers = await getDocs(qUsers);
@@ -1464,6 +1464,23 @@ async function renderFeed() {
           p.style.fontSize = "14px";
           suggestionsContainer.appendChild(p);
         } else {
+          // 🔸 Conversion en tableau et mélange aléatoire
+          let suggestedUsers = snapUsers.docs.map(d => ({
+            id: d.id,
+            data: d.data()
+          }));
+
+          // Exclure currentUser + suivis
+          suggestedUsers = suggestedUsers.filter(u => 
+            u.id !== currentUser.uid && !followingIds.has(u.id)
+          );
+
+          // 🔀 Mélange aléatoire (Fisher-Yates)
+          for (let i = suggestedUsers.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [suggestedUsers[i], suggestedUsers[j]] = [suggestedUsers[j], suggestedUsers[i]];
+          }
+
           const grid = document.createElement('div');
           grid.style.display = 'flex';
           grid.style.overflowX = 'auto';
@@ -1471,10 +1488,8 @@ async function renderFeed() {
           grid.style.padding = '4px 0';
           suggestionsContainer.appendChild(grid);
 
-          snapUsers.forEach(docSnap => {
-            const u = docSnap.data();
-            if (docSnap.id === currentUser.uid) return;
-
+          // 🔹 Afficher les suggestions mélangées
+          suggestedUsers.forEach(({ id, data: u }) => {
             const cardDiv = document.createElement('div');
             cardDiv.style.minWidth = '150px';
             cardDiv.style.flex = '0 0 auto';
@@ -1492,7 +1507,7 @@ async function renderFeed() {
             img.style.height = '120px';
             img.style.objectFit = 'cover';
             img.style.borderRadius = '6px';
-            img.onclick = () => openUserFeed(docSnap.id);
+            img.onclick = () => openUserFeed(id);
 
             const name = document.createElement('p');
             name.textContent = u.name || u.userName || 'Utilisateur';
@@ -1500,7 +1515,7 @@ async function renderFeed() {
             name.style.margin = '6px 0 2px';
             name.style.color = '#111';
 
-            const btn = renderFollowBtn(docSnap.id);
+            const btn = renderFollowBtn(id);
             if (btn) {
               btn.style.marginTop = '4px';
               btn.style.width = '90%';
@@ -1513,12 +1528,12 @@ async function renderFeed() {
           });
 
           const seeAll = document.createElement('p');
-          seeAll.textContent = "See all →";
+          seeAll.textContent = "Voir tout →";
           seeAll.style.textAlign = 'right';
           seeAll.style.color = '#1877f2';
           seeAll.style.cursor = 'pointer';
           seeAll.style.marginTop = '6px';
-          seeAll.onclick = () => openTab({ currentTarget: null }, 'amis');
+          seeAll.onclick = () => openTab({ currentTarget: null }, 'home');
           suggestionsContainer.appendChild(seeAll);
         }
       } catch (err) {
@@ -1532,7 +1547,7 @@ async function renderFeed() {
     observer.observe(el);
   }
 
-  console.log(`✅ Feed affiché : ${posts.length} posts (mélangés + suggestions filtrées par pays)`);  
+  console.log(`✅ Feed affiché : ${posts.length} posts (mélangés + suggestions aléatoires par ordre et position)`);  
 }
 
 function loadFollowedPosts(c){
