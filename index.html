@@ -1550,6 +1550,52 @@ async function renderFeed() {
   console.log(`✅ Feed affiché : ${posts.length} posts (mélangés + suggestions aléatoires par ordre et position)`);  
 }
 
+// ===========================================================
+// 🔹 Remet le suggestScore à 0 chaque jour à minuit local
+// ===========================================================
+async function checkSuggestReset() {
+  if (!currentUser) return;
+
+  try {
+    const today = new Date().toISOString().split('T')[0]; // ex: "2025-11-11"
+    const lastReset = localStorage.getItem('lastSuggestReset');
+
+    // 🕛 Si jamais c’est un nouveau jour → on reset
+    if (lastReset !== today) {
+      const userRef = doc(db, "users", currentUser.uid);
+      await updateDoc(userRef, { suggestScore: 0 });
+
+      localStorage.setItem('lastSuggestReset', today);
+      console.log("✅ suggestScore remis à zéro pour la journée :", today);
+    }
+  } catch (err) {
+    console.error("Erreur pendant le reset du suggestScore :", err);
+  }
+}
+
+// ===========================================================
+// 🔸 Lancer le check au démarrage de l’app
+// ===========================================================
+window.addEventListener("load", checkSuggestReset);
+
+// ===========================================================
+// 🔸 Et on prépare un timer pour minuit exact
+// ===========================================================
+function scheduleMidnightReset() {
+  const now = new Date();
+  const nextMidnight = new Date();
+  nextMidnight.setHours(24, 0, 0, 0); // minuit prochain
+
+  const timeUntilMidnight = nextMidnight.getTime() - now.getTime();
+
+  setTimeout(async () => {
+    await checkSuggestReset(); // reset à minuit
+    scheduleMidnightReset();   // reprogramme pour la nuit suivante
+  }, timeUntilMidnight);
+}
+
+scheduleMidnightReset();
+
 function loadFollowedPosts(c){
   if(!followingIds.size)return;
   const groups=[...followingIds].reduce((a,u,i)=>{if(i%10===0)a.push([]);a[a.length-1].push(u);return a;},[]);
