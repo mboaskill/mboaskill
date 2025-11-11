@@ -1551,51 +1551,55 @@ async function renderFeed() {
 }
 
 // ===========================================================
-// 🔹 Remet le suggestScore à 0 chaque jour à minuit local
+// ===========================================================
+// 🔹 Vérifie et remet suggestScore à 0 à minuit local
 // ===========================================================
 async function checkSuggestReset() {
   if (!currentUser) return;
 
   try {
-    const today = new Date().toISOString().split('T')[0]; // ex: "2025-11-11"
+    const today = new Date().toISOString().split('T')[0];
     const lastReset = localStorage.getItem('lastSuggestReset');
 
-    // 🕛 Si jamais c’est un nouveau jour → on reset
+    // 🕛 Si c’est un nouveau jour → on reset
     if (lastReset !== today) {
       const userRef = doc(db, "users", currentUser.uid);
-      await updateDoc(userRef, { suggestScore: 0 });
+      await setDoc(userRef, { suggestScore: 0 }, { merge: true });
 
       localStorage.setItem('lastSuggestReset', today);
       console.log("✅ suggestScore remis à zéro pour la journée :", today);
+      alert("🎯 Votre score de suggestion a été remis à zéro pour aujourd'hui !");
     }
   } catch (err) {
-    console.error("Erreur pendant le reset du suggestScore :", err);
+    console.error("❌ Erreur pendant le reset du suggestScore :", err);
   }
 }
 
 // ===========================================================
-// 🔸 Lancer le check au démarrage de l’app
+// 🔸 Lance le reset après authentification
 // ===========================================================
-window.addEventListener("load", checkSuggestReset);
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
 
-// ===========================================================
-// 🔸 Et on prépare un timer pour minuit exact
-// ===========================================================
+  if (user) {
+    await checkSuggestReset();   // 🟢 vérifie une fois au login
+    scheduleMidnightReset();     // 🕛 planifie le prochain reset
+  }
+});
+
 function scheduleMidnightReset() {
   const now = new Date();
   const nextMidnight = new Date();
-  nextMidnight.setHours(24, 0, 0, 0); // minuit prochain
+  nextMidnight.setHours(24, 0, 0, 0);
 
-  const timeUntilMidnight = nextMidnight.getTime() - now.getTime();
+  const timeUntilMidnight = nextMidnight - now;
 
   setTimeout(async () => {
-    await checkSuggestReset(); // reset à minuit
-    scheduleMidnightReset();   // reprogramme pour la nuit suivante
+    await checkSuggestReset();
+    scheduleMidnightReset(); // relance pour le lendemain
   }, timeUntilMidnight);
-}
-
-scheduleMidnightReset();
-
+    }
+  
 function loadFollowedPosts(c){
   if(!followingIds.size)return;
   const groups=[...followingIds].reduce((a,u,i)=>{if(i%10===0)a.push([]);a[a.length-1].push(u);return a;},[]);
