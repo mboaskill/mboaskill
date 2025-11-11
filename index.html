@@ -1267,7 +1267,14 @@ window.publishPost = async () => {
     boosted: 0,
     createdAt: serverTimestamp()
   });
-
+// 🔹 Incrémente le score de suggestion (+15% par post non boosté)
+const userRef = doc(db, "users", currentUser.uid);
+await runTransaction(db, async (t) => {
+  const snap = await t.get(userRef);
+  let score = snap.exists() ? snap.data().suggestScore || 0 : 0;
+  score = Math.min(score + 15, 100); // max 100 %
+  t.set(userRef, { suggestScore: score }, { merge: true });
+});
   // reset du formulaire
   document.getElementById("postText").value = "";
   document.getElementById("imageFile").value = "";
@@ -1332,7 +1339,7 @@ let firstRenderDone = false;
 let cachedPosts = [];
 
 // ===========================================================
-// 🔹 Rendu du fil principal (Feed)
+// 🔹 Rendu du fil principal (Feed) + Suggestions aléatoires (filtrées par pays)
 // ===========================================================
 async function renderFeed() {
   const c = qs('feed');
@@ -1340,6 +1347,7 @@ async function renderFeed() {
 
   if (!currentUser) return;
 
+  // 🔹 On récupère le pays de l'utilisateur connecté
   const userSnap = await getDoc(doc(db, "users", currentUser.uid));
   const userCountry = userSnap.exists() ? userSnap.data().countryIndex || 1 : 1;
 
@@ -1396,7 +1404,7 @@ async function renderFeed() {
         collection(db, 'posts'),
         where('userId', '==', userId),
         orderBy('createdAt', 'desc'),
-        limit(10) // on prend 10 récents pour pouvoir choisir parmi eux
+        limit(10)
       );
 
       const snap = await getDocs(q);
@@ -1404,13 +1412,13 @@ async function renderFeed() {
         .map(d => ({ id: d.id, data: d.data() }))
         .filter(p => (now - (p.data.createdAt?.toMillis?.() || 0)) <= sevenDays);
 
-      // Mélange local des posts récents
+      // Mélange local
       for (let i = recentPosts.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [recentPosts[i], recentPosts[j]] = [recentPosts[j], recentPosts[i]];
       }
 
-      posts.push(...recentPosts.slice(0, 3)); // on en garde max 3
+      posts.push(...recentPosts.slice(0, 3));
     }
   }
 
@@ -1423,16 +1431,110 @@ async function renderFeed() {
   cachedPosts = posts;
   firstRenderDone = true;
 
-  // --- Affichage ---
+  // --- Affichage avec insertion aléatoire de suggestions ---
   c.innerHTML = '';
-  posts.forEach(p => {
-    const el = card(p.id, p.data, false);
+  const insertIndex = Math.floor(Math.random() * (posts.length + 1));
+
+  for (let i = 0; i < posts.length; i++) {
+    // 👉 On insère les suggestions à un endroit aléatoire
+    if (i === insertIndex) {
+      const suggestionsContainer = document.createElement('div');
+      suggestionsContainer.style.margin = '15px 0';
+      suggestionsContainer.style.background = '#fff';
+      suggestionsContainer.style.borderRadius = '10px';
+      suggestionsContainer.style.padding = '10px';
+      suggestionsContainer.innerHTML = `<h3 style="color:#111;">People You May Know 🇨🇲</h3>`;
+      c.appendChild(suggestionsContainer);
+
+      try {
+        // 🔹 On filtre par pays et par score
+        const qUsers = query(
+          collection(db, "users"),
+          where("suggestScore", ">=", 45),
+          where("countryIndex", "==", userCountry),
+          limit(10)
+        );
+
+        const snapUsers = await getDocs(qUsers);
+
+        if (snapUsers.empty) {
+          const p = document.createElement('p');
+          p.textContent = "Aucune suggestion pour le moment.";
+          p.style.color = "#777";
+          p.style.fontSize = "14px";
+          suggestionsContainer.appendChild(p);
+        } else {
+          const grid = document.createElement('div');
+          grid.style.display = 'flex';
+          grid.style.overflowX = 'auto';
+          grid.style.gap = '10px';
+          grid.style.padding = '4px 0';
+          suggestionsContainer.appendChild(grid);
+
+          snapUsers.forEach(docSnap => {
+            const u = docSnap.data();
+            if (docSnap.id === currentUser.uid) return;
+
+            const cardDiv = document.createElement('div');
+            cardDiv.style.minWidth = '150px';
+            cardDiv.style.flex = '0 0 auto';
+            cardDiv.style.background = '#f9f9f9';
+            cardDiv.style.border = '1px solid #ddd';
+            cardDiv.style.borderRadius = '8px';
+            cardDiv.style.padding = '8px';
+            cardDiv.style.textAlign = 'center';
+            cardDiv.style.cursor = 'pointer';
+            cardDiv.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+
+            const img = document.createElement('img');
+            img.src = u.photoURL || 'https://via.placeholder.com/150';
+            img.style.width = '100%';
+            img.style.height = '120px';
+            img.style.objectFit = 'cover';
+            img.style.borderRadius = '6px';
+            img.onclick = () => openUserFeed(docSnap.id);
+
+            const name = document.createElement('p');
+            name.textContent = u.name || u.userName || 'Utilisateur';
+            name.style.fontWeight = 'bold';
+            name.style.margin = '6px 0 2px';
+            name.style.color = '#111';
+
+            const btn = renderFollowBtn(docSnap.id);
+            if (btn) {
+              btn.style.marginTop = '4px';
+              btn.style.width = '90%';
+            }
+
+            cardDiv.appendChild(img);
+            cardDiv.appendChild(name);
+            if (btn) cardDiv.appendChild(btn);
+            grid.appendChild(cardDiv);
+          });
+
+          const seeAll = document.createElement('p');
+          seeAll.textContent = "See all →";
+          seeAll.style.textAlign = 'right';
+          seeAll.style.color = '#1877f2';
+          seeAll.style.cursor = 'pointer';
+          seeAll.style.marginTop = '6px';
+          seeAll.onclick = () => openTab({ currentTarget: null }, 'amis');
+          suggestionsContainer.appendChild(seeAll);
+        }
+      } catch (err) {
+        console.error("Erreur chargement suggestions :", err);
+      }
+    }
+
+    // 🔸 Puis on affiche le post normal
+    const el = card(posts[i].id, posts[i].data, false);
     c.appendChild(el);
     observer.observe(el);
-  });
+  }
 
-  console.log(`✅ Feed affiché : ${posts.length} posts (mélangés aléatoirement)`);
+  console.log(`✅ Feed affiché : ${posts.length} posts (mélangés + suggestions filtrées par pays)`);  
 }
+
 function loadFollowedPosts(c){
   if(!followingIds.size)return;
   const groups=[...followingIds].reduce((a,u,i)=>{if(i%10===0)a.push([]);a[a.length-1].push(u);return a;},[]);
