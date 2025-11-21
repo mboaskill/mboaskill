@@ -3874,73 +3874,107 @@ window.sendResetLink = async () => {
     alert("❌ " + err.message);
   }
 };
-// === Modifier le nom de l'utilisateur connecté ===
-window.loadModifyName = async () => {
-  if (!currentUser) {
-    alert("Vous devez être connecté.");
+// === Modifier le nom de l'utilisateur connecté (robuste) ===
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById("saveNameBtn");
+  if (!btn) {
+    console.warn("saveNameBtn introuvable — vérifie que la section #modifie-pro est dans le DOM");
     return;
   }
 
-  const input = document.getElementById("newName");
-  const status = document.getElementById("nameStatus");
-
-  status.textContent = "Chargement...";
-
-  try {
-    const snap = await getDoc(doc(db, "users", currentUser.uid));
-    if (snap.exists()) {
-      input.value = snap.data().name || "";
-      status.textContent = "Nom actuel chargé.";
-    } else {
-      input.value = "";
-      status.textContent = "Aucun nom enregistré.";
+  // charger la valeur quand on ouvre la section (tu peux appeler loadModifyName() depuis openTab)
+  window.loadModifyName = async () => {
+    if (!currentUser) {
+      alert("Vous devez être connecté.");
+      return;
     }
-  } catch (e) {
-    console.error(e);
-    status.textContent = "Erreur lors du chargement.";
-  }
-};
+    const input = document.getElementById("newName");
+    const status = document.getElementById("nameStatus");
+    if (!input || !status) return console.warn("Elements newName/nameStatus introuvables");
 
-// === Enregistrer le nouveau nom ===
-document.getElementById("saveNameBtn").onclick = async () => {
-  if (!currentUser) {
-    alert("Vous devez être connecté.");
-    return;
-  }
+    status.textContent = "Chargement...";
+    try {
+      const snap = await getDoc(doc(db, "users", currentUser.uid));
+      if (snap.exists()) {
+        input.value = snap.data().name || "";
+        status.textContent = "Nom actuel chargé.";
+      } else {
+        input.value = "";
+        status.textContent = "Aucun nom enregistré.";
+      }
+    } catch (e) {
+      console.error(e);
+      status.textContent = "Erreur lors du chargement.";
+    }
+  };
 
-  const newName = document.getElementById("newName").value.trim();
-  const status = document.getElementById("nameStatus");
-
-  if (newName.length < 3) {
-    status.textContent = "Le nom est trop court.";
-    return;
-  }
-
-  status.textContent = "Sauvegarde en cours...";
-
-  try {
-    // 🔥 Mettre à jour le nom dans Firestore (collection users)
-    await updateDoc(doc(db, "users", currentUser.uid), {
-      name: newName
-    });
-
-    // 🔥 Mettre à jour le nom dans Firebase Auth (important)
-    await updateProfile(currentUser, {
-      displayName: newName
-    });
-
-    status.textContent = "✔️ Nom mis à jour avec succès !";
-
-    // Recharge ton profil avec les infos ACTUALISÉES
-    if (typeof openUserFeed === "function") {
-      openUserFeed(currentUser.uid);
+  // handler d'enregistrement
+  btn.addEventListener('click', async () => {
+    if (!currentUser) {
+      alert("Vous devez être connecté.");
+      return;
     }
 
-  } catch (e) {
-    console.error(e);
-    status.textContent = "❌ Erreur lors de la sauvegarde.";
-  }
-};
+    const input = document.getElementById("newName");
+    const status = document.getElementById("nameStatus");
+    if (!input || !status) return console.warn("Elements newName/nameStatus introuvables");
+
+    const newName = input.value.trim();
+    if (newName.length < 3) {
+      status.textContent = "Le nom est trop court.";
+      return;
+    }
+
+    status.textContent = "Sauvegarde en cours...";
+
+    try {
+      // 1) Mettre à jour users/{uid} (créera le doc si nécessaire grâce à merge:true)
+      await setDoc(doc(db, "users", currentUser.uid), { name: newName }, { merge: true });
+
+      // 2) Mettre à jour Firebase Auth displayName
+      //    Utilise auth.currentUser (sécurisé) si disponible.
+      const authUser = auth.currentUser || currentUser;
+      if (authUser) {
+        await updateProfile(authUser, { displayName: newName });
+      }
+
+      // 3) Mettre à jour les posts existants où userId == currentUser.uid
+      //    (sinon tes anciennes publications continueront d'afficher l'ancien userName)
+      try {
+        const q = query(collection(db, "posts"), where("userId", "==", currentUser.uid));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          // Mise à jour en parallèle (attention aux quotas si beaucoup de posts)
+          await Promise.all(snap.docs.map(d => updateDoc(doc(db, "posts", d.id), { userName: newName }).catch(err => {
+            console.warn("Erreur update post", d.id, err);
+          })));
+        }
+      } catch (errPosts) {
+        console.warn("Erreur lors de la mise à jour des posts :", errPosts);
+      }
+
+      // 4) Mettre à jour l'UI locale immédiatement
+      status.textContent = "✔️ Nom mis à jour avec succès !";
+
+      // éléments d'UI que tu utilises ailleurs (met à jour si présents)
+      const authStatusEl = document.getElementById('authStatus');
+      const accountStatusEl = document.getElementById('accountStatus');
+      const accountStatusFeedEl = document.getElementById('accountStatusFeed');
+      if (authStatusEl) authStatusEl.textContent = ` ${newName || currentUser.email}`;
+      if (accountStatusEl) accountStatusEl.textContent = `• ${newName || currentUser.email}`;
+      if (accountStatusFeedEl) accountStatusFeedEl.textContent = accountStatusEl ? accountStatusEl.textContent : `• ${newName || currentUser.email}`;
+
+      // Recharge la vue profil (si tu veux recharger les posts)
+      if (typeof openUserFeed === "function") openUserFeed(currentUser.uid);
+      // Recharge le feed de l'utilisateur connecté
+      if (typeof renderMyFeed === "function") renderMyFeed();
+
+    } catch (e) {
+      console.error("Erreur lors de la sauvegarde du nom :", e);
+      status.textContent = "❌ Erreur lors de la sauvegarde.";
+    }
+  }); // btn click
+});
 </script>
 </body>
 </html>
