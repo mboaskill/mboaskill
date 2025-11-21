@@ -536,7 +536,8 @@ hr {
 </span>
 </p>
     <label for="profilePhotoInput" title="Changer la photo"><i class="fas fa-camera" style="cursor:pointer;font-size:150%;color:#888"></i></label>
-    <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" />
+    <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" /> <br><br/>
+    <i class="fas fa-pen" onclick="openTab(event,'modifie-pro')"></i>
     </div>
     <div class="boutons">
   <input id="profile-link" type="text" readonly style="width:100%;padding:8px" />
@@ -741,7 +742,26 @@ L'application mboa skills est disponible partout dans le monde (la monétisation
   </button>
   <p id="bioStatus" style="color:green;margin-top:6px;font-size:14px;"></p>
 </section>
+<section id="modifie-pro" class="tabcontent">
+  <h2>Modifier mon nom</h2>
 
+  <label for="newName">Nouveau nom :</label>
+  <input
+    type="text"
+    id="newName"
+    placeholder="Entrez votre nouveau nom"
+    style="width:100%;padding:10px;margin-top:6px;border:1px solid #ccc;border-radius:6px;"
+  />
+
+  <button
+    id="saveNameBtn"
+    style="margin-top:10px;padding:10px 15px;background:#1877f2;color:white;border:none;border-radius:6px;cursor:pointer;"
+  >
+    Sauvegarder
+  </button>
+
+  <p id="nameStatus" style="margin-top:10px;color:#444;"></p>
+</section>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   // ⚡ Mets ici tes infos Supabase
@@ -1923,6 +1943,7 @@ async function openUserFeedByName(name) {
 }
 
 function card(id, d, isMine) {
+
   // ====== Helpers ======
   function renderSafeLinkedText(text, container) {
     const urlRe = /https?:\/\/[^\s'"]+/g;
@@ -1973,7 +1994,6 @@ function card(id, d, isMine) {
     }
   }
 
-  // ====== Texte avec bouton Voir plus / Voir moins ======
   function createTextBlockWithToggle(text, maxLen = 200) {
     const wrapper = document.createElement('div');
     const textDiv = document.createElement('div');
@@ -2015,7 +2035,6 @@ function card(id, d, isMine) {
     return wrapper;
   }
 
-  // ====== Début du post ======
   const w = document.createElement('div');
   w.className = 'post';
   w.dataset.post = id;
@@ -2025,34 +2044,42 @@ function card(id, d, isMine) {
   head.className = 'post-header';
 
   const img = document.createElement('img');
-  img.alt = d.userName || d.userEmail || 'Profil';
   img.onclick = () => openUserFeed(d.userId);
-  getDoc(doc(db, 'users', d.userId)).then((snap) => {
-    img.src = snap.exists() ? (snap.data().photoURL || 'https://via.placeholder.com/40') : 'https://via.placeholder.com/40';
-  });
 
   const name = document.createElement('a');
   name.className = 'username';
   name.href = `https://mboaskill.cm/${d.userId}`;
   name.onclick = (e) => { e.preventDefault(); openUserFeed(d.userId); };
 
-  getDoc(doc(db, 'verified', d.userId)).then((snap) => {
-    if (snap.exists() && snap.data().status === true) {
-      name.innerHTML = `
-        ${d.userName || d.userEmail}
-        <span class="verified-badge">
-          <i class="fas fa-certificate"></i>
-          <i class="fas fa-check checkmark"></i>
-        </span>`;
-    } else {
-      name.textContent = d.userName || d.userEmail;
-    }
+  // ====== 🔥 Correction : charger NOM + PHOTO ACTUELS en une seule requête ======
+  getDoc(doc(db, 'users', d.userId)).then((snapUser) => {
+    const data = snapUser.exists() ? snapUser.data() : {};
+    const currentName = data.name || d.userName || d.userEmail;
+    const currentPhoto = data.photoURL || 'https://via.placeholder.com/40';
+
+    img.src = currentPhoto;
+    img.alt = currentName;
+
+    getDoc(doc(db, 'verified', d.userId)).then((snapV) => {
+      if (snapV.exists() && snapV.data().status === true) {
+        name.innerHTML = `
+          ${currentName}
+          <span class="verified-badge">
+            <i class="fas fa-certificate"></i>
+            <i class="fas fa-check checkmark"></i>
+          </span>`;
+      } else {
+        name.textContent = currentName;
+      }
+    });
   });
 
   const time = document.createElement('small');
   time.style.marginLeft = '8px';
   time.style.color = '#888';
-  if (d.createdAt?.toDate) time.textContent = `• il y a ${timeSince(d.createdAt.toDate())}`;
+  if (d.createdAt?.toDate) {
+    time.textContent = `• il y a ${timeSince(d.createdAt.toDate())}`;
+  }
 
   head.append(img, name, time);
 
@@ -2073,7 +2100,6 @@ function card(id, d, isMine) {
   cont.className = 'post-content';
 
   if (d.imageUrl) {
-    // ✅ Titre d'image avec Voir plus / Voir moins
     if (d.imageTitle) {
       const titleWrapper = createTextBlockWithToggle(d.imageTitle, 200);
       titleWrapper.querySelector('.text-bg').style.fontWeight = 'bold';
@@ -2085,6 +2111,7 @@ function card(id, d, isMine) {
     imgEl.src = d.imageUrl;
     imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
     cont.appendChild(imgEl);
+
   } else if (d.text) {
     const textWrapper = createTextBlockWithToggle(d.text, 200);
     textWrapper.querySelector('.text-bg').style.background = d.bgColor || '#000';
@@ -2100,16 +2127,20 @@ function card(id, d, isMine) {
 
   const left = document.createElement('div');
   left.className = 'left';
+
   const like = document.createElement('i');
   like.className = 'fa-regular fa-heart like';
+
   const lCnt = document.createElement('span');
   lCnt.textContent = fmt(d.likes || 0);
+
   if (currentUser) {
     const likeRef = doc(db, 'posts', id, 'likes', currentUser.uid);
     getDoc(likeRef).then(snap => {
       if (snap.exists()) like.classList.add('fa-solid', 'liked');
     });
   }
+
   like.onclick = () => toggleLike(id, like, lCnt);
   left.append(like, lCnt);
 
@@ -2148,14 +2179,17 @@ function card(id, d, isMine) {
   const comSec = document.createElement('div');
   comSec.className = 'comments-section';
   comSec.style.display = 'none';
+
   const comList = document.createElement('div');
   comSec.appendChild(comList);
 
   if (currentUser) {
     const inputBox = document.createElement('div');
     inputBox.className = 'comment-input';
+
     const inp = document.createElement('input');
     inp.placeholder = 'Ajouter un commentaire...';
+
     const btn = document.createElement('button');
     btn.textContent = 'Envoyer';
     btn.onclick = async () => {
@@ -2165,6 +2199,7 @@ function card(id, d, isMine) {
       inp.value = '';
       await loadComments(id, comList, comCnt);
     };
+
     inputBox.append(inp, btn);
     comSec.appendChild(inputBox);
   }
@@ -2186,7 +2221,8 @@ function card(id, d, isMine) {
   w.appendChild(hr);
 
   return w;
-    }
+}
+
 async function editPost(postId, data) {
   // Récup valeur actuelle
   const currentText = data.text || '';
@@ -2419,7 +2455,7 @@ window.boostPost = async () => {
 // Feed d'un utilisateur
 // ======================================================
 // 🔹 PROFIL UTILISATEUR (AFFICHAGE + BIO + FOLLOW + SOUTIEN)
-// ======================================================
+
 window.openUserFeed = async (uid) => {
   if (!uid) return alert("Utilisateur introuvable.");
 
@@ -2438,14 +2474,15 @@ window.openUserFeed = async (uid) => {
   let photo = 'https://via.placeholder.com/100';
   let verified = false;
 
-  // 🔹 Récupère les infos utilisateur
+  // 🔹 Récupère les infos utilisateur (VERSION CORRIGÉE)
   try {
     const userRef = doc(db, 'users', uid);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) {
-      const data = userSnap.data();
+    const snapUser = await getDoc(userRef);
+
+    if (snapUser.exists()) {
+      const data = snapUser.data();
       name = data.name || name;
-      photo = data.photoURL || photo;
+      photo = data.photo || data.photoURL || photo; // 🔥 PHOTO ACTUELLE
     }
   } catch (e) {
     console.warn("Erreur chargement utilisateur:", e);
@@ -2462,12 +2499,7 @@ window.openUserFeed = async (uid) => {
 
   // === HEADER ===
   title.innerHTML = '';
-  title.style.cssText = `
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    align-items:flex-start;
-  `;
+  title.style.cssText = "display:flex;flex-direction:column;gap:10px;align-items:flex-start;";
 
   // Bloc haut : photo + infos
   const topRow = document.createElement('div');
@@ -2475,7 +2507,7 @@ window.openUserFeed = async (uid) => {
 
   // Photo
   const img = document.createElement('img');
-  img.src = photo;
+  img.src = photo; // 🔥 PHOTO ACTUELLE
   img.alt = name;
   img.style.cssText = 'width:100px;height:100px;border-radius:50%;object-fit:cover;';
 
@@ -2484,7 +2516,12 @@ window.openUserFeed = async (uid) => {
   infoBlock.style.cssText = 'display:flex;flex-direction:column;gap:5px;align-items:flex-start;';
 
   const str = document.createElement('strong');
-  str.innerHTML = `${name}${verified ? ' <i class="fas fa-check-circle" style="color:#1877f2;margin-left:6px"></i>' : ''}`;
+
+  // 🔥 NOM ACTUEL + BADGE CORRIGÉ
+  str.innerHTML = `
+    ${name}
+    ${verified ? '<i class="fas fa-check-circle" style="color:#1877f2;margin-left:6px"></i>' : ''}
+  `;
   str.style.fontSize = '18px';
 
   const fol = document.createElement('span');
@@ -2496,7 +2533,6 @@ window.openUserFeed = async (uid) => {
 
   // === Actions ===
   if (currentUser && uid === currentUser.uid) {
-    // Bouton "Ma bio"
     const bioBtn = document.createElement('button');
     bioBtn.innerHTML = 'Modifier ma bio <i class="fas fa-pen"></i>';
     bioBtn.style.cssText = 'margin-top:6px;background:#1877f2;color:white;padding:4px 8px;border:none;border-radius:4px;cursor:pointer;';
@@ -2507,7 +2543,6 @@ window.openUserFeed = async (uid) => {
     };
     infoBlock.appendChild(bioBtn);
   } else if (currentUser) {
-    // Bouton suivre / désuivre
     const btn = renderFollowBtn(uid);
     if (btn) infoBlock.appendChild(btn);
   }
@@ -2526,7 +2561,6 @@ window.openUserFeed = async (uid) => {
   const followsSnap = await getDoc(followsRef);
   const followerCount = followsSnap.exists() ? (followsSnap.data().filo || 0) : 0;
 
-  // 🔹 Met à jour l’icône #gagne
   const gagneEl = document.getElementById('gagne');
   if (gagneEl) {
     gagneEl.innerHTML = followerCount >= 100
@@ -2534,7 +2568,6 @@ window.openUserFeed = async (uid) => {
       : '<i class="fa-solid fa-xmark" style="color:red;"></i>';
   }
 
-  // 🔹 Bouton "Soutenir"
   if (currentUser && followerCount > 100 && uid !== currentUser.uid) {
     const supportBtn = document.createElement('button');
     supportBtn.innerHTML = '<i class="fa-solid fa-star"></i> Soutenir (600 XAF)';
@@ -2569,7 +2602,6 @@ window.openUserFeed = async (uid) => {
     async snap => {
       cont.innerHTML = '';
 
-      // 🔹 Afficher la bio AVANT les publications
       await displayBioUnderProfile(uid);
 
       if (snap.empty) {
@@ -2590,20 +2622,12 @@ async function displayBioUnderProfile(uid) {
   const cont = qs('userFeedContent');
   if (!cont) return;
 
-  // Supprimer l'ancienne bio si elle existe
   const oldBio = cont.querySelector('.user-bio');
   if (oldBio) oldBio.remove();
 
   const bioEl = document.createElement('div');
   bioEl.className = 'user-bio';
-  bioEl.style.cssText = `
-    margin-top:15px;
-    padding:10px;
-    border-top:1px solid #ddd;
-    color:#333;
-    font-size:15px;
-    white-space:pre-line;
-  `;
+  bioEl.style.cssText = "margin-top:15px;padding:10px;border-top:1px solid #ddd;color:#333;font-size:15px;white-space:pre-line;";
   bioEl.textContent = 'Chargement de la bio...';
   cont.appendChild(bioEl);
 
@@ -2616,7 +2640,6 @@ async function displayBioUnderProfile(uid) {
       bioEl.textContent = "";
     }
 
-    // 🔹 Si c’est ton profil → petit bouton de modification
     if (currentUser && uid === currentUser.uid) {
       const editBtn = document.createElement('button');
       editBtn.innerHTML = '<i class="fas fa-pen"></i> Modifier ma bio';
@@ -2642,42 +2665,6 @@ async function displayBioUnderProfile(uid) {
     bioEl.textContent = "Erreur lors du chargement de la bio.";
   }
 }
-
-// ======================================================
-// 🔹 BIO UTILISATEUR : CHARGEMENT + SAUVEGARDE
-// ======================================================
-
-// 🔸 Charge la bio de l'utilisateur connecté dans le champ d'édition
-async function loadMyBio() {
-  if (!currentUser) {
-    alert("Connectez-vous pour modifier votre bio !");
-    return;
-  }
-
-  const bioInput = document.getElementById('bioInput');
-  const statusEl = document.getElementById('bioStatus');
-  if (!bioInput) {
-    console.warn("⚠️ Champ bioInput introuvable dans le DOM");
-    return;
-  }
-
-  statusEl.textContent = "Chargement...";
-  try {
-    const ref = doc(db, 'users', currentUser.uid);
-    const snap = await getDoc(ref);
-    if (snap.exists()) {
-      bioInput.value = snap.data().bio || "";
-      statusEl.textContent = "✅ Bio chargée.";
-    } else {
-      bioInput.value = "";
-      statusEl.textContent = "Aucune bio enregistrée.";
-    }
-  } catch (err) {
-    console.error("Erreur lors du chargement de la bio:", err);
-    statusEl.textContent = "❌ Erreur de chargement.";
-  }
-}
-
 // 🔸 Sauvegarde la bio modifiée
 async function saveMyBio() {
   if (!currentUser) {
@@ -3885,6 +3872,73 @@ window.sendResetLink = async () => {
   } catch (err) {
     console.error("Erreur:", err);
     alert("❌ " + err.message);
+  }
+};
+// === Modifier le nom de l'utilisateur connecté ===
+window.loadModifyName = async () => {
+  if (!currentUser) {
+    alert("Vous devez être connecté.");
+    return;
+  }
+
+  const input = document.getElementById("newName");
+  const status = document.getElementById("nameStatus");
+
+  status.textContent = "Chargement...";
+
+  try {
+    const snap = await getDoc(doc(db, "users", currentUser.uid));
+    if (snap.exists()) {
+      input.value = snap.data().name || "";
+      status.textContent = "Nom actuel chargé.";
+    } else {
+      input.value = "";
+      status.textContent = "Aucun nom enregistré.";
+    }
+  } catch (e) {
+    console.error(e);
+    status.textContent = "Erreur lors du chargement.";
+  }
+};
+
+// === Enregistrer le nouveau nom ===
+document.getElementById("saveNameBtn").onclick = async () => {
+  if (!currentUser) {
+    alert("Vous devez être connecté.");
+    return;
+  }
+
+  const newName = document.getElementById("newName").value.trim();
+  const status = document.getElementById("nameStatus");
+
+  if (newName.length < 3) {
+    status.textContent = "Le nom est trop court.";
+    return;
+  }
+
+  status.textContent = "Sauvegarde en cours...";
+
+  try {
+    // 🔥 Mettre à jour le nom dans Firestore (collection users)
+    await updateDoc(doc(db, "users", currentUser.uid), {
+      name: newName
+    });
+
+    // 🔥 Mettre à jour le nom dans Firebase Auth (important)
+    await updateProfile(currentUser, {
+      displayName: newName
+    });
+
+    status.textContent = "✔️ Nom mis à jour avec succès !";
+
+    // Recharge ton profil avec les infos ACTUALISÉES
+    if (typeof openUserFeed === "function") {
+      openUserFeed(currentUser.uid);
+    }
+
+  } catch (e) {
+    console.error(e);
+    status.textContent = "❌ Erreur lors de la sauvegarde.";
   }
 };
 </script>
