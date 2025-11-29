@@ -2874,8 +2874,8 @@ window.withdrawBalance = async () => {
 
     // --- Montant demandé ---
     const a = amountInput ? Number(amountInput.value) : 0;
-    if (!Number.isFinite(a) || a < 1000) {
-      alert("Montant minimum : 1 000 XAF");
+    if (!Number.isFinite(a) || a < 5000) {
+      alert("Montant minimum : 5 000 XAF");
       return;
     }
 
