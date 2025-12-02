@@ -3484,7 +3484,7 @@ async function renderMusicFeed() {
             await setDoc(viewDocRef, { userId: currentUser.uid, musicId, playedAt: new Date() });
             await updateDoc(doc(db, 'musfeed', musicId), { views: increment(1) });
             const artistSoldeRef = doc(db, 'soldes', d.userId);
-            await setDoc(artistSoldeRef, { gainVues: increment(35), updatedAt: new Date() }, { merge: true });
+            await setDoc(artistSoldeRef, { gainVues: increment(20), updatedAt: new Date() }, { merge: true });
 
             // Met à jour compteur local
             viewsEl.textContent = (parseInt(viewsEl.textContent) || 0) + 1;
