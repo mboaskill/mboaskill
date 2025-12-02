@@ -3665,7 +3665,7 @@ window.openMusicById = async function (musicId) {
           await setDoc(
             doc(db, "soldes", d.userId), 
             { 
-              gainVues: increment(25), 
+              gainVues: increment(20), 
               updatedAt: new Date() 
             }, 
             { merge: true }
