@@ -2570,7 +2570,7 @@ window.openUserFeed = async (uid) => {
 
   if (currentUser && followerCount > 100 && uid !== currentUser.uid) {
     const supportBtn = document.createElement('button');
-    supportBtn.innerHTML = '<i class="fa-solid fa-star"></i> Soutenir (600 XAF)';
+    supportBtn.innerHTML = '<i class="fa-solid fa-star"></i> Soutenir (300 XAF)';
     supportBtn.style.cssText = 'margin-top:6px;background:#ffd700;color:black;padding:4px 8px;border:none;border-radius:4px;cursor:pointer;';
     supportBtn.onclick = async () => {
       try {
@@ -2578,12 +2578,12 @@ window.openUserFeed = async (uid) => {
         const walletSnap = await getDoc(walletRef);
         const balance = walletSnap.exists() ? (walletSnap.data().balance || 0) : 0;
 
-        if (balance < 600) return alert('💸 Solde insuffisant pour soutenir.');
+        if (balance < 300) return alert('💸 Solde insuffisant pour soutenir.');
 
-        await updateDoc(walletRef, { balance: balance - 600 });
+        await updateDoc(walletRef, { balance: balance - 300 });
         await setDoc(doc(db, 'users', uid), { soutienvues: increment(1) }, { merge: true });
         await setDoc(doc(db, 'soldes', uid), {
-          gainVues: increment(450),
+          gainVues: increment(150),
           updatedAt: new Date()
         }, { merge: true });
 
