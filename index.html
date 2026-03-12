@@ -348,7 +348,120 @@ hr {
   audio {
     filter: drop-shadow(0 0 0.75rem rgba(0, 0, 0, 0.1));
     }
-    
+#replyPage{
+position:fixed;
+top:0;
+left:0;
+width:60%;
+height:100%;
+background:#f0f2f5;
+z-index:9999;
+display:none;
+flex-direction:column;
+}
+
+/* HEADER */
+
+.replyHeader{
+display:flex;
+align-items:center;
+gap:10px;
+background:white;
+padding:12px;
+border-bottom:1px solid #ddd;
+position:sticky;
+top:0;
+}
+
+.replyHeader button{
+background:none;
+border:none;
+font-size:16px;
+cursor:pointer;
+color:#1877f2;
+}
+
+/* COMMENTAIRE PRINCIPAL */
+
+.mainComment{
+background:white;
+padding:15px;
+border-bottom:1px solid #ddd;
+}
+
+.mainComment b{
+display:block;
+color:#111;
+margin-bottom:4px;
+}
+
+/* LISTE DES REPONSES */
+
+.replyList{
+flex:1;
+overflow-y:auto;
+padding:10px;
+}
+
+/* BULLES DE REPONSE */
+
+.replyItem{
+display:flex;
+gap:10px;
+margin-bottom:12px;
+}
+
+.replyItem img{
+width:35px;
+height:35px;
+border-radius:50%;
+}
+
+.replyBubble{
+background:white;
+padding:10px;
+border-radius:12px;
+box-shadow:0 1px 2px rgba(0,0,0,0.1);
+max-width:80%;
+}
+
+/* INPUT EN BAS */
+
+.replyInputBox{
+display:flex;
+gap:10px;
+padding:10px;
+background:white;
+border-top:1px solid #ddd;
+position:sticky;
+bottom:0;
+}
+
+.replyInputBox input{
+flex:1;
+padding:10px;
+border-radius:20px;
+border:1px solid #ccc;
+outline:none;
+}
+
+.replyInputBox button{
+background:#1877f2;
+color:white;
+border:none;
+padding:8px 16px;
+border-radius:20px;
+cursor:pointer;
+}
+
+.replyInputBox button:hover{
+background:#166fe5;
+}  
+hr.rouge {
+  border: 1px solid #FF0000;
+  background-color: #FF0000;
+}
+
  </style>
 </head>
 <body>
@@ -762,6 +875,41 @@ L'application mboa skills est disponible partout dans le monde (la monétisation
   </button>
 
   <p id="nameStatus" style="margin-top:10px;color:#444;"></p>
+</section>
+<section id="replyPage" style="
+position:fixed;
+top:0;
+left:0;
+width:80%;
+height:100%;
+background:white;
+z-index:9999;
+display:none;
+overflow-y:auto;
+padding:20px;
+">
+<br><br/>
+<br><br/>
+<br><br/>
+<br><br/>
+ <div id="emailLoginBox">
+<section id="mainComment"></section>
+</div>
+<hr class="rouge">
+
+<section id="replyList"></section>
+
+<section style="margin-top:20px">
+<hr class="rouge">
+ <div id="emailLoginBox">
+<input id="replyInputFull" placeholder="Écrire une réponse...">
+
+<button id="sendReplyFull">Envoyer <i class="fas fa-paper-plane"></i></button>
+</div>
+<button onclick="closeReplyPage()">⬅ Retour <i class="fas fa-arrow-left"></i></button>
+
+</section>
+
 </section>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -2274,95 +2422,253 @@ async function toggleLike(pid, icon, cnt) {
 }
 /* COMMENTS */
 async function loadComments(pid, container, cnt) {
-  // 🔹 Récupérer tous les commentaires (les plus récents d'abord)
-  const s = await getDocs(
-    query(collection(db, 'posts', pid, 'comments'), orderBy('createdAt', 'desc'))
-  );
 
-  container.innerHTML = '';
-  cnt.textContent = s.size;
+const s = await getDocs(
+query(collection(db,'posts',pid,'comments'),orderBy('createdAt','desc'))
+);
 
-  if (s.empty) return;
+container.innerHTML='';
+cnt.textContent=s.size;
 
-  // 1️⃣ Préparer toutes les requêtes utilisateurs et badges en parallèle
-  const userPromises = s.docs.map(docSnap => {
-    const c = docSnap.data();
-    const userRef = doc(db, 'users', c.userId);
-    const verifiedRef = doc(db, 'verified', c.userId);
-    return Promise.all([getDoc(userRef), getDoc(verifiedRef)]);
-  });
+if(s.empty) return;
 
-  // Attendre que toutes les requêtes se terminent
-  const usersData = await Promise.all(userPromises);
+const userPromises = s.docs.map(docSnap=>{
+const c=docSnap.data();
+const userRef=doc(db,'users',c.userId);
+const verifiedRef=doc(db,'verified',c.userId);
+return Promise.all([getDoc(userRef),getDoc(verifiedRef)]);
+});
 
-  // 2️⃣ Boucle pour créer les commentaires (dans le même ordre que Firestore, donc du plus récent au plus ancien)
-  s.docs.forEach((docSnap, i) => {
-    const c = docSnap.data();
-    const [userSnap, verifiedSnap] = usersData[i];
-    const userData = userSnap.exists() ? userSnap.data() : {};
-    const isVerified = verifiedSnap.exists() && verifiedSnap.data().status === true;
+const usersData = await Promise.all(userPromises);
 
-    // Conteneur principal
-    const div = document.createElement('div');
-    div.className = 'comment';
-    div.style.display = 'flex';
-    div.style.alignItems = 'flex-start';
-    div.style.marginBottom = '12px';
+s.docs.forEach((docSnap,i)=>{
 
-    // Avatar
-    const avatar = document.createElement('img');
-    avatar.src = userData.photoURL || 'https://via.placeholder.com/40';
-    avatar.alt = 'Avatar';
-    avatar.style.width = '40px';
-    avatar.style.height = '40px';
-    avatar.style.borderRadius = '50%';
-    avatar.style.marginRight = '10px';
+const c = docSnap.data();
+const [userSnap,verifiedSnap] = usersData[i];
 
-    // Conteneur texte
-    const textContainer = document.createElement('div');
-    textContainer.style.display = 'flex';
-    textContainer.style.flexDirection = 'column';
+const userData = userSnap.exists()?userSnap.data():{};
+const isVerified = verifiedSnap.exists() && verifiedSnap.data().status===true;
 
-    // Nom utilisateur
-    const name = document.createElement('a');
-    name.className = 'username';
-    name.href = `https://mboaskill.cm/${c.userId}`;
-    name.style.cursor = 'pointer';
-    name.style.fontWeight = 'bold';
-    name.style.color = 'gold';
-    name.style.textDecoration = 'none';
-    name.onclick = (e) => {
-      e.preventDefault();
-      openUserFeed(c.userId);
-    };
+const commentSection=document.createElement('section');
+commentSection.className='comment';
+commentSection.style.display='flex';
+commentSection.style.alignItems='flex-start';
+commentSection.style.marginBottom='12px';
 
-    if (isVerified) {
-      name.innerHTML = `${userData.displayName || c.userName || c.userEmail || 'Utilisateur'}
-        <span class="verified-badge" style="margin-left: 6px; color: #1da1f2;">
-          <i class="fas fa-certificate"></i>
-          <i class="fas fa-check checkmark"></i>
-        </span>`;
-    } else {
-      name.textContent = userData.displayName || c.userName || c.userEmail || 'Utilisateur';
-    }
+const avatar=document.createElement('img');
+avatar.src=userData.photoURL || 'https://via.placeholder.com/40';
+avatar.style.width='40px';
+avatar.style.height='40px';
+avatar.style.borderRadius='50%';
+avatar.style.marginRight='10px';
 
-    // Texte du commentaire (avec liens et mentions)
-    const span = document.createElement('span');
-    span.innerHTML = linkifyText(c.text || '');
-    span.style.marginTop = '2px';
-    span.style.color = '#333';
+const textContainer=document.createElement('section');
+textContainer.style.display='flex';
+textContainer.style.flexDirection='column';
 
-    textContainer.appendChild(name);
-    textContainer.appendChild(span);
+const name=document.createElement('a');
+name.href=`https://mboaskill.cm/${c.userId}`;
+name.style.fontWeight='bold';
+name.style.color='gold';
+name.style.textDecoration='none';
 
-    div.appendChild(avatar);
-    div.appendChild(textContainer);
-    container.appendChild(div);
-  });
+name.onclick=(e)=>{
+e.preventDefault();
+openUserFeed(c.userId);
+};
+
+if(isVerified){
+
+name.innerHTML=`${userData.displayName || c.userName || c.userEmail || 'Utilisateur'}
+
+<span class="verified-badge" style="margin-left:6px;color:#1da1f2;">
+<i class="fas fa-certificate"></i>
+<i class="fas fa-check checkmark"></i>
+</span>`;
+
+}else{
+
+name.textContent=userData.displayName || c.userName || c.userEmail || 'Utilisateur';
+
 }
+
+const span=document.createElement('span');
+span.innerHTML=linkifyText(c.text || '');
+span.style.marginTop='2px';
+span.style.color='#333';
+
+const replyButton=document.createElement('span');
+replyButton.textContent = 'Répondre';
+replyButton.style.cursor = 'pointer';
+replyButton.style.color = '#1da1f2';
+replyButton.style.marginTop = '5px';
+
+// **Nouveaux styles**
+replyButton.style.backgroundColor = 'gold';   // fond doré
+replyButton.style.borderRadius = '15px';     // coins arrondis
+replyButton.style.padding = '5px 12px';      // padding interne
+replyButton.style.width = '100px';           // largeur fixe
+replyButton.style.height = '40px';           // hauteur fixe
+replyButton.style.textAlign = 'center';      // texte centré
+replyButton.style.fontWeight = 'bold';       // texte en gras
+replyButton.style.border = 'none';           // supprime la bordure par défaut
+replyButton.style.display = 'flex';          // pour centrer verticalement
+replyButton.style.alignItems = 'center';     // centre vertical
+replyButton.style.justifyContent = 'center'; // centre horizontal
+
+// effet hover
+replyButton.onmouseover = () => replyButton.style.opacity = '0.8';
+replyButton.onmouseout = () => replyButton.style.opacity = '1';
+replyButton.onclick=()=>openReplyPage(pid,docSnap.id,c);
+
+textContainer.appendChild(name);
+textContainer.appendChild(span);
+textContainer.appendChild(replyButton);
+
+commentSection.appendChild(avatar);
+commentSection.appendChild(textContainer);
+
+container.appendChild(commentSection);
+
+});
+
+}
+
+
+
+function openReplyPage(pid,commentId,commentData){
+
+if(auth.currentUser.uid === commentData.userId){
+
+alert("Vous ne pouvez pas répondre à votre propre commentaire");
+
+return;
+
+}
+
+const page=document.getElementById("replyPage");
+
+page.style.display="block";
+
+const main=document.getElementById("mainComment");
+
+main.innerHTML=`
+
+<b>${commentData.userName}</b>
+
+<p>${commentData.text}</p>
+
+`;
+
+loadRepliesFull(pid,commentId);
+
+document.getElementById("sendReplyFull").onclick=()=>{
+
+sendReply(pid,commentId);
+
+};
+
+}window.closeReplyPage = function() {
+  document.getElementById("replyPage").style.display = "none";
+};
+
+
+function loadRepliesFull(pid,commentId){
+
+const q=query(
+
+collection(db,"posts",pid,"comments",commentId,"repocomt"),
+
+orderBy("createdAt","asc")
+
+);
+
+onSnapshot(q,(snap)=>{
+
+const list=document.getElementById("replyList");
+
+list.innerHTML="";
+
+snap.forEach(doc=>{
+
+const r=doc.data();
+
+const section=document.createElement("section");
+
+section.style.marginBottom="10px";
+
+section.innerHTML=`
+
+<b>${r.userName}</b>
+
+<p>${r.text}</p>
+
+`;
+
+list.appendChild(section);
+
+});
+
+});
+
+}
+
+
+
+async function sendReply(pid,commentId){
+
+const input=document.getElementById("replyInputFull");
+
+const text=input.value.trim();
+
+if(!text) return;
+
+await addDoc(
+
+collection(db,"posts",pid,"comments",commentId,"repocomt"),
+
+{
+
+userId:auth.currentUser.uid,
+
+userName:auth.currentUser.displayName || auth.currentUser.email,
+
+text:text,
+
+createdAt:serverTimestamp()
+
+}
+
+);
+
+input.value="";
+
+}
+
+
+
 async function addComment(pid,text){
-  if(!currentUser)return;
-  await addDoc(collection(db,'posts',pid,'comments'),{userId:currentUser.uid,userName:currentUser.displayName||currentUser.email,text,createdAt:serverTimestamp()});
+
+if(!currentUser) return;
+
+await addDoc(
+
+collection(db,'posts',pid,'comments'),
+
+{
+
+userId:currentUser.uid,
+
+userName:currentUser.displayName || currentUser.email,
+
+text,
+
+createdAt:serverTimestamp()
+
+}
+
+);
+
 }
 
 /* BOOST */
