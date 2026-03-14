@@ -461,8 +461,40 @@ hr.rouge {
   border: 1px solid #FF0000;
   background-color: #FF0000;
 }
+.notif-icon{
+position:relative;
+display:inline-block;
+cursor:pointer;
+}
 
- </style>
+.notif-icon i{
+font-size:26px;
+}
+
+#notifBadge{
+position:absolute;
+top:-4px;
+right:-6px;
+background:red;
+color:white;
+font-size:11px;
+border-radius:50%;
+padding:2px 6px;
+display:none;
+}
+.notif-item{
+padding:10px;
+border-bottom:1px solid #eee;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.notif-item p{
+margin:0;
+font-size:14px;
+}
+</style>
 </head>
 <body>
 <header>
@@ -473,7 +505,10 @@ hr.rouge {
     <i class="material-icons-outlined tablinks" onclick="openTab(event,'videoFeed')">image</i>
     <i class="material-icons-outlined tablinks" onclick="openTab(event,'post')">add</i>
     <i class="material-icons-outlined tablinks" onclick="openTab(event,'search')">search</i>
-    <i class="material-icons-outlined tablinks" onclick="openTab(event,'notifi')">notifications</i>
+<div class="notif-icon tablinks" onclick="openTab(event,'notifi')">
+  <i class="material-icons-outlined">notifications</i>
+  <span id="notifBadge">0</span>
+</div>
   </div>
 </header>
 <!-- ============ HOME ============ -->
@@ -668,6 +703,7 @@ hr.rouge {
 <section id="notifi" class="tabcontent">
    <br><br/>
    <div id="emailLoginBox">
+<div id="notificationsList"></div>
    <i class="fas fa-bell-slash"></i>    pas de notifications Pour l'instant.
    </div>
    
@@ -4309,6 +4345,78 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }); // btn click
 });
+function loadNotifications(){
+
+const q = query(
+collection(db,"notifications"),
+where("toUserId","==",currentUser.uid)
+);
+
+onSnapshot(q,snap=>{
+
+let unread = 0;
+
+snap.forEach(doc=>{
+const n = doc.data();
+if(!n.read) unread++;
+});
+
+const badge = document.getElementById("notifBadge");
+
+if(unread > 0){
+badge.style.display="block";
+badge.textContent = unread;
+}else{
+badge.style.display="none";
+}
+
+});
+
+}
+
+function showNotifications(){
+
+const q = query(
+collection(db,"notifications"),
+where("toUserId","==",currentUser.uid),
+orderBy("createdAt","desc")
+);
+
+onSnapshot(q,snap=>{
+
+const container = document.getElementById("notificationsList");
+container.innerHTML="";
+
+snap.forEach(doc=>{
+
+const n = doc.data();
+
+const div = document.createElement("div");
+div.className="notif-item";
+
+div.innerHTML = `
+<p>${n.text}</p>
+<button onclick="openPost('${n.postId}','${doc.id}')">Voir</button>
+`;
+
+container.appendChild(div);
+
+});
+
+});
+
+}
+async function openPost(postId,notifId){
+
+await updateDoc(doc(db,"notifications",notifId),{
+read:true
+});
+
+openTab("feed"); 
+scrollToPost(postId);
+
+}
+
 </script>
 </body>
 </html>
