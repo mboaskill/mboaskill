@@ -473,7 +473,7 @@ hr.rouge {
     <i class="material-icons-outlined tablinks" onclick="openTab(event,'videoFeed')">image</i>
     <i class="material-icons-outlined tablinks" onclick="openTab(event,'post')">add</i>
     <i class="material-icons-outlined tablinks" onclick="openTab(event,'search')">search</i>
-    <i class="material-icons-outlined tablinks" onclick="openTab(event,'account')">person</i>
+    <i class="material-icons-outlined tablinks" onclick="openTab(event,'notifi')">notifications</i>
   </div>
 </header>
 <!-- ============ HOME ============ -->
@@ -652,6 +652,7 @@ hr.rouge {
     <label for="profilePhotoInput" title="Changer la photo"><i class="fas fa-camera" style="cursor:pointer;font-size:150%;color:#888"></i></label>
     <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" /> <br><br/>
     <i class="fas fa-pen" onclick="openTab(event,'modifie-pro')"></i>
+    <br>  <i class="material-icons-outlined tablinks" onclick="openTab(event,'account')">person</i>
     </div>
     <div class="boutons">
   <input id="profile-link" type="text" readonly style="width:100%;padding:8px" />
@@ -663,6 +664,13 @@ hr.rouge {
   <button onclick="openTab(event,'totalViewsSection')">Retire<i class="fas fa-right-from-bracket"></i></button>
   </div>
   <div id="myFeed"></div>
+</section>
+<section id="notifi" class="tabcontent">
+   <br><br/>
+   <div id="emailLoginBox">
+   <i class="fas fa-bell-slash"></i>    pas de notifications Pour l'instant.
+   </div>
+   
 </section>
 <section id="profilimg" class="tabcontent">
       <br><br/>
@@ -1236,22 +1244,41 @@ icons.forEach(icon => {
 window.signInWithGoogle=()=>signInWithPopup(auth,provider).catch(e=>alert(e.message));
 window.signOutUser=()=>signOut(auth);
 
-onAuthStateChanged(auth,async user=>{
-  currentUser=user;
-  const p=user?.photoURL||'https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/1000x999/';
-  qs('homeProfilePhoto').src=p;qs('feedmeProfilePhoto').src=p;
-  qs('authStatus').textContent=user?` ${user.displayName||user.email}`:'';
-  qs('accountStatus').textContent=user?`• ${user.displayName||user.email}`:'';
-  qs('accountStatusFeed').textContent=qs('accountStatus').textContent;
-  const btn = document.getElementById("certify-btn");
-const iconPara = document.getElementById("icon"); // Ajouter une référence à l'élément <p id="icon">
-if (!btn) return; // Sécurité : bouton pas encore dans le DOM
-if (!user) {
-  btn.style.display = "none";
-  iconPara.style.display = "none"; // Masquer le paragraphe si l'utilisateur n'est pas connecté
-  return;
-}
+onAuthStateChanged(auth, async user => {
+  currentUser = user;
 
+  // 🔹 Activer la bonne section automatiquement
+  const homeTab = document.getElementById("home");
+  const accountTab = document.getElementById("account");
+
+  if (!user) {
+    // utilisateur NON connecté
+    document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
+    accountTab.classList.add('active');
+  } else {
+    // utilisateur connecté
+    document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
+    homeTab.classList.add('active');
+  }
+
+  const p = user?.photoURL || 'https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/1000x999/';
+  qs('homeProfilePhoto').src = p;
+  qs('feedmeProfilePhoto').src = p;
+
+  qs('authStatus').textContent = user ? ` ${user.displayName || user.email}` : '';
+  qs('accountStatus').textContent = user ? `• ${user.displayName || user.email}` : '';
+  qs('accountStatusFeed').textContent = qs('accountStatus').textContent;
+
+  const btn = document.getElementById("certify-btn");
+  const iconPara = document.getElementById("icon");
+
+  if (!btn) return;
+
+  if (!user) {
+    btn.style.display = "none";
+    iconPara.style.display = "none";
+    return;
+  }
 const verifiedRef = doc(db, 'verified', user.uid);
 try {
   const snap = await getDoc(verifiedRef);
