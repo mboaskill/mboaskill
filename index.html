@@ -1282,6 +1282,15 @@ window.signOutUser=()=>signOut(auth);
 
 onAuthStateChanged(auth, async user => {
   currentUser = user;
+  if(user){
+
+    // charger les notifications
+    loadNotifications();
+
+    // afficher la liste des notifications
+    showNotifications();
+
+  }
 
   // 🔹 Activer la bonne section automatiquement
   const homeTab = document.getElementById("home");
