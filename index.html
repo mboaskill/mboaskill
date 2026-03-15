@@ -778,6 +778,11 @@ font-size:14px;
   <a href="#" onclick="openTab(event,'oublie')">Mot de passe oublié ?</a>
 </p> 
     <button onclick="loginWithEmail()">Se connecter</button>
+  <<div id="emailLoginBox" onclick="signInWithGoogle()">
+    <p>Continuer avec Google <img class="circle" src="https://ucarecdn.com/25f768b6-513b-4b08-b2fb-387768728b52/-/preview/225x225/"> </p>
+    /div>
+  <div id="emailLoginBox" onclick="openTab(event,'inscrip')">
+    pas de compte ? <h1>Inscription </h1>
   </div>
 </section>
 <section id="oublie" class="tabcontent">
@@ -1294,7 +1299,7 @@ onAuthStateChanged(auth, async user => {
 
   // 🔹 Activer la bonne section automatiquement
   const homeTab = document.getElementById("home");
-  const accountTab = document.getElementById("account");
+  const accountTab = document.getElementById("conect");
 
   if (!user) {
     // utilisateur NON connecté
