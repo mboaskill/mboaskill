@@ -2695,36 +2695,42 @@ list.appendChild(section);
 
 }
 
+async function sendReply(pid, commentId){
 
-
-async function sendReply(pid,commentId){
-
-const input=document.getElementById("replyInputFull");
-
-const text=input.value.trim();
+const input = document.getElementById("replyInputFull");
+const text = input.value.trim();
 
 if(!text) return;
 
+// ajouter la réponse
 await addDoc(
-
 collection(db,"posts",pid,"comments",commentId,"repocomt"),
-
 {
-
-userId:auth.currentUser.uid,
-
-userName:auth.currentUser.displayName || auth.currentUser.email,
-
-text:text,
-
-createdAt:serverTimestamp()
-
+userId: auth.currentUser.uid,
+userName: auth.currentUser.displayName || auth.currentUser.email,
+text: text,
+createdAt: serverTimestamp()
 }
-
 );
 
-input.value="";
+// récupérer le commentaire parent
+const commentRef = doc(db,"posts",pid,"comments",commentId);
+const commentSnap = await getDoc(commentRef);
 
+if(commentSnap.exists()){
+const commentData = commentSnap.data();
+
+if(commentData.userId !== currentUser.uid){
+await sendNotification({
+toUserId: commentData.userId,
+type: "reply",
+text: currentUser.displayName + " a répondu à votre commentaire",
+postId: pid
+});
+}
+}
+
+input.value="";
 }
 
 
@@ -2733,26 +2739,35 @@ async function addComment(pid,text){
 
 if(!currentUser) return;
 
+// ajouter le commentaire
 await addDoc(
-
 collection(db,'posts',pid,'comments'),
-
 {
-
-userId:currentUser.uid,
-
-userName:currentUser.displayName || currentUser.email,
-
+userId: currentUser.uid,
+userName: currentUser.displayName || currentUser.email,
 text,
-
-createdAt:serverTimestamp()
-
+createdAt: serverTimestamp()
 }
-
 );
 
+// récupérer le post pour savoir qui est le propriétaire
+const postRef = doc(db,"posts",pid);
+const postSnap = await getDoc(postRef);
+
+if(postSnap.exists()){
+const postData = postSnap.data();
+
+if(postData.userId !== currentUser.uid){
+await sendNotification({
+toUserId: postData.userId,
+type: "comment",
+text: currentUser.displayName + " a commenté votre publication",
+postId: pid
+});
+}
 }
 
+}
 /* BOOST */
 function selectBoostPost(pid,title){
   boostId=pid;qs('boostStatus').textContent=`1 sélection : ${title}`;qs('boostPanel').style.display='block';
@@ -4435,7 +4450,20 @@ openTab("feed");
 scrollToPost(postId);
 
 }
+async function sendNotification({toUserId,type,text,postId}){
 
+await addDoc(collection(db,"notifications"),{
+toUserId,
+fromUserId: currentUser.uid,
+fromUserName: currentUser.displayName,
+type,
+text,
+postId,
+read:false,
+createdAt: serverTimestamp()
+});
+
+}
 </script>
 </body>
 </html>
