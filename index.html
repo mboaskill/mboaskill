@@ -471,17 +471,26 @@ cursor:pointer;
 font-size:26px;
 }
 
+/* Badge rouge */
 #notifBadge{
 position:absolute;
-top:-4px;
-right:-6px;
+top:-8px;
+right:-8px;
 background:red;
 color:white;
-font-size:11px;
+font-size:12px;
+font-weight:bold;
 border-radius:50%;
-padding:2px 6px;
+min-width:18px;
+height:18px;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:2px;
 display:none;
+z-index:10;
 }
+
 .notif-item{
 padding:10px;
 border-bottom:1px solid #eee;
@@ -4379,6 +4388,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }); // btn click
 });
+
 function loadNotifications(){
 
 const q = query(
@@ -4392,21 +4402,34 @@ let unread = 0;
 
 snap.forEach(doc=>{
 const n = doc.data();
-if(!n.read) unread++;
+if(n.read === false) unread++;
 });
+
+
+ const badge = document.getElementById("notifBadge");
+
+if(unread > 0){
+badge.style.display = "block";
+badge.textContent = unread;
+}else{
+badge.style.display = "none";
+} 
+
+});
+}
+
+document.addEventListener("DOMContentLoaded", function(){
 
 const badge = document.getElementById("notifBadge");
 
 if(unread > 0){
-badge.style.display="block";
+badge.style.display = "block";
 badge.textContent = unread;
 }else{
-badge.style.display="none";
+badge.style.display = "none";
 }
 
 });
-
-}
 
 function showNotifications(){
 
@@ -4446,7 +4469,7 @@ await updateDoc(doc(db,"notifications",notifId),{
 read:true
 });
 
-openTab("feed"); 
+openTab({currentTarget:null},'home');
 scrollToPost(postId);
 
 }
