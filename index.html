@@ -1501,7 +1501,7 @@ window.publishPost = async () => {
   if (file) {
     const filePath = `posts/${Date.now()}_${file.name}`;
     const { data, error } = await supabaseClient.storage
-      .from("media") // <-- ton bucket Supabase
+      .from("media")
       .upload(filePath, file);
 
     if (error) {
@@ -1509,8 +1509,10 @@ window.publishPost = async () => {
       return alert("Échec upload image.");
     }
 
-    // récupérer l’URL publique
-    const { data: urlData } = supabaseClient.storage.from("media").getPublicUrl(filePath);
+    const { data: urlData } = supabaseClient.storage
+      .from("media")
+      .getPublicUrl(filePath);
+
     imageUrl = urlData.publicUrl;
   }
 
@@ -1528,71 +1530,53 @@ window.publishPost = async () => {
     boosted: 0,
     createdAt: serverTimestamp()
   });
-// 🔹 Incrémente le score de suggestion (+15% par post non boosté)
-const userRef = doc(db, "users", currentUser.uid);
-await runTransaction(db, async (t) => {
-  const snap = await t.get(userRef);
-  let score = snap.exists() ? snap.data().suggestScore || 0 : 0;
-  score = Math.min(score + 15, 100); // max 100 %
-  t.set(userRef, { suggestScore: score }, { merge: true });
-});
+
+  // 🔔 NOTIFICATIONS DES MENTIONS
+  const mentionRegex = /@([\wÀ-ÿ0-9]+)/g;
+  const matches = [...text.matchAll(mentionRegex)];
+
+  for (const match of matches) {
+    const username = match[1];
+
+    try {
+      const q = query(collection(db, "users"), where("name", "==", username));
+      const snap = await getDocs(q);
+
+      snap.forEach(async (userDoc) => {
+        if (userDoc.id === currentUser.uid) return;
+
+        await addDoc(collection(db, "notifications"), {
+          toUserId: userDoc.id,
+          fromUserId: currentUser.uid,
+          fromUserName: currentUser.displayName || currentUser.email,
+          type: "mention",
+          text: `${currentUser.displayName || currentUser.email} a mentionné votre nom dans une publication`,
+          read: false,
+          createdAt: serverTimestamp()
+        });
+      });
+
+    } catch (err) {
+      console.error("Erreur notif mention:", err);
+    }
+  }
+
+  // 🔹 Incrémente le score de suggestion (+15% par post non boosté)
+  const userRef = doc(db, "users", currentUser.uid);
+  await runTransaction(db, async (t) => {
+    const snap = await t.get(userRef);
+    let score = snap.exists() ? snap.data().suggestScore || 0 : 0;
+    score = Math.min(score + 15, 100);
+    t.set(userRef, { suggestScore: score }, { merge: true });
+  });
+
   // reset du formulaire
   document.getElementById("postText").value = "";
   document.getElementById("imageFile").value = "";
   document.getElementById("imageTitle").value = "";
   document.getElementById("status").textContent = "✅ Publié !";
 };
-// écoute du changement de fichier sur l'input
-document.getElementById("profilePhotoInput").addEventListener("change", async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
 
-  if (!currentUser) {
-    alert("Connectez-vous avant de changer votre photo.");
-    return;
-  }
-
-  try {
-    const statusEl = document.getElementById("statusPhoto");
-    if (statusEl) statusEl.textContent = "⏳ Upload en cours...";
-
-    // chemin du fichier (unique par user + timestamp)
-    const filePath = `profiles/${currentUser.uid}_${Date.now()}_${file.name}`;
-
-    // upload dans le bucket Supabase "media"
-    const { data, error } = await supabaseClient.storage
-      .from("media")
-      .upload(filePath, file, { upsert: true });
-
-    if (error) {
-      console.error("Erreur upload Supabase:", error);
-      alert("❌ Échec upload image.");
-      return;
-    }
-
-    // récupérer l'URL publique
-    const { data: urlData } = supabaseClient.storage.from("media").getPublicUrl(filePath);
-    const imageUrl = urlData.publicUrl;
-
-    // mettre à jour l'utilisateur dans Firestore
-    await updateDoc(doc(db, "users", currentUser.uid), {
-      photoURL: imageUrl
-    });
-
-    // mettre à jour dans Firebase Auth aussi (optionnel mais mieux)
-    await updateProfile(currentUser, { photoURL: imageUrl });
-
-    if (statusEl) statusEl.textContent = "✅ Photo mise à jour !";
-
-    // afficher directement la nouvelle photo (si tu as une balise <img id="profilePhoto">)
-    const imgEl = document.getElementById("profilePhoto");
-    if (imgEl) imgEl.src = imageUrl;
-
-  } catch (err) {
-    console.error("Erreur upload photo :", err);
-    alert("❌ Erreur lors du changement de photo.");
-  }
-});
 /*──────────────────────────────────────────────────────────
   9. FEED ACCUEIL (boostés + suivis)
 ──────────────────────────────────────────────────────────*/
@@ -4392,88 +4376,182 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function loadNotifications(){
 
-const q = query(
-collection(db,"notifications"),
-where("toUserId","==",currentUser.uid)
-);
+  console.log("🔥 loadNotifications lancé");
 
-onSnapshot(q,snap=>{
+  if(!currentUser){
+    console.log("❌ pas de user");
+    return;
+  }
 
-let unread = 0;
+  const q = query(
+    collection(db,"notifications"),
+    where("toUserId","==",currentUser.uid)
+  );
 
-snap.forEach(doc=>{
-const n = doc.data();
-if(n.read === false) unread++;
-});
+  const badge = document.getElementById("notifBadge");
 
+  // 🔥 appliquer le style UNE FOIS
+  if(badge){
+    badge.style.position = "absolute";
+    badge.style.top = "-5px";
+    badge.style.right = "-5px";
+    badge.style.background = "red";
+    badge.style.color = "white";
+    badge.style.borderRadius = "50%";
+    badge.style.minWidth = "18px";
+    badge.style.height = "18px";
+    badge.style.alignItems = "center";
+    badge.style.justifyContent = "center";
+    badge.style.fontSize = "11px";
+    badge.style.fontWeight = "bold";
+  }
 
- const badge = document.getElementById("notifBadge");
+  onSnapshot(q, snap=>{
 
-if(unread > 0){
-badge.style.display = "block";
-badge.textContent = unread;
-}else{
-badge.style.display = "none";
-} 
+    console.log("📦 notifications:", snap.size);
 
-});
-}
+    let unread = 0;
 
-document.addEventListener("DOMContentLoaded", function(){
+    snap.forEach(doc=>{
+      const n = doc.data();
+      if(n.read === false) unread++;
+    });
 
-const badge = document.getElementById("notifBadge");
+    console.log("🎯 badge:", badge);
 
-if(unread > 0){
-badge.style.display = "block";
-badge.textContent = unread;
-}else{
-badge.style.display = "none";
-}
+    if(!badge) return;
 
-});
+    // ✅ gérer SEULEMENT l'affichage ici
+    if(unread > 0){
+      badge.style.display = "flex";
+      badge.textContent = unread;
+    }else{
+      badge.style.display = "none";
+    }
 
-function showNotifications(){
-
-const q = query(
-collection(db,"notifications"),
-where("toUserId","==",currentUser.uid),
-orderBy("createdAt","desc")
-);
-
-onSnapshot(q,snap=>{
-
-const container = document.getElementById("notificationsList");
-container.innerHTML="";
-
-snap.forEach(doc=>{
-
-const n = doc.data();
-
-const div = document.createElement("div");
-div.className="notif-item";
-
-div.innerHTML = `
-<p>${n.text}</p>
-<button onclick="openPost('${n.postId}','${doc.id}')">Voir</button>
-`;
-
-container.appendChild(div);
-
-});
-
-});
+  });
 
 }
-async function openPost(postId,notifId){
 
-await updateDoc(doc(db,"notifications",notifId),{
-read:true
-});
+function showNotifications() {
 
-openTab({currentTarget:null},'home');
-scrollToPost(postId);
+  if (!currentUser) return;
+
+  const q = query(
+    collection(db, "notifications"),
+    where("toUserId", "==", currentUser.uid),
+    orderBy("createdAt", "desc")
+  );
+
+  onSnapshot(q, async snap => {
+
+    const container = document.getElementById("notificationsList");
+    container.innerHTML = "";
+
+    const promises = snap.docs.map(async (docSnap) => {
+
+      const n = docSnap.data();
+
+      let userData = {
+        name: "Utilisateur",
+        photo: "https://via.placeholder.com/40"
+      };
+
+      // 🔥 PRIORITÉ AUX DONNÉES STOCKÉES DANS LA NOTIF
+      if (n.fromUserName || n.fromUserPhoto) {
+        userData.name = n.fromUserName || "Utilisateur";
+        userData.photo = n.fromUserPhoto || "https://via.placeholder.com/40";
+      }
+
+      // 🔁 fallback (au cas où)
+      else if (n.fromUserId) {
+        try {
+          const userSnap = await getDoc(doc(db, "users", n.fromUserId));
+          if (userSnap.exists()) {
+            const u = userSnap.data();
+            userData.name = u.name || u.userName || "Utilisateur";
+            userData.photo = u.photoURL || "https://via.placeholder.com/40";
+          }
+        } catch (e) {
+          console.log("Erreur user:", e);
+        }
+      }
+
+      return { docSnap, n, userData };
+    });
+
+    const results = await Promise.all(promises);
+
+    // 🔹 AFFICHAGE
+    results.forEach(({ docSnap, n, userData }) => {
+
+      const div = document.createElement("div");
+      div.className = "notif-item";
+
+      if (!n.read) {
+        div.style.background = "#f0f2f5";
+      }
+
+      let time = "";
+      if (n.createdAt) {
+        try {
+          time = n.createdAt.toDate().toLocaleString();
+        } catch {}
+      }
+
+      div.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;">
+
+        <img src="${userData.photo}" 
+          onclick="openUserFeed('${n.fromUserId}')"
+          style="width:45px;height:45px;border-radius:50%;object-fit:cover;">
+
+        <div style="flex:1;">
+          <p style="margin:0;font-size:14px;">
+            <strong style="color:#1877f2;cursor:pointer;"
+              onclick="openUserFeed('${n.fromUserId}')">
+              ${userData.name}
+            </strong> ${n.text}
+          </p>
+
+          <small style="color:#888;">${time}</small>
+        </div>
+      </div>
+
+      <button onclick="openPost('${n.postId}','${docSnap.id}')">
+        Voir
+      </button>
+      `;
+
+      // 🔹 MARQUER COMME LU
+      div.addEventListener("click", async () => {
+        if (!n.read) {
+          await updateDoc(doc(db, "notifications", docSnap.id), {
+            read: true
+          });
+        }
+      });
+
+      container.appendChild(div);
+    });
+
+  });
 
 }
+
+window.openPost = async function(postId, notifId){
+
+  if(notifId){
+    await updateDoc(doc(db,"notifications",notifId),{
+      read:true
+    });
+  }
+
+  openTab({currentTarget:null},'home');
+  scrollToPost(postId);
+
+}
+
 async function sendNotification({toUserId,type,text,postId}){
 
 await addDoc(collection(db,"notifications"),{
