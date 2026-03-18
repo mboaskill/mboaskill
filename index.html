@@ -2614,13 +2614,6 @@ container.appendChild(commentSection);
 
 function openReplyPage(pid,commentId,commentData){
 
-if(auth.currentUser.uid === commentData.userId){
-
-alert("Vous ne pouvez pas répondre à votre propre commentaire");
-
-return;
-
-}
 
 const page=document.getElementById("replyPage");
 
