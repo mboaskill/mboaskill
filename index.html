@@ -977,17 +977,6 @@ padding:20px;
    
 </section>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-  // ⚡ Mets ici tes infos Supabase
-  const SUPABASE_URL = "https://hhwbfmkpciktpukvzztf.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhod2JmbWtwY2lrdHB1a3Z6enRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxNjM5NjYsImV4cCI6MjA2OTczOTk2Nn0.J6DCrtHas9hXPSaP8JQnAnj331nCJ2sv809IJeHc-Lw"; 
-
-  // Initialiser le client Supabase
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-  console.log("✅ Supabase prêt :", supabaseClient);
-</script>
 <script type="module">
 
 /*──────────────────────────────────────────────────────────
@@ -1499,27 +1488,34 @@ window.publishPost = async () => {
 
   let imageUrl = null;
 
-  // upload image si présente
+  // 🔥 UPLOAD IMAGE AVEC FIREBASE
   if (file) {
-    const filePath = `posts/${Date.now()}_${file.name}`;
-    const { data, error } = await supabaseClient.storage
-      .from("media")
-      .upload(filePath, file);
+    try {
+      const filePath = `posts/${Date.now()}_${file.name}`;
+      const storageRef = ref(stg, filePath);
 
-    if (error) {
-      console.error("Erreur upload Supabase:", error);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      await new Promise((resolve, reject) => {
+        uploadTask.on(
+          "state_changed",
+          null,
+          (error) => reject(error),
+          async () => {
+            imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve();
+          }
+        );
+      });
+
+    } catch (error) {
+      console.error("Erreur upload Firebase:", error);
       return alert("Échec upload image.");
     }
-
-    const { data: urlData } = supabaseClient.storage
-      .from("media")
-      .getPublicUrl(filePath);
-
-    imageUrl = urlData.publicUrl;
   }
 
-  // enregistrement Firestore
-  await addDoc(collection(db, "posts"), {
+  // 🔥 ENREGISTREMENT POST
+  const postRef = await addDoc(collection(db, "posts"), {
     userId: currentUser.uid,
     userEmail: currentUser.email,
     userName: currentUser.displayName || currentUser.email,
@@ -1552,7 +1548,7 @@ window.publishPost = async () => {
           fromUserId: currentUser.uid,
           fromUserName: currentUser.displayName || currentUser.email,
           type: "mention",
-          text: `${currentUser.displayName || currentUser.email} a mentionné votre nom dans une publication`,
+          postId: postRef.id, // ✅ important pour ouvrir le post
           read: false,
           createdAt: serverTimestamp()
         });
@@ -1563,7 +1559,7 @@ window.publishPost = async () => {
     }
   }
 
-  // 🔹 Incrémente le score de suggestion (+15% par post non boosté)
+  // 🔹 SCORE SUGGESTION
   const userRef = doc(db, "users", currentUser.uid);
   await runTransaction(db, async (t) => {
     const snap = await t.get(userRef);
@@ -1572,12 +1568,99 @@ window.publishPost = async () => {
     t.set(userRef, { suggestScore: score }, { merge: true });
   });
 
-  // reset du formulaire
+  // 🔄 RESET FORM
   document.getElementById("postText").value = "";
   document.getElementById("imageFile").value = "";
   document.getElementById("imageTitle").value = "";
   document.getElementById("status").textContent = "✅ Publié !";
 };
+// PROFILE
+const input = document.getElementById("profilePhotoInput");
+
+input.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file || !currentUser) return;
+
+  // ✅ Vérification type (image uniquement)
+  if (!file.type.startsWith("image/")) {
+    alert("❌ Veuillez choisir une image valide");
+    input.value = "";
+    return;
+  }
+
+  // ✅ Vérification taille (4MB max)
+  if (file.size > 4 * 1024 * 1024) {
+    alert("❌ Image trop lourde (max 2MB)");
+    input.value = "";
+    return;
+  }
+
+  try {
+    alert("⏳ Upload en cours...");
+
+    const filePath = `profiles/${currentUser.uid}_${Date.now()}`;
+    const storageRef = ref(stg, filePath);
+
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    let photoURL = null;
+
+    await new Promise((resolve, reject) => {
+      uploadTask.on(
+        "state_changed",
+        null,
+        (error) => {
+          console.error("Erreur upload :", error);
+          reject(error);
+        },
+        async () => {
+          photoURL = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve();
+        }
+      );
+    });
+
+    // 🔹 Update Auth
+    await updateProfile(currentUser, { photoURL });
+
+    // 🔹 Recharge user (important pour sync)
+    await currentUser.reload();
+
+    // 🔹 Update Firestore
+    await setDoc(doc(db, "users", currentUser.uid), {
+      photoURL
+    }, { merge: true });
+
+    // 🔥 Publication auto
+    await addDoc(collection(db, "posts"), {
+      userId: currentUser.uid,
+      userEmail: currentUser.email,
+      userName: currentUser.displayName || currentUser.email,
+      userPhoto: photoURL,
+      text: "📸 Ma nouvelle photo de profil",
+      imageUrl: photoURL,
+      imageTitle: "Photo de profil",
+      views: 0,
+      likes: 0,
+      boosted: 0,
+      createdAt: serverTimestamp()
+    });
+
+    // 🔹 Update UI instantané
+    document.getElementById("feedmeProfilePhoto").src = photoURL;
+    document.getElementById("homeProfilePhoto").src = photoURL;
+
+    // 🔹 Reset input
+    input.value = "";
+
+    alert("✅ Photo mise à jour et publiée !");
+    
+  } catch (err) {
+    console.error(err);
+    alert("❌ Erreur lors du changement de photo");
+    input.value = "";
+  }
+});
 
 /*──────────────────────────────────────────────────────────
   9. FEED ACCUEIL (boostés + suivis)
@@ -3685,81 +3768,87 @@ window.certifyUser = async function () {
   }
 };
 
-
 window.publishMusic = async function () {
-    const nom = document.getElementById('nom').value.trim();
-    const titre = document.getElementById('titre').value.trim();
-    const audioFile = document.getElementById('audioFile').files[0];
-    const statusMsg = document.getElementById('statusMsg');
-    statusMsg.textContent = '';
+  const nom = document.getElementById('nom').value.trim();
+  const titre = document.getElementById('titre').value.trim();
+  const audioFile = document.getElementById('audioFile').files[0];
+  const statusMsg = document.getElementById('statusMsg');
+  statusMsg.textContent = '';
 
-    if (!currentUser) {
-      return alert("Vous devez être connecté.");
-    }
-
-    if (!nom || !titre || !audioFile) {
-      return alert("Tous les champs sont requis.");
-    }
-
-    try {
-      // Vérification du wallet utilisateur
-      const walletRef = doc(db, 'wallets', currentUser.uid);
-      const walletSnap = await getDoc(walletRef);
-
-      if (!walletSnap.exists()) {
-        return alert("Aucun portefeuille trouvé.");
-      }
-
-      const walletData = walletSnap.data();
-      const currentBalance = typeof walletData.balance === 'number' ? walletData.balance : 0;
-
-      if (currentBalance < 1500) {
-        return alert("Solde insuffisant (minimum requis : 1500 FCFA).");
-      }
-
-      // ✅ Déduire 1500
-      await updateDoc(walletRef, {
-        balance: currentBalance - 1500
-      });
-
-      statusMsg.textContent = "⏳ Téléchargement du fichier audio...";
-
-      // Upload sur Supabase Storage
-      const filePath = `musics/${Date.now()}_${audioFile.name}`;
-      const { data, error } = await supabaseClient.storage
-        .from("media") // bucket "media" où tu mets aussi les musiques
-        .upload(filePath, audioFile);
-
-      if (error) {
-        console.error("Erreur upload Supabase:", error);
-        return alert("Échec upload audio.");
-      }
-
-      // Récupérer URL publique
-      const { data: urlData } = supabaseClient.storage.from("media").getPublicUrl(filePath);
-      const audioUrl = urlData.publicUrl;
-
-      statusMsg.textContent = "⏳ Publication en cours...";
-
-      // Sauvegarde dans Firestore
-      await addDoc(collection(db, 'musfeed'), {
-        userId: currentUser.uid,
-        nom,
-        titre,
-        audioUrl,
-        createdAt: serverTimestamp()
-      });
-
-      statusMsg.textContent = "✅ Musique publiée avec succès.";
-      document.getElementById('nom').value = '';
-      document.getElementById('titre').value = '';
-      document.getElementById('audioFile').value = '';
-    } catch (err) {
-      console.error("Erreur lors de la publication :", err);
-      statusMsg.textContent = "❌ Erreur lors de la publication.";
-    }
+  if (!currentUser) {
+    return alert("Vous devez être connecté.");
   }
 
+  if (!nom || !titre || !audioFile) {
+    return alert("Tous les champs sont requis.");
+  }
+
+  try {
+    // 🔹 Vérification wallet
+    const walletRef = doc(db, 'wallets', currentUser.uid);
+    const walletSnap = await getDoc(walletRef);
+
+    if (!walletSnap.exists()) {
+      return alert("Aucun portefeuille trouvé.");
+    }
+
+    const walletData = walletSnap.data();
+    const currentBalance = typeof walletData.balance === 'number' ? walletData.balance : 0;
+
+    if (currentBalance < 1500) {
+      return alert("Solde insuffisant (minimum requis : 1500 FCFA).");
+    }
+
+    // ✅ Déduction
+    await updateDoc(walletRef, {
+      balance: currentBalance - 1500
+    });
+
+    statusMsg.textContent = "⏳ Upload audio...";
+
+    // 🔥 UPLOAD FIREBASE STORAGE
+    const filePath = `musics/${currentUser.uid}_${Date.now()}_${audioFile.name}`;
+    const storageRef = ref(stg, filePath);
+
+    const uploadTask = uploadBytesResumable(storageRef, audioFile);
+
+    let audioUrl = null;
+
+    await new Promise((resolve, reject) => {
+      uploadTask.on(
+        "state_changed",
+        null,
+        (error) => reject(error),
+        async () => {
+          audioUrl = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve();
+        }
+      );
+    });
+
+    statusMsg.textContent = "⏳ Publication en cours...";
+
+    // 🔥 FIRESTORE
+    await addDoc(collection(db, 'musfeed'), {
+      userId: currentUser.uid,
+      nom,
+      titre,
+      audioUrl,
+      createdAt: serverTimestamp()
+    });
+
+    statusMsg.textContent = "✅ Musique publiée avec succès.";
+
+    // 🔄 RESET
+    document.getElementById('nom').value = '';
+    document.getElementById('titre').value = '';
+    document.getElementById('audioFile').value = '';
+
+  } catch (err) {
+    console.error("Erreur lors de la publication :", err);
+    statusMsg.textContent = "❌ Erreur lors de la publication.";
+  }
+};
 
 // 🔹 Rend le feed musique (trié par nombre d’écoutes)
 async function renderMusicFeed() {
