@@ -1155,7 +1155,6 @@ async function incrementView(postId) {
 // 🔹 Observer les posts pour compter les vues visibles ≥ 6s
 // ===========================================================
 const timers = new Map();
-
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     const postId = entry.target.dataset.post;
@@ -1164,14 +1163,29 @@ const observer = new IntersectionObserver((entries) => {
     if (entry.isIntersecting) {
       if (timers.has(postId)) return;
 
-      const timer = setTimeout(() => {
+      const timer = setTimeout(async () => {
         console.log("👁️ Vue validée après 6s pour:", postId);
-        incrementView(postId);
+
+        const userViewRef = doc(db, "posts", postId, "viewsByUser", currentUser.uid);
+        const snap = await getDoc(userViewRef);
+
+        if (!snap.exists()) {
+          // 🔥 PREMIÈRE VUE
+          await incrementView(postId); // 👁️ + 💰
+        } else {
+          // 🔁 DÉJÀ VU
+          await updateDoc(doc(db, "posts", postId), {
+            views: increment(1) // 👁️ seulement
+          });
+        }
+
         observer.unobserve(entry.target);
         timers.delete(postId);
+
       }, 6000);
 
       timers.set(postId, timer);
+
     } else {
       if (timers.has(postId)) {
         clearTimeout(timers.get(postId));
@@ -1184,6 +1198,7 @@ const observer = new IntersectionObserver((entries) => {
 function observeRenderedPosts() {
   document.querySelectorAll('[data-post]').forEach(el => observer.observe(el));
 }
+
 /*──────────────────────────────────────────────────────────
   3. DOM READY — Dépôt
 ──────────────────────────────────────────────────────────*/
