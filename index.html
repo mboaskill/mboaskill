@@ -4494,24 +4494,27 @@ function loadNotifications(){
     console.log("❌ badge introuvable");
     return;
   }
+// badge rouge
+badge.style.position = "absolute";
+badge.style.top = "-5px";
+badge.style.right = "-5px";
 
-  // ✅ STYLE UNE SEULE FOIS
-  badge.style.position = "absolute";
-  badge.style.top = "-5px";
-  badge.style.right = "-5px";
-  badge.style.background = "red";
-  badge.style.color = "white";
-  badge.style.borderRadius = "30%";
-  badge.style.minWidth = "12px";
-  badge.style.height = "12px";
-  badge.style.display = "none"; // caché par défaut
-  badge.style.alignItems = "center";
-  badge.style.justifyContent = "center";
-  badge.style.fontSize = "40px";
-  badge.style.fontWeight = "bold";
-  badge.style.padding = "2px 4px";
-  badge.style.zIndex = "999";
+badge.style.background = "red";
+badge.style.color = "white";
 
+badge.style.borderRadius = "50%"; // rond parfait
+badge.style.minWidth = "18px";
+badge.style.height = "18px";
+
+badge.style.display = "flex"; // important pour centrer
+badge.style.alignItems = "center";
+badge.style.justifyContent = "center";
+
+badge.style.fontSize = "10px"; // beaucoup plus petit
+badge.style.fontWeight = "bold";
+
+badge.style.padding = "0 4px"; // léger padding horizontal
+badge.style.zIndex = "999";
   const q = query(
     collection(db,"notifications"),
     where("toUserId","==",currentUser.uid)
