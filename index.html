@@ -3596,203 +3596,97 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+// =========================
+// 🟡 PAYPAL (SECURE VERSION 🔥)
+// =========================
+paypalBtn?.addEventListener("click", async () => {
 
-  // =========================
-  // 🟡 PAYPAL (FIX COMPLET 🔥)
-  // =========================
-  paypalBtn?.addEventListener("click", async () => {
+  const amount = parseFloat(document.getElementById("montant").value);
 
-    const amount = parseFloat(document.getElementById("montant").value);
+  if (isNaN(amount) || amount < 150) {
+    return alert("Montant min 150 XAF");
+  }
 
-    if (isNaN(amount) || amount < 150) return alert("Montant min 150 XAF");
-    if (!currentUser) return alert("Connectez-vous");
+  if (!currentUser) {
+    return alert("Connectez-vous");
+  }
 
+  try {
+
+    // 🔐 Récupération token Firebase (OBLIGATOIRE maintenant)
+    const token = await currentUser.getIdToken();
+
+    const res = await fetch("https://us-central1-TON-PROJET.cloudfunctions.net/createPayPalOrder", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token // 🔥 sécurité
+      },
+      body: JSON.stringify({
+        amount // ❌ plus de uid ici
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.url) {
+      window.location.href = data.url; // 🔥 redirection PayPal
+    } else {
+      alert("Erreur PayPal (création)");
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Erreur PayPal");
+  }
+});
+
+
+// =========================
+// 🔥 RETOUR PAYPAL (CAPTURE AUTO)
+// =========================
+const params = new URLSearchParams(window.location.search);
+
+const orderID = params.get("token"); // PayPal renvoie "token"
+const success = params.get("success");
+
+if (orderID && success) {
+
+  (async () => {
     try {
 
-      // ✅ IMPORTANT : remplace avec ta vraie URL Firebase
-      const res = await fetch("https://us-central1-TON-PROJET.cloudfunctions.net/createPayPalOrder", {
+      const res = await fetch("https://us-central1-TON-PROJET.cloudfunctions.net/capturePayPalOrder", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          amount,
-          uid: currentUser.uid
-        })
+        body: JSON.stringify({ orderID })
       });
 
       const data = await res.json();
 
-      if (data.url) {
-        window.location.href = data.url; // 🔥 redirection PayPal
+      if (data.success) {
+
+        // 🧹 Nettoyer URL (évite double capture si refresh)
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        alert("✅ Paiement réussi !");
+        window.location.href = "/wallet";
+
       } else {
-        alert("Erreur PayPal (création)");
+        alert("Erreur capture paiement");
       }
 
     } catch (err) {
       console.error(err);
-      alert("Erreur PayPal");
+      alert("Erreur capture PayPal");
     }
-  });
+  })();
 
-
-  // =========================
-  // 🔥 RETOUR PAYPAL (CAPTURE AUTO)
-  // =========================
-  const params = new URLSearchParams(window.location.search);
-
-  const orderID = params.get("token"); // PayPal renvoie "token"
-  const success = params.get("success");
-
-  if (orderID && success) {
-
-    (async () => {
-      try {
-
-        const res = await fetch("https://us-central1-TON-PROJET.cloudfunctions.net/capturePayPalOrder", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ orderID })
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-          alert("✅ Paiement réussi !");
-          window.location.href = "/wallet"; // ou refresh
-        } else {
-          alert("Erreur capture paiement");
-        }
-
-      } catch (err) {
-        console.error(err);
-        alert("Erreur capture PayPal");
-      }
-    })();
-
-  }
-
+}
 });
 
-const axios = require("axios");
-
-exports.createPayPalOrder = functions.https.onRequest(async (req, res) => {
-  try {
-    const { amount, uid } = req.body;
-
-    if (!amount || !uid) {
-      return res.status(400).json({ error: "Paramètres manquants" });
-    }
-
-    const accessToken = await getAccessToken();
-
-    const order = await axios({
-      url: "https://api-m.paypal.com/v2/checkout/orders",
-      method: "post",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json"
-      },
-      data: {
-        intent: "CAPTURE",
-        purchase_units: [
-          {
-            amount: {
-              currency_code: "USD",
-              value: amount
-            },
-            custom_id: `${uid}|${amount}|tx_${Date.now()}`
-          }
-        ],
-        application_context: {
-          return_url: "https://mboaskill.cm?success=true",
-          cancel_url: "https://mboaskill.cm?cancel=true"
-        }
-      }
-    });
-
-    const approveUrl = order.data.links.find(l => l.rel === "approve").href;
-
-    res.json({ url: approveUrl });
-
-  } catch (err) {
-    console.error(err.response?.data || err);
-    res.status(500).json({ error: "Erreur création PayPal" });
-  }
-});
-
-exports.capturePayPalOrder = functions.https.onRequest(async (req, res) => {
-  try {
-    const { orderID } = req.body;
-
-    if (!orderID) {
-      return res.status(400).json({ error: "orderID manquant" });
-    }
-
-    const accessToken = await getAccessToken();
-
-    const response = await axios({
-      url: `https://api-m.paypal.com/v2/checkout/orders/${orderID}/capture`,
-      method: "post",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json"
-      }
-    });
-
-    const data = response.data;
-
-    if (data.status !== "COMPLETED") {
-      return res.json({ success: false });
-    }
-
-    const captureData = data.purchase_units[0];
-
-    const custom = captureData.custom_id;
-
-    const [uid, amountStr, reference] = custom.split("|");
-    const amount = parseFloat(amountStr);
-
-    const walletRef = db.collection("wallets").doc(uid);
-
-    // 🔒 transaction sécurisée
-    await db.runTransaction(async (t) => {
-
-      const snap = await t.get(walletRef);
-
-      let balance = 0;
-      let processedRefs = [];
-
-      if (snap.exists) {
-        const d = snap.data();
-        balance = d.balance || 0;
-        processedRefs = d.processedRefs || [];
-      }
-
-      if (processedRefs.includes(reference)) {
-        console.log("⚠️ Déjà traité :", reference);
-        return;
-      }
-
-      t.set(walletRef, {
-        balance: balance + amount,
-        processedRefs: [...processedRefs, reference],
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-    });
-
-    console.log(`💰 PayPal crédité: ${uid} +${amount}`);
-
-    res.json({ success: true });
-
-  } catch (err) {
-    console.error(err.response?.data || err);
-    res.status(500).json({ success: false });
-  }
-});
-
+ 
   // SIGNUP  LOGIN EMAIL
 window.signupWithEmail = async () => {
   const n = qs('signupName').value.trim();
