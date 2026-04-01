@@ -715,23 +715,27 @@ font-size:14px;
   <div id="searchResults"></div>
   </div>
 </section>
-<section id="retrait" class="tabcontent">
+<section id="BOOST" class="tabcontent">
   <br><br/>
+         <h3>Booster une publication</h3>
   <div id="emailLoginBox">
-  <label for="withdrawAmount">Montant à retirer :</label><br>
-  <input type="number" id="withdrawAmount" placeholder="min: 5000 XAF" min="5000" required style="width: 100%; margin-bottom: 10px;"><br>
+ <div id="boostPanel" style="display:none;margin-bottom:10px">
+  <span id="boostStatus" style="font-weight:bold"></span>
+  <input type="number" id="boostViews" placeholder="Nombres de personnes/jour" min="4000"/>
+  <select id="boostCountry">
+    <option value="1">Cameroun</option>
+    <option value="2">Côte d’Ivoire</option>
+    <option value="3">Gabon</option>
+    <option value="4">Sénégal</option>
+    <option value="5">Benin</option>
+    <option value="6">RDC Congo</option>
+  </select>
+  <button onclick="boostPost()">Booster</button>
+</div> </div> 
+    <br>
+  <p><i class="fas fa-info-circle" style="color:#fff"></i> minimum 2 jours (min: 2j pour 3500 XAF)</p>
 
-  <label for="withdrawPhone">Numéro de téléphone :</label><br>
-  <input type="tel" id="withdrawPhone" placeholder="Ex: +225xxxxxxx" required style="width: 100%; margin-bottom: 15px;"><br>
-
-  <button onclick="withdrawBalance()" style="padding: 10px 20px; background-color: #1877f2; color: white; border: none; border-radius: 5px;">
-    Retirer
-  </button>
-  <p id="withdrawStatus"></p>
-  <p><i class="fas fa-info-circle" style="color:#gold"></i>NB: n'oubliez pas 
-  l'indicatif du pays (Ex: +237)</p>
-</div>
-</section>
+  </section>
 <section id="paypalWithdraw" class="tabcontent">
   <br><br/>
   <div id="emailLoginBox">
@@ -753,11 +757,6 @@ font-size:14px;
 </section>
 <section id="choises" class="tabcontent">
  <br><br/>
-  <div id="emailLoginBox">
- <img src="https://ucarecdn.com/9e557b3e-8112-4472-9858-129187eb3749/-/preview/300x168/" style="width:100%;height:100px" onclick="openTab(event,'retrait')">
- <img src="https://ucarecdn.com/8213fd5f-4a33-4603-8bc3-98bb69e55ac0/-/preview/258x195/" style="width:100%;height:100px" onclick="openTab(event,'retrait')">
- 🇨🇲Cameroun uniquement
- </div>
 <div id="emailLoginBox">
   <br><br/>
   <img 
@@ -853,45 +852,37 @@ font-size:14px;
 <!-- ============ BOOST PANEL ============ -->
 <section id="vibo" class="tabcontent">
  <h3>Recharger mon compte</h3>
-  <div id="emailLoginBox">
-  <div class="post-header">
-  <input type="number" id="montant" placeholder=" min: 150 XAF" min="150" style="padding: 6px; width: 150px;">
-  <button id="notchpayBtn" style="padding: 6px 12px; background-color: #1877f2; color: white; border: none; border-radius: 4px; cursor: pointer;">
-    Deposer
-  </button>
-    <div>
-  <style>.pp-X62TBWJS4SSWN{text-align:center;border:none;border-radius:0.25rem;min-width:11.625rem;padding:0 2rem;height:2.625rem;font-weight:bold;background-color:#FFD140;color:#000000;font-family:"Helvetica Neue",Arial,sans-serif;font-size:1rem;line-height:1.25rem;cursor:pointer;}</style>
-  <form action="https://www.paypal.com/ncp/payment/X62TBWJS4SSWN" method="post" target="_blank" style="display:inline-grid;justify-items:center;align-content:start;gap:0.5rem;">
-    <input class="pp-X62TBWJS4SSWN" type="submit" value="Déposer-Visa/MasterCard&PayPal" />
-    <img src=https://www.paypalobjects.com/images/Debit_Credit.svg alt="cards" />
-    <section style="font-size: 0.75rem;"> Optimisé par <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg" alt="paypal" style="height:0.875rem;vertical-align:middle;"/></section>
-  </form>
-    </div>
-</div> 
-  <div id="prix"> 
-<b>Solde: <span id="argent">0</span> XAF</b>
-</div>
-    </div>
-      <hr>
-       <h3>Booster une publication</h3>
-  <div id="emailLoginBox">
- <div id="boostPanel" style="display:none;margin-bottom:10px">
-  <span id="boostStatus" style="font-weight:bold"></span>
-  <input type="number" id="boostViews" placeholder="Nombres de personnes/jour" min="4000"/>
-  <select id="boostCountry">
-    <option value="1">Cameroun</option>
-    <option value="2">Côte d’Ivoire</option>
-    <option value="3">Gabon</option>
-    <option value="4">Sénégal</option>
-    <option value="5">Benin</option>
-    <option value="6">RDC Congo</option>
-  </select>
-  <button onclick="boostPost()">Booster</button>
-</div> </div> 
-    <br>
-  <p><i class="fas fa-info-circle" style="color:#fff"></i> minimum 2 jours (min: 2j pour 3500 XAF)</p>
-</section>
 
+ <div id="emailLoginBox">
+  <div class="post-header">
+  <!-- 🔹 SOLDE -->
+  <div id="prix">
+    <b>Solde: <span id="argent">0</span> XAF</b>
+  </div>
+
+    <!-- 🔹 INPUT MONTANT -->
+    <input type="number" id="montant" placeholder="min: 150 XAF" min="150"
+      style="padding:6px;width:150px;">
+
+    <!-- 🔹 NOTCHPAY -->
+    <button id="notchpayBtn"
+      style="padding:6px 12px;background:#1877f2;color:white;border:none;border-radius:4px;cursor:pointer;">
+      Déposer (Mobile Money)<i class="fas fa-mobile-alt"></i>
+    </button>
+
+    <!-- 🔹 PAYPAL -->
+    <button id="paypalBtn"
+      style="padding:6px 12px;background:#0070ba;color:white;border:none;border-radius:4px;cursor:pointer;">
+      Déposer (PayPal / Carte) <i class="fas fa-credit-card"></i>
+    </button>
+
+  </div>
+
+
+ </div>
+
+ <hr>
+</section>
 <!-- ============ LOGIN FORM ============ -->
 <section id="conect" class="tabcontent">
   <h3>Connectez-vous</h3>
@@ -3007,7 +2998,7 @@ postId: pid
 /* BOOST */
 function selectBoostPost(pid,title){
   boostId=pid;qs('boostStatus').textContent=`1 sélection : ${title}`;qs('boostPanel').style.display='block';
-  openTab({currentTarget:document.querySelector('.tablinks[onclick*="vibo"]')},'vibo');
+  openTab({currentTarget:document.querySelector('.tablinks[onclick*="BOOST"]')},'BOOST');
 }
 async function prepareWallet() {
   if (!currentUser) return;
@@ -3546,84 +3537,29 @@ window.withdrawPayPal = async () => {
   }
 };
 
-window.withdrawBalance = async () => {
-  try {
-    const amount = Number(document.getElementById("withdrawAmount").value);
-    const phone  = document.getElementById("withdrawPhone").value.trim();
-
-    if (!currentUser) {
-      return alert("Utilisateur non connecté");
-    }
-
-    if (!Number.isFinite(amount) || amount < 5000) {
-      return alert("Montant minimum : 5000 XAF");
-    }
-
-    if (!phone || phone.length < 8) {
-      return alert("Numéro invalide");
-    }
-
-    // 🔥 Appel Cloud Function (sécurisé)
-    const response = await fetch("https://YOUR_REGION-YOUR_PROJECT.cloudfunctions.net/requestWithdrawal", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        uid: currentUser.uid,
-        amount,
-        phone,
-        type: "mobile"
-      })
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      alert("✅ Demande de retrait envoyée");
-      document.getElementById("withdrawAmount").value = "";
-      document.getElementById("withdrawPhone").value = "";
-
-      if (typeof loadTotalViewsAndBalance === "function") {
-        loadTotalViewsAndBalance();
-      }
-    } else {
-      alert("❌ " + data.message);
-    }
-
-  } catch (err) {
-    console.error(err);
-    alert("Erreur réseau");
-  }
-};
-
 window.loadTotalViewsAndBalance = loadTotalViewsAndBalance;
 window.observeRenderedPosts = observeRenderedPosts;
 window.incrementView = incrementView;
 window.refreshBalanceDisplay = refreshBalanceDisplay;
 
 window.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("notchpayBtn");
-  if (!btn) return console.error("Bouton notchpayBtn introuvable !");
 
-  btn.addEventListener("click", async () => {
-    const montantInput = document.getElementById("montant");
-    const amount = parseFloat(montantInput.value);
+  const notchBtn = document.getElementById("notchpayBtn");
+  const paypalBtn = document.getElementById("paypalBtn");
+
+  // =========================
+  // 🔵 NOTCHPAY (OK)
+  // =========================
+  notchBtn?.addEventListener("click", async () => {
+
+    const amount = parseFloat(document.getElementById("montant").value);
 
     if (isNaN(amount) || amount < 150) return alert("Montant min 150 XAF");
     if (!currentUser) return alert("Connectez-vous");
 
-    const walletRef = doc(db, "wallets", currentUser.uid);
+    const reference = `tx_${Date.now()}`;
 
     try {
-      // 🔹 Crée le wallet si il n'existe pas
-      const walletSnap = await getDoc(walletRef);
-      if (!walletSnap.exists()) {
-        await setDoc(walletRef, { balance: 0 });
-      }
-
-      // 🔹 Ensuite, crée la transaction NotchPay
-      const reference = `tx_${Date.now()}`;
       const res = await fetch("https://api.notchpay.co/payments", {
         method: "POST",
         headers: {
@@ -3631,32 +3567,230 @@ window.addEventListener("DOMContentLoaded", () => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          amount: amount,
+          amount,
           currency: "XAF",
           description: "Recharge Wallet",
-          reference: reference,
+          reference,
           customer: {
             email: currentUser.email,
             name: currentUser.displayName || "Utilisateur"
           },
           metadata: {
-            uid: currentUser.uid // envoi de l'UID pour le webhook
+            uid: currentUser.uid
           },
           callback: "https://mboaskill.cm"
         })
       });
 
       const data = await res.json();
-      if (data && data.authorization_url) {
-        window.location.href = data.authorization_url; // Redirection vers NotchPay
+
+      if (data.authorization_url) {
+        window.location.href = data.authorization_url;
       } else {
-        alert("Erreur : impossible de démarrer le paiement.");
+        alert("Erreur paiement NotchPay");
       }
+
     } catch (err) {
-      console.error("Erreur :", err);
-      alert("Erreur lors de l'initialisation du paiement.");
+      console.error(err);
+      alert("Erreur NotchPay");
     }
   });
+
+
+  // =========================
+  // 🟡 PAYPAL (FIX COMPLET 🔥)
+  // =========================
+  paypalBtn?.addEventListener("click", async () => {
+
+    const amount = parseFloat(document.getElementById("montant").value);
+
+    if (isNaN(amount) || amount < 150) return alert("Montant min 150 XAF");
+    if (!currentUser) return alert("Connectez-vous");
+
+    try {
+
+      // ✅ IMPORTANT : remplace avec ta vraie URL Firebase
+      const res = await fetch("https://us-central1-TON-PROJET.cloudfunctions.net/createPayPalOrder", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          amount,
+          uid: currentUser.uid
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.url) {
+        window.location.href = data.url; // 🔥 redirection PayPal
+      } else {
+        alert("Erreur PayPal (création)");
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("Erreur PayPal");
+    }
+  });
+
+
+  // =========================
+  // 🔥 RETOUR PAYPAL (CAPTURE AUTO)
+  // =========================
+  const params = new URLSearchParams(window.location.search);
+
+  const orderID = params.get("token"); // PayPal renvoie "token"
+  const success = params.get("success");
+
+  if (orderID && success) {
+
+    (async () => {
+      try {
+
+        const res = await fetch("https://us-central1-TON-PROJET.cloudfunctions.net/capturePayPalOrder", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ orderID })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          alert("✅ Paiement réussi !");
+          window.location.href = "/wallet"; // ou refresh
+        } else {
+          alert("Erreur capture paiement");
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("Erreur capture PayPal");
+      }
+    })();
+
+  }
+
+});
+
+const axios = require("axios");
+
+exports.createPayPalOrder = functions.https.onRequest(async (req, res) => {
+  try {
+    const { amount, uid } = req.body;
+
+    if (!amount || !uid) {
+      return res.status(400).json({ error: "Paramètres manquants" });
+    }
+
+    const accessToken = await getAccessToken();
+
+    const order = await axios({
+      url: "https://api-m.paypal.com/v2/checkout/orders",
+      method: "post",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
+      },
+      data: {
+        intent: "CAPTURE",
+        purchase_units: [
+          {
+            amount: {
+              currency_code: "USD",
+              value: amount
+            },
+            custom_id: `${uid}|${amount}|tx_${Date.now()}`
+          }
+        ],
+        application_context: {
+          return_url: "https://mboaskill.cm?success=true",
+          cancel_url: "https://mboaskill.cm?cancel=true"
+        }
+      }
+    });
+
+    const approveUrl = order.data.links.find(l => l.rel === "approve").href;
+
+    res.json({ url: approveUrl });
+
+  } catch (err) {
+    console.error(err.response?.data || err);
+    res.status(500).json({ error: "Erreur création PayPal" });
+  }
+});
+
+exports.capturePayPalOrder = functions.https.onRequest(async (req, res) => {
+  try {
+    const { orderID } = req.body;
+
+    if (!orderID) {
+      return res.status(400).json({ error: "orderID manquant" });
+    }
+
+    const accessToken = await getAccessToken();
+
+    const response = await axios({
+      url: `https://api-m.paypal.com/v2/checkout/orders/${orderID}/capture`,
+      method: "post",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    const data = response.data;
+
+    if (data.status !== "COMPLETED") {
+      return res.json({ success: false });
+    }
+
+    const captureData = data.purchase_units[0];
+
+    const custom = captureData.custom_id;
+
+    const [uid, amountStr, reference] = custom.split("|");
+    const amount = parseFloat(amountStr);
+
+    const walletRef = db.collection("wallets").doc(uid);
+
+    // 🔒 transaction sécurisée
+    await db.runTransaction(async (t) => {
+
+      const snap = await t.get(walletRef);
+
+      let balance = 0;
+      let processedRefs = [];
+
+      if (snap.exists) {
+        const d = snap.data();
+        balance = d.balance || 0;
+        processedRefs = d.processedRefs || [];
+      }
+
+      if (processedRefs.includes(reference)) {
+        console.log("⚠️ Déjà traité :", reference);
+        return;
+      }
+
+      t.set(walletRef, {
+        balance: balance + amount,
+        processedRefs: [...processedRefs, reference],
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    });
+
+    console.log(`💰 PayPal crédité: ${uid} +${amount}`);
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error(err.response?.data || err);
+    res.status(500).json({ success: false });
+  }
 });
 
   // SIGNUP  LOGIN EMAIL
