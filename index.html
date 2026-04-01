@@ -3209,12 +3209,12 @@ window.openUserFeed = async (uid) => {
         const walletSnap = await getDoc(walletRef);
         const balance = walletSnap.exists() ? (walletSnap.data().balance || 0) : 0;
 
-        if (balance < 300) return alert('💸 Solde insuffisant pour soutenir.');
+        if (balance < 1000) return alert('💸 Solde insuffisant pour soutenir.');
 
-        await updateDoc(walletRef, { balance: balance - 300 });
+        await updateDoc(walletRef, { balance: balance - 1000 });
         await setDoc(doc(db, 'users', uid), { soutienvues: increment(1) }, { merge: true });
         await setDoc(doc(db, 'soldes', uid), {
-          gainVues: increment(150),
+          gainVues: increment(700),
           updatedAt: new Date()
         }, { merge: true });
 
