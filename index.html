@@ -2139,6 +2139,7 @@ c.appendChild(fol);
 /*──────────────────────────────────────────────────────────
  11. VIDEO FEED & BOOST FEED
 ──────────────────────────────────────────────────────────*/
+
 async function renderVideoFeed() {
   const c = qs('videoFeedContent');
   c.textContent = 'Chargement…';
@@ -2148,31 +2149,43 @@ async function renderVideoFeed() {
   const userSnap = await getDoc(doc(db, "users", currentUser.uid));
   const userCountry = userSnap.exists() ? userSnap.data().countryIndex || 1 : 1;
 
-  onSnapshot(
-    query(
-      collection(db, 'posts'),
-      where('imageUrl', '!=', null),
-      where('boosted', '>', 0),
-      where('boostIndex', '==', userCountry)
-    ),
-    snap => {
-      c.innerHTML = '';
-      const docs = Array.from(snap.docs);
-
-      // Shuffle
-      for (let i = docs.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [docs[i], docs[j]] = [docs[j], docs[i]];
-      }
-
-      for (const d of docs) {
-        const el = card(d.id, d.data(), false);
-        c.appendChild(el);
-        observer.observe(el);
-      }
-    }
+  const q = query(
+    collection(db, 'posts'),
+    where('imageUrl', '!=', null),
+    where('boosted', '>', 0),
+    where('boostIndex', '==', userCountry)
   );
+
+  let prevIds = [];
+
+  onSnapshot(q, snap => {
+    const docs = Array.from(snap.docs);
+    const ids = docs.map(d => d.id);
+
+    // Vérifie si la liste est identique à la précédente
+    if (JSON.stringify(ids) === JSON.stringify(prevIds)) {
+      return; // rien à faire, évite le "rafraîchissement bête"
+    }
+    prevIds = ids;
+
+    // Nettoie le conteneur
+    c.innerHTML = '';
+
+    // Shuffle
+    for (let i = docs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [docs[i], docs[j]] = [docs[j], docs[i]];
+    }
+
+    // Ajoute les cartes
+    for (const d of docs) {
+      const el = card(d.id, d.data(), false);
+      c.appendChild(el);
+      observer.observe(el);
+    }
+  });
 }
+
 function renderBoostFeed() {
   if (!currentUser) return;
 
