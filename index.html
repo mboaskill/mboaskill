@@ -264,7 +264,6 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
 /* ===========================
    HEADER
 =========================== */
-
 .fullscreen-post .post-header{
     position:absolute;
     left:12px;
@@ -273,11 +272,15 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
 
     display:flex;
     align-items:center;
+    flex-wrap:nowrap;
+
     gap:8px;
 
     color:#fff;
     border:none;
-    flex-wrap:nowrap;
+
+    width:auto;
+    max-width:75%;
 }
 
 .fullscreen-post .post-header img{
@@ -286,18 +289,38 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
     border-radius:50%;
     border:2px solid #fff;
     object-fit:cover;
+
+    flex-shrink:0;
 }
 
 .fullscreen-post .username{
-    color:#fff !important;
-    font-size:16px;
+    display:flex;
+    align-items:center;
+
+    color:#FFD700 !important;
+    font-size:18px;
     font-weight:700;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+
+    max-width:200px;
 }
 
 .fullscreen-post .post-header small{
     color:#ddd !important;
+
+    white-space:nowrap;
+    flex-shrink:0;
+
+    font-size:13px;
 }
 
+.fullscreen-post .verified-badge{
+    margin-left:4px;
+    flex-shrink:0;
+}
 /* ===========================
    ACTIONS DROITE
 =========================== */
@@ -2773,14 +2796,16 @@ if (isFullscreen) {
     cont.appendChild(imgEl);
     if (isFullscreen && d.imageTitle) {
 
-  const caption = document.createElement("div");
-  caption.className = "fullscreen-caption";
+  const caption = createTextBlockWithToggle(
+    d.imageTitle,
+    120
+  );
 
-  caption.textContent = d.imageTitle;
+  caption.classList.add("fullscreen-caption");
 
   cont.appendChild(caption);
 }
-    if (isFullscreen) {
+        if (isFullscreen) {
   cont.appendChild(head);
 }
 
@@ -2858,12 +2883,34 @@ if (isFullscreen) {
 
   const commentBox = document.createElement("div");
   commentBox.append(comI, comCnt);
-
+  
+const viewBox = document.createElement("div");
+viewBox.innerHTML = `
+  <i class="fas fa-eye"></i>
+  <span>${fmt(d.views || 1)}</span>
+`;
   sideActions.append(
-    likeBox,
-    commentBox
-  );
+  likeBox,
+  commentBox,
+  viewBox
+);
+if (isMine) {
 
+  const boostBox = document.createElement("div");
+
+  const boostIcon = document.createElement("i");
+  boostIcon.className = "fas fa-rocket";
+
+  const boostText = document.createElement("span");
+  boostText.textContent = "Booster";
+
+  boostBox.append(boostIcon, boostText);
+
+  boostBox.onclick = () =>
+      selectBoostPost(id, d.text || d.imageTitle || "Sans titre");
+
+  sideActions.appendChild(boostBox);
+}
   cont.appendChild(sideActions);
 }
 
