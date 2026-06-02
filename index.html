@@ -217,6 +217,169 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
   border: none;
   cursor: pointer;
 }
+   /* ===========================
+   MODE PLEIN ÉCRAN
+=========================== */
+
+.fullscreen-post{
+    position:relative;
+    width:100%;
+    padding:0;
+    margin:0 0 15px 0;
+    overflow:hidden;
+    background:#000;
+    border-radius:12px;
+}
+
+.fullscreen-post .post-content{
+    position:relative;
+    width:100%;
+    margin:0;
+}
+
+.fullscreen-post .post-content img{
+    width:100%;
+    max-height:80vh;
+    object-fit:cover;
+    display:block;
+    border-radius:0;
+}
+
+/* assombrissement léger */
+.fullscreen-post .post-content::after{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:35%;
+    background:linear-gradient(
+        transparent,
+        rgba(0,0,0,.25),
+        rgba(0,0,0,.65)
+    );
+    pointer-events:none;
+}
+
+/* ===========================
+   HEADER
+=========================== */
+
+.fullscreen-post .post-header{
+    position:absolute;
+    left:12px;
+    bottom:105px;
+    z-index:30;
+
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    color:#fff;
+    border:none;
+    flex-wrap:nowrap;
+}
+
+.fullscreen-post .post-header img{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    border:2px solid #fff;
+    object-fit:cover;
+}
+
+.fullscreen-post .username{
+    color:#fff !important;
+    font-size:16px;
+    font-weight:700;
+}
+
+.fullscreen-post .post-header small{
+    color:#ddd !important;
+}
+
+/* ===========================
+   ACTIONS DROITE
+=========================== */
+
+.fullscreen-actions{
+    position:absolute;
+    right:12px;
+    bottom:85px;
+
+    z-index:30;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:22px;
+
+    color:#fff;
+}
+
+.fullscreen-actions i{
+    font-size:30px;
+}
+
+.fullscreen-actions span{
+    display:block;
+    margin-top:4px;
+    text-align:center;
+    font-size:14px;
+}
+
+/* ===========================
+   DESCRIPTION
+=========================== */
+
+.fullscreen-caption{
+    position:absolute;
+    left:12px;
+    right:75px;
+    bottom:18px;
+
+    color:#fff;
+    font-size:14px;
+    line-height:1.4;
+
+    z-index:30;
+
+    text-shadow:
+      0 1px 2px rgba(0,0,0,.8),
+      0 0 6px rgba(0,0,0,.8);
+}
+
+/* ===========================
+   MASQUER ACTIONS NORMALES
+=========================== */
+
+.fullscreen-post .post-actions{
+    display:none;
+}
+
+/* ===========================
+   MOBILE
+=========================== */
+
+@media (max-width:768px){
+
+  .fullscreen-post .post-content img{
+      max-height:75vh;
+  }
+
+  .fullscreen-post .post-header{
+      bottom:95px;
+  }
+
+  .fullscreen-actions{
+      bottom:75px;
+  }
+
+  .fullscreen-caption{
+      bottom:15px;
+      font-size:13px;
+  }
+}
     /* === COMMENTS ===================================== */
     .comments-section{margin-top:30px;border-top:1px solid #ccc;padding-top:10px;max-height:500px;overflow-y:auto;direction:ltr}
     .comment{direction:ltr;unicode-bidi:plaintext;text-align:left;word-break:break-word}
@@ -2526,6 +2689,13 @@ function card(id, d, isMine) {
   const w = document.createElement('div');
   w.className = 'post';
   w.dataset.post = id;
+  const isFullscreen =
+  d.imageUrl &&
+  window.innerWidth <= 768;
+
+if (isFullscreen) {
+  w.classList.add("fullscreen-post");
+}
 
   // ---------- HEADER ----------
   const head = document.createElement('div');
@@ -2581,7 +2751,9 @@ function card(id, d, isMine) {
     head.appendChild(tag);
   }
 
+  if (!isFullscreen) {
   w.appendChild(head);
+}
 
   // ---------- CONTENU ----------
   const cont = document.createElement('div');
@@ -2599,6 +2771,18 @@ function card(id, d, isMine) {
     imgEl.src = d.imageUrl;
     imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
     cont.appendChild(imgEl);
+    if (isFullscreen && d.imageTitle) {
+
+  const caption = document.createElement("div");
+  caption.className = "fullscreen-caption";
+
+  caption.textContent = d.imageTitle;
+
+  cont.appendChild(caption);
+}
+    if (isFullscreen) {
+  cont.appendChild(head);
+}
 
   } else if (d.text) {
     const textWrapper = createTextBlockWithToggle(d.text, 200);
@@ -2661,7 +2845,27 @@ function card(id, d, isMine) {
   }
 
   act.append(left, center, right);
+  if (!isFullscreen) {
   w.appendChild(act);
+}
+if (isFullscreen) {
+
+  const sideActions = document.createElement("div");
+  sideActions.className = "fullscreen-actions";
+
+  const likeBox = document.createElement("div");
+  likeBox.append(like, lCnt);
+
+  const commentBox = document.createElement("div");
+  commentBox.append(comI, comCnt);
+
+  sideActions.append(
+    likeBox,
+    commentBox
+  );
+
+  cont.appendChild(sideActions);
+}
 
   // ---------- COMMENTAIRES ----------
   const comSec = document.createElement('div');
