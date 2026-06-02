@@ -1490,22 +1490,32 @@ onAuthStateChanged(auth, async user => {
     iconPara.style.display = "none";
     return;
   }
-const verifiedRef = doc(db, 'verified', user.uid);
-try {
-  const snap = await getDoc(verifiedRef);
-  const isVerified = snap.exists() && snap.data().status === true;
-  if (isVerified) {
-    btn.style.display = "none"; // ✅ Masquer si certifié
-    iconPara.style.display = "block"; // Afficher le paragraphe si certifié
+
+   const verifiedRef = doc(db, "verified", user.uid);
+const snap = await getDoc(verifiedRef);
+
+if (snap.exists()) {
+  const data = snap.data();
+
+  const isValid =
+    data.status === true &&
+    data.expiresAt &&
+    data.expiresAt > Date.now();
+
+  if (isValid) {
+    btn.style.display = "none";
+    iconPara.style.display = "block";
   } else {
-    btn.style.display = "block"; // ✅ Montrer si NON certifié
-    iconPara.style.display = "none"; // Masquer le paragraphe si non certifié
+    btn.style.display = "block";
+    iconPara.style.display = "none";
+
+    // Désactiver automatiquement la certification expirée
+    await setDoc(
+      verifiedRef,
+      { status: false },
+      { merge: true }
+    );
   }
-} catch (error) {
-  console.error("Erreur lors de la vérification du statut :", error);
-  // Par sécurité, on masque si erreur
-  btn.style.display = "none";
-  iconPara.style.display = "none"; // Masquer le paragraphe en cas d'erreur
 }
     if (user) {
       currentUser = user;
@@ -3950,40 +3960,68 @@ window.certifyUser = async function () {
   const userId = currentUser?.uid;
   if (!userId) return alert("Utilisateur non connecté");
 
-  const walletRef = doc(db, 'wallets', userId);  // <-- collection wallets
-  const verifiedRef = doc(db, 'verified', userId);
+  const walletRef = doc(db, "wallets", userId);
+  const verifiedRef = doc(db, "verified", userId);
 
   try {
-    const snap = await getDoc(walletRef);
-    const balance = snap.exists() ? snap.data().balance || 0 : 0;
+    // Vérifier si déjà certifié et encore valide
+    const verifiedSnap = await getDoc(verifiedRef);
 
-    if (balance >= 18000) {
-      // Déduction de 18 000 Fcfa
-      await updateDoc(walletRef, {
-        balance: balance - 18000
-      });
+    if (verifiedSnap.exists()) {
+      const data = verifiedSnap.data();
 
-      // Mise à jour du statut certifié
-      await setDoc(verifiedRef, {
-        status: true
-      });
+      if (
+        data.status === true &&
+        data.expiresAt &&
+        data.expiresAt > Date.now()
+      ) {
+        const daysLeft = Math.ceil(
+          (data.expiresAt - Date.now()) / (1000 * 60 * 60 * 24)
+        );
 
-      // Cacher le bouton après certification
-      const btn = document.getElementById("certify-btn");
-      if (btn) btn.style.display = "none";
-
-      alert("✅ Vous êtes maintenant certifié !");
-    } else {
-      // Ne pas déduire, mettre status à false
-      await setDoc(verifiedRef, {
-        status: false
-      });
-
-      alert("💸 Solde insuffisant. Le montant requis est de 18 000 Fcfa.");
+        return alert(
+          `✅ Votre certification est encore valide (${daysLeft} jour(s) restant(s)).`
+        );
+      }
     }
+
+    // Vérifier le solde
+    const walletSnap = await getDoc(walletRef);
+    const balance = walletSnap.exists()
+      ? walletSnap.data().balance || 0
+      : 0;
+
+    if (balance < 18000) {
+      return alert(
+        "💸 Solde insuffisant. Le montant requis est de 18 000 FCFA."
+      );
+    }
+
+    // Déduction
+    await updateDoc(walletRef, {
+      balance: balance - 18000
+    });
+
+    // Certification valable 30 jours
+    const expiresAt = Date.now() + (30 * 24 * 60 * 60 * 1000);
+
+    await setDoc(
+      verifiedRef,
+      {
+        status: true,
+        certifiedAt: Date.now(),
+        expiresAt: expiresAt
+      },
+      { merge: true }
+    );
+
+    document.getElementById("certify-btn").style.display = "none";
+
+    alert("✅ Certification activée pour 30 jours.");
+
   } catch (error) {
-    console.error("Erreur de certification :", error);
-    alert("❌ Une erreur est survenue. Veuillez réessayer.");
+    console.error("Erreur certification :", error);
+    alert("❌ Une erreur est survenue.");
   }
 };
 
