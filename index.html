@@ -4286,21 +4286,16 @@ window.openMusicById = async function (musicId) {
     // 1. OUVERTURE DE L'ONGLET MUSIC PLAYER
     document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
     const musicPlayerTab = document.getElementById('musicPlayer');
-    if (musicPlayerTab) {
-      musicPlayerTab.classList.add('active');
-    } else {
+    if (!musicPlayerTab) {
       console.error("❌ Onglet musicPlayer introuvable");
       return;
     }
+    musicPlayerTab.classList.add('active');
 
     // 2. METTRE À JOUR L'ICÔNE ACTIVE DANS LE HEADER
-    document.querySelectorAll('header .icons i').forEach(icon => {
-      icon.classList.remove('active');
-    });
+    document.querySelectorAll('header .icons i').forEach(icon => icon.classList.remove('active'));
     const musicIcon = document.querySelector('.tablinks[onclick*="music"]');
-    if (musicIcon) {
-      musicIcon.classList.add('active');
-    }
+    if (musicIcon) musicIcon.classList.add('active');
 
     // 3. CHARGEMENT DES DONNÉES DE LA MUSIQUE
     const docRef = doc(db, "musfeed", musicId);
@@ -4313,12 +4308,10 @@ window.openMusicById = async function (musicId) {
 
     const d = snap.data();
     const c = document.getElementById("openMusicById");
-
     if (!c) {
       console.error("Element openMusicById introuvable");
       return;
     }
-
     c.innerHTML = "";
 
     // 4. CRÉATION DE L'INTERFACE MUSIQUE
@@ -4336,7 +4329,7 @@ window.openMusicById = async function (musicId) {
       <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #555;">
         <div style="display:flex;align-items:center;">
           <i class="fa-solid fa-headphone" style="margin-right:6px;"></i>
-          <span id="views_${musicId}">${d.views || 0}</span> ets
+          <span id="views_${musicId}">${d.views || 0}</span> écoutes
         </div>
         <button class="share-btn" style="background:gold;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">
           <i class="fas fa-share"></i> Partager
@@ -4359,47 +4352,32 @@ window.openMusicById = async function (musicId) {
         if (!currentUser) {
           audio.pause();
           alert("🔒 Connectez-vous pour écouter cette musique");
-          // Rediriger vers la connexion
           const connectIcon = document.querySelector('.tablinks[onclick*="conect"]');
-          if (connectIcon) {
-            openTab({ currentTarget: connectIcon }, "conect");
-          }
+          if (connectIcon) openTab({ currentTarget: connectIcon }, "conect");
           return;
         }
 
-        const viewDocRef = doc(db, "musfeed", musicId, "viewsByUser", currentUser.uid);
-        const viewDocSnap = await getDoc(viewDocRef);
-        
-        // Vérifier si l'utilisateur a déjà écouté ou est le propriétaire
-        if (viewDocSnap.exists() || currentUser.uid === d.userId) return;
-
+        // Vérifier le solde de l'utilisateur
         const walletRef = doc(db, "wallets", currentUser.uid);
         const walletSnap = await getDoc(walletRef);
         const balance = walletSnap.exists() ? walletSnap.data().balance || 0 : 0;
 
         if (balance < 55) {
           audio.pause();
-          alert("💸 Solde insuffisant (55 FCFA requis)");
+          alert("💸 Solde insuffisant (55 FCFA requis par écoute)");
           return;
         }
 
         try {
           // Débiter l'auditeur
           await updateDoc(walletRef, { balance: increment(-55) });
-          
-          // Marquer comme écouté
-          await setDoc(viewDocRef, { 
-            userId: currentUser.uid, 
-            musicId, 
-            playedAt: new Date() 
-          });
-          
+
           // Incrémenter les vues
           await updateDoc(doc(db, "musfeed", musicId), { 
             views: increment(1), 
             totalviewcontent: increment(250) 
           });
-          
+
           // Payer l'artiste
           await setDoc(
             doc(db, "soldes", d.userId), 
@@ -4409,12 +4387,12 @@ window.openMusicById = async function (musicId) {
             }, 
             { merge: true }
           );
-          
+
           // Mettre à jour l'affichage
           viewsEl.textContent = (parseInt(viewsEl.textContent) || 0) + 1;
-          
+
         } catch (err) {
-          console.error("Erreur lors de l'écoute:", err);
+          console.error("❌ Erreur lors du paiement/lecture:", err);
           audio.pause();
           alert("❌ Erreur lors de la lecture");
         }
