@@ -1755,7 +1755,7 @@ window.renderFollowBtn = function (uid) {
     const isFollowing = snap.exists();
 
     if (isFollowing) {
-      btn.textContent = 'Ne plus suivre';
+      btn.textContent = '-';
       btn.style.background = '#ccc';
       btn.style.color = '#000';
       btn.onclick = async () => {
@@ -1768,7 +1768,7 @@ window.renderFollowBtn = function (uid) {
         followingIds.delete(uid);
       };
     } else {
-      btn.textContent = 'Suivre';
+      btn.textContent = '+';
       btn.style.background = '#1877f2';
       btn.style.color = '#fff';
       btn.onclick = async () => {
