@@ -37,7 +37,20 @@ header .logo {
   color: gold;
   font-size: 1.8rem;
   font-weight: bold;
-  align-self: flex-start; /* Logo collé à gauche */
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+  flex: 1;
+  box-sizing: border-box;
+}
+
+header .logo i {
+  cursor: pointer;
+  font-size: 35px;
+  margin-right: 28px; /* ajuste : 5px, 10px, 15px... */
 }
 
 header .icons {
@@ -775,7 +788,9 @@ font-size:14px;
 </head>
 <body>
 <header>
-  <div class="logo" onclick="location.reload()">Skill</div>
+  <div class="logo" onclick="location.reload()">Skill
+  <div id="prix"><i class="material-icons-outlined tablinks" onclick="openTab(event,'account')">person</i>
+  </div></div>
   <div class="icons">
     <i class="material-icons-outlined tablinks selected" onclick="openTab(event,'home'); window.scrollTo({ top: 0, behavior: 'smooth' });">home</i>
     <i class="material-icons-outlined tablinks" onclick="openTab(event,'music')">music_note</i>
@@ -992,7 +1007,7 @@ font-size:14px;
     <label for="profilePhotoInput" title="Changer la photo"><i class="fas fa-camera" style="cursor:pointer;font-size:150%;color:#888"></i></label>
     <input type="file" id="profilePhotoInput" accept="image/*" style="display:none" /> <br><br/>
     <i class="fas fa-pen" onclick="openTab(event,'modifie-pro')"></i>
-    <br>  <i class="material-icons-outlined tablinks" onclick="openTab(event,'account')">person</i>
+    <br>  
     </div>
     <div class="boutons">
   <input id="profile-link" type="text" readonly style="width:100%;padding:8px" />
