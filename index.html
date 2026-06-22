@@ -429,6 +429,11 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
         background:#2b2b2b;padding:5px;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,.1);margin-bottom:5px;color:#fff;
 
     }
+       #priix {
+        background:#fff;padding:5px;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,.1);margin-bottom:5px;color:#000;
+
+    }
+
     #emailLoginBox,#emailSignupBox{
       background:#fff;padding:15px;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,.1);margin-bottom:15px
     }
@@ -707,89 +712,24 @@ align-items:center;
 margin:0;
 font-size:14px;
 }
-/* Fond sombre */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 9999;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-}
-/* Overlay */
-.modal {
-  display: none;
-  position: fixed;
-  z-index: 1000;
 
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+.modal{display:none;position:fixed;z-index:9999;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.7);align-items:center;justify-content:center}
+.modal-content{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:24px;max-width:400px;width:90%;text-align:center;animation:slideDown 0.2s ease}
+.modal-title{color:gold;margin-bottom:12px;font-size:18px}
+.modal-content p{color:#cbd5e1;margin-bottom:20px;line-height:1.5}
+.modal-input{width:100%;padding:12px;border:1px solid #334155;border-radius:8px;font-size:14px;background:#0b1220;color:#e2e8f0;margin-bottom:15px;outline:none}
+.modal-input:focus{border-color:#2563eb}
+.modal-btn{padding:10px 20px;border:none;border-radius:8px;background:gold;color:white;cursor:pointer;font-weight:600;margin:0 5px}
+.modal-btn:hover{opacity:0.9}
+.modal-btn-danger{background:gold}
+@keyframes slideDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
-  background: rgba(0,0,0,0.5);
-
-  /* 🔥 CENTRAGE PARFAIT */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.modal {
-  display: none; /* ✅ caché au départ */
-  position: fixed;
-  z-index: 1000;
-
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-
-  background: rgba(0,0,0,0.5);
-
-  justify-content: center;
-  align-items: center;
-}
-/* Boîte */
-.modal-content {
-  background: #fff;
-  width: 90%;
-  max-width: 350px;
-  padding: 20px;
-  border-radius: 10px;
-  text-align: center;
-  animation: fadeIn 0.3s ease;
-}
-
-/* Titre */
-.modal-title {
-  color: #FFD700;
-  margin-top: 0;
-}
-
-/* Bouton */
-.modal-btn {
-  margin-top: 15px;
-  padding: 10px 20px;
-  border: none;
-  background: #FFD700;
-  color: white;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-/* Animation */
-@keyframes fadeIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">Skill
-  <div id="prix">
+  <div id="priix">
             <i class="material-icons-outlined tablinks" onclick="openTab(event,'shop')">shopping_cart</i>
 
       <i class="material-icons-outlined tablinks" onclick="openTab(event,'account')">person</i>
@@ -857,7 +797,7 @@ font-size:14px;
 </section>
 <!-- ============ VIDEO FEED ============ -->
 <section id="videoFeed" class="tabcontent">
-  <h3>Des images pour vous</h3>
+  
   <div id="videoFeedContent"></div>
 </section>
 
@@ -912,11 +852,13 @@ font-size:14px;
 
 <!-- ============ SEARCH ============ -->
 <section id="search" class="tabcontent">
-  <h3>Rechercher un utilisateur</h3>
+  <br><br/>
+  <div id="emailLoginBox">
   <input type="text" id="searchUserInput" placeholder="Nom ou e-mail de l'utilisateur" />
   <button onclick="searchUser()">Rechercher</button>
     <div id="emailLoginBox">
   <div id="searchResults"></div>
+  </div>
   </div>
 </section>
 <section id="BOOST" class="tabcontent">
@@ -989,10 +931,11 @@ font-size:14px;
   <button onclick="signOutUser()" style="background-color:red">Se déconnecter</button>
   <br/><br/>
   <div class="boutons">
-<button style="background-color:transparent">
-      <u><a href="https://www.facebook.com/profile.php?id=61579222796795">contact support</a> <i class="fab fa-facebook" style="color:#1877f2"></i></u>
+<button style="color:blue" onclick="openTab(event,'condir')" style="background-color:black">conditions generales d'utulisations
   </button>
-<button style="background-color:transparent"><u onclick="openTab(event,'condis')" style="background-color:black">Critères a connaître</u></button>
+<button style="background-color:transparent">
+    <u onclick="openTab(event,'condis')" style="background-color:black">Critères a connaître</u>
+    </button>
   </div>
 </section>
 
@@ -1131,9 +1074,14 @@ font-size:14px;
     <input type="email"    id="signupEmail"    placeholder="Email" />
     <input type="password" id="signupPassword" placeholder="Mot de passe (≥ 6 car.)" />
     <input type="number"   id="signupAge"      placeholder="Âge (min 18)" min="18" />
+     <button style="background-color:transparent">
+    <u onclick="openTab(event,'condir')" style="color:blue">j'ai acceptez les conditions generales d'utulisations</u>
+  </button>
+
+
     <button onclick="signupWithEmail()">S’inscrire</button>
-  </div>
-</section>
+    </div>
+  </section>
 
 <!-- ============ OTHER USER FEED ============ -->
 <section id="userFeed" class="tabcontent">
@@ -1213,7 +1161,6 @@ pour avoir cet outil vous devez avoir au moins 100 followers;
 L'application mboa skills est disponible partout dans le monde (la monétisation est Disponible) Le système du dépôt fonctionne sans problème ainsi que celui du retrait ;
 <p style="color:gold">Retrait/Dépôt :</p> Disponible <u style="color:blue">24h/24 </u> & <u style="color:blue">7j/7</u>. MTN et orange Money uniquement (pour le cas du Cameroun)
 <br><br/>
-  <p><i class="fas fa-info-circle" style="color:#fff"></i> N'oubliez pas de nous suivre sur <u style="color:blue">Facebook</u> merci.
    </div> 
    <hr>
 </section>
@@ -1291,16 +1238,70 @@ padding:20px;
    </div>
    
 </section>
-<center>
-<!-- 🔔 MODAL NOTIFICATION -->
-<div id="customAlert" class="modal">
-  <div class="modal-content">
-    <h3 class="modal-title">message</h3>
-    <p id="customAlertMessage"></p>
-    <button onclick="closeCustomAlert()" class="modal-btn">Fermer</button>
-  </div>
+<section id="shop" class="tabcontent">
+ <br><br/>
+  <div id="priix">
+<button onclick="window.open('https://directs.netlify.app', '_blank')">OUVRIR Skill-Shop</button>
 </div>
+</section>
+<section id="condir" class="tabcontent">
+ <br><br/>
+ <h1>conditions generales d'utulisations</h1>
+Les données personnelles collectées sur http://mboaskill.cm sont stockées et traitées par les prestataires suivants :
+
+<h1>1. Hébergement & Base de données</h1>
+*Back4App Inc.* - 2261 Market Street #5725, San Francisco, CA 94114, USA  
+Service : Base de données MongoDB, stockage fichiers, authentification, Cloud Code  
+Localisation : Serveurs AWS/DigitalOcean situés aux États-Unis  
+Sécurité : Chiffrement des données au repos, connexion HTTPS, sauvegardes automatiques  
+Back4App agit en tant que sous-traitant et est conforme aux Clauses Contractuelles Types de l’UE pour les transferts de données hors Cameroun/UE.  
+Plus d’infos : https://www.back4app.com + DPA sur demande
+
+<h1>2 Paiements Mobile Money</h1>
+*[Nom de ta passerelle : ex: NotchPay / Smobilpay / DusuPay]*  
+Service : Traitement des dépôts et retraits via MTN Mobile Money et Orange Money Cameroun  
+Localisation : Cameroun  
+Sécurité : Nous ne stockons jamais ton code secret OM/MTN. Seuls le numéro, montant et statut "payé/échec" transitent via notre hébergeur Back4App.  
+La passerelle agit en tant que sous-traitant et est agréée par MTN/Orange.
+
+<h1>3. Authentification</h1>
+*Google LLC* - si tu utilises "Connexion avec Google"  
+Service : Vérification d’identité uniquement. Nous ne recevons que ton nom, email et photo de profil.
+
+*Transfert hors Cameroun*  
+Conformément à la loi 2010/021 du 21 décembre 2010 sur la cybersécurité au Cameroun, tu es informé que tes données peuvent être transférées aux USA. Ce transfert est encadré par des contrats garantissant un niveau de protection équivalent.
+
+<hr>
+<h2>
+1. *Durée conservation* : Données compte supprimées sous 30j après demande. Backups Back4App purgés sous 30j max.
+2. *Tes droits* : Tu peux demander accès/suppression de tes données via [ton email contact] à tout moment.
+</h2>
+</section>
+<center>
+    <!-- Modal Alert -->
+<div id="customAlert" class="modal">
+<div class="modal-content">
+<h3 class="modal-title" id="customAlertTitle">Notification</h3>
+<p id="customAlertMessage"></p>
+<button onclick="closeCustomAlert()" class="modal-btn">Fermer</button>
+</div>
+</div>
+
+<!-- Modal Prompt -->
+<div id="customPrompt" class="modal">
+<div class="modal-content">
+<h3 class="modal-title" id="customPromptTitle">Saisie</h3>
+<p id="customPromptMessage"></p>
+<input type="text" id="customPromptInput" class="modal-input" placeholder="">
+<div>
+<button onclick="submitCustomPrompt(true)" class="modal-btn">OK</button>
+<button onclick="submitCustomPrompt(false)" class="modal-btn modal-btn-danger">Annuler</button>
+</div>
+</div>
+</div>
+
 </center>
+
 <script type="module">
 
 /*──────────────────────────────────────────────────────────
@@ -1349,24 +1350,73 @@ let boostId='', currentBalance=0;
 const qs=id=>document.getElementById(id);
 const fmt=n=>n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'k':n;
 
-window.showCustomAlert = function(message) {
-  document.getElementById("customAlertMessage").textContent = message;
-  document.getElementById("customAlert").style.display = "flex";
+// === CUSTOM ALERT ===
+window.showCustomAlert = function(message, title = "Notification") {
+document.getElementById("customAlertTitle").textContent = title;
+document.getElementById("customAlertMessage").textContent = message;
+document.getElementById("customAlert").style.display = "flex";
 }
 
 window.closeCustomAlert = function() {
-  document.getElementById("customAlert").style.display = "none";
+document.getElementById("customAlert").style.display = "none";
 }
-// 🔁 Remplacer TOUS les alert() automatiquement
+
+// Remplace alert()
 window.alert = function(message) {
-  showCustomAlert(message);
+showCustomAlert(message);
 };
+
+// === CUSTOM PROMPT ===
+let promptCallback = null;
+
+window.showCustomPrompt = function(message, defaultValue = "", title = "Saisie") {
+document.getElementById("customPromptTitle").textContent = title;
+document.getElementById("customPromptMessage").textContent = message;
+document.getElementById("customPromptInput").value = defaultValue;
+document.getElementById("customPromptInput").placeholder = defaultValue;
+document.getElementById("customPrompt").style.display = "flex";
+document.getElementById("customPromptInput").focus();
+
+return new Promise((resolve) => {
+promptCallback = resolve;
+});
+}
+
+window.submitCustomPrompt = function(confirmed) {
+const modal = document.getElementById("customPrompt");
+modal.style.display = "none";
+const value = confirmed ? document.getElementById("customPromptInput").value : null;
+if(promptCallback) {
+promptCallback(value);
+promptCallback = null;
+}
+}
+
+// Remplace prompt() - version async
+window.prompt = async function(message, defaultValue = "") {
+return await showCustomPrompt(message, defaultValue);
+};
+
+// === FERMETURE MODALS ===
 window.onclick = function(e) {
-  const modal = document.getElementById("customAlert");
-  if (e.target === modal) {
-    modal.style.display = "none";
-  }
-};
+const alertModal = document.getElementById("customAlert");
+const promptModal = document.getElementById("customPrompt");
+if (e.target === alertModal) closeCustomAlert();
+if (e.target === promptModal) submitCustomPrompt(false);
+}
+
+// Touche Echap pour fermer
+document.addEventListener('keydown', function(e) {
+if(e.key === 'Escape') {
+if(document.getElementById("customAlert").style.display === "flex") closeCustomAlert();
+if(document.getElementById("customPrompt").style.display === "flex") submitCustomPrompt(false);
+}
+});
+
+// Enter pour valider prompt
+document.getElementById("customPromptInput").addEventListener('keypress', function(e) {
+if(e.key === 'Enter') submitCustomPrompt(true);
+});
 
 
 (async () => {
