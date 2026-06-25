@@ -730,7 +730,8 @@ font-size:14px;
 <header>
   <div class="logo">Skill
   <div id="priix">
-            <i class="material-icons-outlined tablinks" onclick="openTab(event,'shop')">shopping_cart</i>
+            <i class="material-icons-outlined tablinks" onclick="window.open('https://directs.netlify.app', '_blank')">shopping_cart</i>
+  <i class="material-icons-outlined tablinks" onclick="openTab(event,'vibo')">add_card</i>
 
       <i class="material-icons-outlined tablinks" onclick="openTab(event,'account')">person</i>
   </div></div>
@@ -1246,35 +1247,69 @@ padding:20px;
 </section>
 <section id="condir" class="tabcontent">
  <br><br/>
- <h1>conditions generales d'utulisations</h1>
-Les données personnelles collectées sur http://mboaskill.cm sont stockées et traitées par les prestataires suivants :
+ <h1>Conditions Générales d’Utilisation et Politique de Protection des Données</h1>Les données personnelles collectées sur https://mboaskill.cm sont stockées et traitées par les prestataires suivants :
 
-<h1>1. Hébergement & Base de données</h1>
-*Back4App Inc.* - 2261 Market Street #5725, San Francisco, CA 94114, USA  
-Service : Base de données MongoDB, stockage fichiers, authentification, Cloud Code  
-Localisation : Serveurs AWS/DigitalOcean situés aux États-Unis  
-Sécurité : Chiffrement des données au repos, connexion HTTPS, sauvegardes automatiques  
-Back4App agit en tant que sous-traitant et est conforme aux Clauses Contractuelles Types de l’UE pour les transferts de données hors Cameroun/UE.  
-Plus d’infos : https://www.back4app.com + DPA sur demande
+<h1>1. Hébergement, Base de données et Authentification</h1><b>Google Cloud / Firebase (Google LLC)</b> - 1600 Amphitheatre Parkway, Mountain View, CA 94043, États-Unis
 
-<h1>2 Paiements Mobile Money</h1>
-*[Nom de ta passerelle : ex: NotchPay / Smobilpay / DusuPay]*  
-Service : Traitement des dépôts et retraits via MTN Mobile Money et Orange Money Cameroun  
-Localisation : Cameroun  
-Sécurité : Nous ne stockons jamais ton code secret OM/MTN. Seuls le numéro, montant et statut "payé/échec" transitent via notre hébergeur Back4App.  
-La passerelle agit en tant que sous-traitant et est agréée par MTN/Orange.
+Service :
 
-<h1>3. Authentification</h1>
-*Google LLC* - si tu utilises "Connexion avec Google"  
-Service : Vérification d’identité uniquement. Nous ne recevons que ton nom, email et photo de profil.
+- Firebase Authentication
+- Cloud Firestore
+- Firebase Storage
+- Cloud Functions
+- Firebase Hosting
 
-*Transfert hors Cameroun*  
-Conformément à la loi 2010/021 du 21 décembre 2010 sur la cybersécurité au Cameroun, tu es informé que tes données peuvent être transférées aux USA. Ce transfert est encadré par des contrats garantissant un niveau de protection équivalent.
+Localisation :
+Les données peuvent être hébergées dans des centres de données Google Cloud situés aux États-Unis, en Europe ou dans d’autres régions exploitées par Google.
 
-<hr>
-<h2>
-1. *Durée conservation* : Données compte supprimées sous 30j après demande. Backups Back4App purgés sous 30j max.
-2. *Tes droits* : Tu peux demander accès/suppression de tes données via [ton email contact] à tout moment.
+Sécurité :
+
+- Chiffrement des données en transit (HTTPS/TLS)
+- Chiffrement des données au repos
+- Contrôle d’accès sécurisé
+- Sauvegardes et redondance des infrastructures Google Cloud
+
+Google agit en tant que sous-traitant des données et applique des mesures de sécurité conformes aux standards internationaux.
+
+Plus d’informations : https://firebase.google.com
+
+<h1>2. Paiements Mobile Money</h1><b>NotchPay Technologies</b>
+
+Service :
+Traitement des dépôts et retraits via MTN Mobile Money et Orange Money Cameroun.
+
+Sécurité :
+Nous ne stockons jamais votre code secret Mobile Money. Seules les informations nécessaires au traitement des transactions (numéro de téléphone, montant, référence et statut du paiement) sont transmises de manière sécurisée.
+
+Le prestataire de paiement agit en tant que sous-traitant et applique ses propres mesures de sécurité conformément à la réglementation en vigueur.
+
+<h1>3. Authentification Google</h1><b>Google LLC</b>
+
+Lorsque vous utilisez la fonctionnalité « Connexion avec Google », nous recevons uniquement les informations nécessaires à la création et à la gestion de votre compte :
+
+- Nom
+- Adresse e-mail
+- Photo de profil (si disponible)
+
+Nous n'avons jamais accès à votre mot de passe Google.
+
+<h1>4. Transfert international des données</h1>Conformément à la loi camerounaise n°2010/021 du 21 décembre 2010 relative à la cybersécurité et à la cybercriminalité, vous êtes informé que certaines données peuvent être transférées et stockées hors du Cameroun, notamment sur les infrastructures de Google Cloud.
+
+Ces transferts sont encadrés par des mécanismes contractuels et techniques destinés à garantir un niveau de protection approprié.
+
+<hr><h2>
+1. Durée de conservation : Les données du compte sont conservées tant que le compte reste actif. En cas de demande de suppression, elles sont supprimées dans un délai maximal de 30 jours, sauf obligation légale contraire.<br><br>
+
+2. Vos droits : Vous pouvez demander l’accès, la rectification ou la suppression de vos données personnelles à tout moment via contact@mboaskill.cm.
+
+<br><br>
+
+3. Sauvegardes : Les sauvegardes de sécurité sont automatiquement supprimées selon les politiques de conservation de Google Cloud.
+
+<br><br>
+
+Dernière mise à jour : 25 juin 2026.
+
 </h2>
 </section>
 <center>
@@ -1295,6 +1330,7 @@ Conformément à la loi 2010/021 du 21 décembre 2010 sur la cybersécurité au 
 <input type="text" id="customPromptInput" class="modal-input" placeholder="">
 <div>
 <button onclick="submitCustomPrompt(true)" class="modal-btn">OK</button>
+<br><br/>
 <button onclick="submitCustomPrompt(false)" class="modal-btn modal-btn-danger">Annuler</button>
 </div>
 </div>
