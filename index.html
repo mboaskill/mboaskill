@@ -150,23 +150,6 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
   max-width: 100%;             /* Empêche le dépassement horizontal */
   display: inline-block;       /* S'assure que le lien respecte le conteneur */
     }
-                       
-.post video,
-.post .text-bg {
-  width: 100%;
-  border-radius: 1px;
-  margin-top: 10px;
-}
-
-.text-bg {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  font-weight: bold;
-  color: #fff;
-  text-align: center;
-  white-space: pre-wrap;
-  max-width: 90%;
-}
 
 .post-actions {
   display: flex;
@@ -230,11 +213,11 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
   border: none;
   cursor: pointer;
 }
-   /* ===========================
+/* ===========================
    MODE PLEIN ÉCRAN
 =========================== */
 
-.fullscreen-post{
+.post.fullscreen-post{
     position:relative;
     width:100%;
     padding:0;
@@ -242,8 +225,12 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
     overflow:hidden;
     background:#000;
     border-radius:12px;
+
+    /* annule le style .post */
+    box-shadow:none;
 }
 
+/* CONTENU */
 .fullscreen-post .post-content{
     position:relative;
     width:100%;
@@ -258,7 +245,7 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
     border-radius:0;
 }
 
-/* assombrissement léger */
+/* Overlay noir dégradé */
 .fullscreen-post .post-content::after{
     content:"";
     position:absolute;
@@ -277,6 +264,7 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
 /* ===========================
    HEADER
 =========================== */
+
 .fullscreen-post .post-header{
     position:absolute;
     left:12px;
@@ -286,7 +274,6 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
     display:flex;
     align-items:center;
     flex-wrap:nowrap;
-
     gap:8px;
 
     color:#fff;
@@ -302,7 +289,6 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
     border-radius:50%;
     border:2px solid #fff;
     object-fit:cover;
-
     flex-shrink:0;
 }
 
@@ -323,10 +309,8 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
 
 .fullscreen-post .post-header small{
     color:#ddd !important;
-
     white-space:nowrap;
     flex-shrink:0;
-
     font-size:13px;
 }
 
@@ -334,15 +318,15 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
     margin-left:4px;
     flex-shrink:0;
 }
+
 /* ===========================
-   ACTIONS DROITE
+   ACTIONS À DROITE
 =========================== */
 
 .fullscreen-actions{
     position:absolute;
     right:12px;
     bottom:85px;
-
     z-index:30;
 
     display:flex;
@@ -386,11 +370,11 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
 }
 
 /* ===========================
-   MASQUER ACTIONS NORMALES
+   MASQUER ACTIONS CLASSIQUES
 =========================== */
 
 .fullscreen-post .post-actions{
-    display:none;
+    display:none !important;
 }
 
 /* ===========================
@@ -399,22 +383,49 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
 
 @media (max-width:768px){
 
-  .fullscreen-post .post-content img{
-      max-height:75vh;
-  }
+    .fullscreen-post .post-content img{
+        max-height:75vh;
+    }
 
-  .fullscreen-post .post-header{
-      bottom:95px;
-  }
+    .fullscreen-post .post-header{
+        bottom:95px;
+    }
 
-  .fullscreen-actions{
-      bottom:75px;
-  }
+    .fullscreen-actions{
+        bottom:75px;
+    }
 
-  .fullscreen-caption{
-      bottom:15px;
-      font-size:13px;
-  }
+    .fullscreen-caption{
+        bottom:15px;
+        font-size:13px;
+    }
+}
+#videoFeed.tabcontent{
+    max-width:none !important;
+    width:100vw !important;
+    margin:0 !important;
+    padding:0 !important;
+}
+#home.tabcontent{
+    max-width:none !important;
+    width:100vw !important;
+    margin:0 !important;
+
+    padding-top:6rem !important;
+    padding-left:0 !important;
+    padding-right:0 !important;
+    padding-bottom:0 !important;
+}
+
+#feedme.tabcontent{
+    max-width:none !important;
+    width:100vw !important;
+    margin:0 !important;
+
+    padding-top:6rem !important;
+    padding-left:0 !important;
+    padding-right:0 !important;
+    padding-bottom:0 !important;
 }
     /* === COMMENTS ===================================== */
     .comments-section{margin-top:30px;border-top:1px solid #ccc;padding-top:10px;max-height:500px;overflow-y:auto;direction:ltr}
@@ -2987,37 +2998,57 @@ if (isFullscreen) {
 
   const commentBox = document.createElement("div");
   commentBox.append(comI, comCnt);
-  
-const viewBox = document.createElement("div");
-viewBox.innerHTML = `
-  <i class="fas fa-eye"></i>
-  <span>${fmt(d.views || 1)}</span>
-`;
+
+  const viewBox = document.createElement("div");
+  viewBox.innerHTML = `
+    <i class="fas fa-eye"></i>
+    <span>${fmt(d.views || 1)}</span>
+  `;
+
   sideActions.append(
-  likeBox,
-  commentBox,
-  viewBox
-);
-if (isMine) {
+    likeBox,
+    commentBox,
+    viewBox
+  );
 
-  const boostBox = document.createElement("div");
+  if (isMine) {
 
-  const boostIcon = document.createElement("i");
-  boostIcon.className = "fas fa-rocket";
+    // ===== MODIFIER =====
 
-  const boostText = document.createElement("span");
-  boostText.textContent = "Booster";
+    const editBox = document.createElement("div");
 
-  boostBox.append(boostIcon, boostText);
+    const editIcon = document.createElement("i");
+    editIcon.className = "fas fa-pen-to-square";
 
-  boostBox.onclick = () =>
+    const editText = document.createElement("span");
+    editText.textContent = "Modifier";
+
+    editBox.append(editIcon, editText);
+
+    editBox.onclick = () => editPost(id, d);
+
+    sideActions.appendChild(editBox);
+
+    // ===== BOOSTER =====
+
+    const boostBox = document.createElement("div");
+
+    const boostIcon = document.createElement("i");
+    boostIcon.className = "fas fa-rocket";
+
+    const boostText = document.createElement("span");
+    boostText.textContent = "Booster";
+
+    boostBox.append(boostIcon, boostText);
+
+    boostBox.onclick = () =>
       selectBoostPost(id, d.text || d.imageTitle || "Sans titre");
 
-  sideActions.appendChild(boostBox);
-}
+    sideActions.appendChild(boostBox);
+  }
+
   cont.appendChild(sideActions);
 }
-
   // ---------- COMMENTAIRES ----------
   const comSec = document.createElement('div');
   comSec.className = 'comments-section';
@@ -3067,23 +3098,64 @@ if (isMine) {
 }
 
 async function editPost(postId, data) {
-  // Récup valeur actuelle
-  const currentText = data.text || '';
-  const newText = prompt('Modifiez le texte de la publication :', currentText);
-  if (newText === null) return; // Annulé
-
-  // Si rien changé, on ne fait rien
-  if (newText.trim() === currentText.trim()) return;
-
   try {
-    await updateDoc(doc(db, 'posts', postId), { text: newText.trim() });
-    alert('Publication mise à jour.');
+
+    // Déterminer si c'est une publication image ou texte
+    const isImagePost = !!data?.imageUrl;
+
+    // Texte actuel à modifier
+    const currentText = isImagePost
+      ? (data?.imageTitle || "")
+      : (data?.text || "");
+
+    // Prompt
+    const newText = await prompt(
+      isImagePost
+        ? "Modifiez la description de l'image :"
+        : "Modifiez le texte de la publication :",
+      currentText
+    );
+
+    // Annulation
+    if (newText === null) return;
+
+    const cleanedText = newText.trim();
+
+    // Vide interdit
+    if (!cleanedText) {
+      alert("Le texte ne peut pas être vide.");
+      return;
+    }
+
+    // Aucun changement
+    if (cleanedText === currentText.trim()) {
+      return;
+    }
+
+    // Champs à mettre à jour
+    const updateData = {
+      editedAt: serverTimestamp()
+    };
+
+    if (isImagePost) {
+      updateData.imageTitle = cleanedText;
+    } else {
+      updateData.text = cleanedText;
+    }
+
+    // Mise à jour Firestore
+    await updateDoc(
+      doc(db, "posts", postId),
+      updateData
+    );
+
+    alert("Publication mise à jour.");
+
   } catch (e) {
-    console.error('Erreur mise à jour post', e);
-    alert('Erreur lors de la mise à jour.');
+    console.error("Erreur mise à jour publication :", e);
+    alert("Erreur lors de la mise à jour.");
   }
 }
-
 /* LIKE */
 async function loadLikedPosts(){likedPosts.clear();}
 async function toggleLike(pid, icon, cnt) {
