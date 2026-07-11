@@ -15,11 +15,28 @@
   <style>
     /* === GLOBAL STYLES ================================= */
     body{
-      margin:0;
-      font-family:Arial,Helvetica,sans-serif;
-     background-color: #888; 
-          }
-   header {
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background-color:#888;
+}
+
+body:has(#feedme.active) header .icons,
+body:has(#mud.active) header .icons,
+body:has(#my-music.active) header .icons,
+body:has(#condis.active) header .icons,
+body:has(#paypalWithdraw.active) header .icons,
+body:has(#choises.active) header .icons,
+body:has(#account.active) header .icons,
+body:has(#conect.active) header .icons,
+body:has(#inscrip.active) header .icons,
+body:has(#vibo.active) header .icons,
+body:has(#profilimg.active) header .icons,
+body:has(#oublie.active) header .icons,
+body:has(#BOOST.active) header .icons,
+body:has(#userFeed.active) header .icons{
+    display: none !important;
+}
+header {
   background-color: #fff;
   display: flex;
   flex-direction: column; /* Logo en haut, icônes en bas */
@@ -439,14 +456,105 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
     padding-bottom:0 !important;
 }
 
-    /* === COMMENTS ===================================== */
-    .comments-section{margin-top:30px;border-top:1px solid #ccc;padding-top:10px;max-height:500px;overflow-y:auto;direction:ltr}
-    .comment{direction:ltr;unicode-bidi:plaintext;text-align:left;word-break:break-word}
-    .comment strong{color:#1877f2}
-    .comment-input{display:flex;gap:14px;margin-top:14px}
-    .comment-input input{flex:1;height:30px;padding:12px;border-radius:5px;border:1px solid #ccc;font-size:14px;width:100px;height:60px;}
-    .comment-input button{padding:5px 9px;background:#FFA500;color:#fff;border:none;border-radius:8px;cursor:pointer}
+ /* === COMMENTS ===================================== */
 
+.comments-section{
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+padding-top:60px;
+    width: 100%;
+    height: 75vh;
+
+    background: #fff;
+    border-radius: 20px 20px 0 0;
+
+    box-shadow: 0 -5px 20px rgba(0,0,0,.2);
+
+    padding: 15px;
+    box-sizing: border-box;
+
+    overflow-y: auto;
+
+    transform: translateY(100%);
+    transition: transform .28s ease;
+
+    z-index: 9999;
+
+    direction: ltr;
+}
+
+.comments-section.open{
+    transform: translateY(0);
+}
+
+.comment{
+    direction:ltr;
+    unicode-bidi:plaintext;
+    text-align:left;
+    word-break:break-word;
+    margin-bottom:15px;
+}
+
+.comment strong{
+    color:#1877f2;
+}
+
+.comment-input{
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-top: 15px;
+    padding: 12px;
+    background: #fff;
+    border-top: 1px solid #eee;
+}
+
+.comment-input textarea{
+    flex: 1;
+    min-height: 70px;
+    max-height: 160px;
+    resize: none;
+
+    padding: 12px 15px;
+
+    border: 1px solid #ccc;
+    border-radius: 18px;
+
+    font-size: 16px;
+    font-family: inherit;
+    line-height: 1.5;
+
+    direction: ltr;
+    unicode-bidi: plaintext;
+    text-align: left;
+
+    outline: none;
+    box-sizing: border-box;
+}
+
+.comment-input button{
+    height: 48px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 24px;
+    background: #FFA500;
+    color: #fff;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+}
+.comments-section::-webkit-scrollbar{
+    width:5px;
+}
+
+.comments-section::-webkit-scrollbar-thumb{
+    background:#bbb;
+    border-radius:20px;
+}
     /* === ACCOUNT FORMS ================================= */
     #prix {
         background:#2b2b2b;padding:5px;border-radius:10px;box-shadow:0 0 5px rgba(0,0,0,.1);margin-bottom:5px;color:#fff;
@@ -584,7 +692,7 @@ hr {
 position:fixed;
 top:0;
 left:0;
-width:60%;
+width:100%;
 height:100%;
 background:#f0f2f5;
 z-index:9999;
@@ -893,14 +1001,65 @@ font-size:14px;
   <span id="boostStatus" style="font-weight:bold"></span>
   <input type="number" id="boostViews" placeholder="Nombres de personnes/jour" min="4000"/>
   <select id="boostCountry">
-    <option value="1">Cameroun</option>
-    <option value="2">Côte d’Ivoire</option>
-    <option value="3">Gabon</option>
-    <option value="4">Sénégal</option>
-    <option value="5">Benin</option>
-    <option value="6">RDC Congo</option>
-  </select>
-  <button onclick="boostPost()">Booster</button>
+  <option value="1">Cameroun 🇨🇲</option>
+  <option value="2">Côte d’Ivoire 🇨🇮</option>
+  <option value="3">Gabon 🇬🇦</option>
+  <option value="4">Sénégal 🇸🇳</option>
+  <option value="5">Bénin 🇧🇯</option>
+  <option value="6">RDC Congo 🇨🇩</option>
+
+  <option value="7">Nigeria 🇳🇬</option>
+  <option value="8">Togo 🇹🇬</option>
+  <option value="9">Burkina Faso 🇧🇫</option>
+  <option value="10">Mali 🇲🇱</option>
+  <option value="11">Niger 🇳🇪</option>
+  <option value="12">Guinée 🇬🇳</option>
+  <option value="13">Guinée-Bissau 🇬🇼</option>
+  <option value="14">Libéria 🇱🇷</option>
+  <option value="15">Sierra Leone 🇸🇱</option>
+  <option value="16">Ghana 🇬🇭</option>
+  <option value="17">Mauritanie 🇲🇷</option>
+  <option value="18">Maroc 🇲🇦</option>
+  <option value="19">Algérie 🇩🇿</option>
+  <option value="20">Tunisie 🇹🇳</option>
+  <option value="21">Libye 🇱🇾</option>
+  <option value="22">Égypte 🇪🇬</option>
+  <option value="23">Tchad 🇹🇩</option>
+  <option value="24">République centrafricaine 🇨🇫</option>
+  <option value="25">Congo 🇨🇬</option>
+  <option value="26">Angola 🇦🇴</option>
+  <option value="27">Zambie 🇿🇲</option>
+  <option value="28">Zimbabwe 🇿🇼</option>
+  <option value="29">Namibie 🇳🇦</option>
+  <option value="30">Botswana 🇧🇼</option>
+  <option value="31">Afrique du Sud 🇿🇦</option>
+  <option value="32">Mozambique 🇲🇿</option>
+  <option value="33">Madagascar 🇲🇬</option>
+  <option value="34">Comores 🇰🇲</option>
+  <option value="35">Maurice 🇲🇺</option>
+  <option value="36">Seychelles 🇸🇨</option>
+  <option value="37">Rwanda 🇷🇼</option>
+  <option value="38">Burundi 🇧🇮</option>
+  <option value="39">Ouganda 🇺🇬</option>
+  <option value="40">Kenya 🇰🇪</option>
+  <option value="41">Tanzanie 🇹🇿</option>
+  <option value="42">Éthiopie 🇪🇹</option>
+  <option value="43">Somalie 🇸🇴</option>
+  <option value="44">Djibouti 🇩🇯</option>
+  <option value="45">Érythrée 🇪🇷</option>
+  <option value="46">Soudan 🇸🇩</option>
+  <option value="47">Soudan du Sud 🇸🇸</option>
+  <option value="48">Guinée équatoriale 🇬🇶</option>
+  <option value="49">Sao Tomé-et-Principe 🇸🇹</option>
+  <option value="50">Eswatini 🇸🇿</option>
+  <option value="51">Lesotho 🇱🇸</option>
+  <option value="52">Cap-Vert 🇨🇻</option>
+  <option value="53">France 🇫🇷</option>
+  <option value="54">Belgique 🇧🇪</option>
+  <option value="55">Canada 🇨🇦</option>
+  <option value="56">États-Unis 🇺🇸</option>
+</select>
+    <button onclick="boostPost()">Booster</button>
 </div> </div> 
     <br>
   <p><i class="fas fa-info-circle" style="color:#fff"></i> minimum 2 jours (min: 2j pour 3500 XAF)</p>
@@ -965,7 +1124,8 @@ font-size:14px;
 
 <!-- ============ FEEDME (MY FEED) ============ -->
 <section id="feedme" class="tabcontent">
-  <h3>Mon profile</h3>
+ <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+ <h3>Mon profile</h3>
   <div class="post-header">
     <img id="feedmeProfilePhoto" src="https://via.placeholder.com/40" />
     <p style="color:gold" id="accountStatusFeed"></p><p id="icon">
@@ -994,15 +1154,66 @@ font-size:14px;
 <section id="profilimg" class="tabcontent">
       <br><br/>
     <div id="emailLoginBox">
-  <label for="userCountry">Votre pays :</label>
-  <select id="userCountry">
-    <option value="1">Cameroun 🇨🇲</option>
-    <option value="2">Côte d’Ivoire 🇨🇮</option>
-    <option value="3">Gabon 🇬🇦</option>
-    <option value="4">Sénégal 🇸🇳</option>
-    <option value="5">Bénin 🇧🇯</option>
-    <option value="6">RDC Congo 🇨🇩</option>
-  </select>
+<label for="userCountry">Votre pays :</label>
+<select id="userCountry">
+  <option value="1">Cameroun 🇨🇲</option>
+  <option value="2">Côte d’Ivoire 🇨🇮</option>
+  <option value="3">Gabon 🇬🇦</option>
+  <option value="4">Sénégal 🇸🇳</option>
+  <option value="5">Bénin 🇧🇯</option>
+  <option value="6">RDC Congo 🇨🇩</option>
+
+  <option value="7">Nigeria 🇳🇬</option>
+  <option value="8">Togo 🇹🇬</option>
+  <option value="9">Burkina Faso 🇧🇫</option>
+  <option value="10">Mali 🇲🇱</option>
+  <option value="11">Niger 🇳🇪</option>
+  <option value="12">Guinée 🇬🇳</option>
+  <option value="13">Guinée-Bissau 🇬🇼</option>
+  <option value="14">Libéria 🇱🇷</option>
+  <option value="15">Sierra Leone 🇸🇱</option>
+  <option value="16">Ghana 🇬🇭</option>
+  <option value="17">Mauritanie 🇲🇷</option>
+  <option value="18">Maroc 🇲🇦</option>
+  <option value="19">Algérie 🇩🇿</option>
+  <option value="20">Tunisie 🇹🇳</option>
+  <option value="21">Libye 🇱🇾</option>
+  <option value="22">Égypte 🇪🇬</option>
+  <option value="23">Tchad 🇹🇩</option>
+  <option value="24">République centrafricaine 🇨🇫</option>
+  <option value="25">Congo 🇨🇬</option>
+  <option value="26">Angola 🇦🇴</option>
+  <option value="27">Zambie 🇿🇲</option>
+  <option value="28">Zimbabwe 🇿🇼</option>
+  <option value="29">Namibie 🇳🇦</option>
+  <option value="30">Botswana 🇧🇼</option>
+  <option value="31">Afrique du Sud 🇿🇦</option>
+  <option value="32">Mozambique 🇲🇿</option>
+  <option value="33">Madagascar 🇲🇬</option>
+  <option value="34">Comores 🇰🇲</option>
+  <option value="35">Maurice 🇲🇺</option>
+  <option value="36">Seychelles 🇸🇨</option>
+  <option value="37">Rwanda 🇷🇼</option>
+  <option value="38">Burundi 🇧🇮</option>
+  <option value="39">Ouganda 🇺🇬</option>
+  <option value="40">Kenya 🇰🇪</option>
+  <option value="41">Tanzanie 🇹🇿</option>
+  <option value="42">Éthiopie 🇪🇹</option>
+  <option value="43">Somalie 🇸🇴</option>
+  <option value="44">Djibouti 🇩🇯</option>
+  <option value="45">Érythrée 🇪🇷</option>
+  <option value="46">Soudan 🇸🇩</option>
+  <option value="47">Soudan du Sud 🇸🇸</option>
+  <option value="48">Guinée équatoriale 🇬🇶</option>
+  <option value="49">Sao Tomé-et-Principe 🇸🇹</option>
+  <option value="50">Eswatini 🇸🇿</option>
+  <option value="51">Lesotho 🇱🇸</option>
+  <option value="52">Cap-Vert 🇨🇻</option>
+  <option value="53">France 🇫🇷</option>
+  <option value="54">Belgique 🇧🇪</option>
+  <option value="55">Canada 🇨🇦</option>
+  <option value="56">États-Unis 🇺🇸</option>
+</select>
   </div>
   <p>
     <i class="fas fa-info-circle" style="color:white"></i>
@@ -1110,6 +1321,8 @@ font-size:14px;
 <!-- ============ OTHER USER FEED ============ -->
 <section id="userFeed" class="tabcontent">
   <br><br/>
+   <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+
   <h3 id="userFeedTitle">Publications de …</h3>
   <div id="userFeedContent"></div>
 </section>
@@ -1556,52 +1769,63 @@ async function incrementView(postId) {
       console.warn("⚠️ Pas de userId dans le post:", postId);
       return;
     }
+// Vérifier le pays du propriétaire
+const userSnap = await getDoc(doc(db, "users", ownerId));
+const ownerCountry = userSnap.exists() ? String(userSnap.data().country || "") : "";
 
-    // 🔹 Référence du solde du propriétaire du post
-    const soldeRef = doc(db, "soldes", ownerId);
+// Pays autorisés : Cameroun, Côte d'Ivoire, Gabon, Sénégal
+const eligibleCountries = ["1", "2", "3", "4"];
 
-    // Marquer la vue
-    await setDoc(userViewRef, { seenAt: new Date() });
-    console.log("✅ Nouvelle vue enregistrée:", postId);
+// 🔹 Référence du solde du propriétaire du post
+const soldeRef = doc(db, "soldes", ownerId);
 
-    // Incrémenter le compteur du post
-    await updateDoc(postRef, { views: increment(1) });
-    console.log("📈 Post incrémenté de +1 vue");
+// Marquer la vue
+await setDoc(userViewRef, { seenAt: new Date() });
+console.log("✅ Nouvelle vue enregistrée:", postId);
 
-    // Gérer le gain du propriétaire
-    await runTransaction(db, async (t) => {
-      const sSnap = await t.get(soldeRef);
+// Incrémenter le compteur du post
+await updateDoc(postRef, { views: increment(1) });
+console.log("📈 Post incrémenté de +1 vue");
 
-      if (sSnap.exists()) {
-        const data = sSnap.data();
-        const currentGain = typeof data.gainVues === "number" ? data.gainVues : 0;
-        const currentTotal = typeof data.totalViews === "number" ? data.totalViews : 0;
+// Si le pays n'est pas éligible, on s'arrête ici.
+// La vue est bien comptée, mais aucun gain n'est versé.
+if (!eligibleCountries.includes(ownerCountry)) {
+  console.log("❌ Pays non éligible au paiement de la première vue.");
+  return;
+}
 
-        console.log("💰 Solde avant:", currentGain, "Total vues:", currentTotal);
+// Gérer le gain du propriétaire
+await runTransaction(db, async (t) => {
+  const sSnap = await t.get(soldeRef);
 
-        t.update(soldeRef, {
-          gainVues: currentGain + 0.30,
-          totalViews: currentTotal + 1,
-          updatedAt: new Date()
-        });
+  if (sSnap.exists()) {
+    const data = sSnap.data();
+    const currentGain = typeof data.gainVues === "number" ? data.gainVues : 0;
+    const currentTotal = typeof data.totalViews === "number" ? data.totalViews : 0;
 
-      } else {
-        console.log("🆕 Création du document solde pour le propriétaire:", ownerId);
-        t.set(soldeRef, {
-          montant: 0,
-          gainVues: 0.30,
-          totalViews: 1,
-          lastViewsCount: 1,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
-      }
+    t.update(soldeRef, {
+      gainVues: currentGain + 0.30,
+      totalViews: currentTotal + 1,
+      updatedAt: new Date()
     });
 
-    console.log("✅ Transaction solde effectuée pour le propriétaire du post !");
-    if (typeof refreshBalanceDisplay === "function") refreshBalanceDisplay();
+  } else {
+    t.set(soldeRef, {
+      montant: 0,
+      gainVues: 0.30,
+      totalViews: 1,
+      lastViewsCount: 1,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+  }
+});
 
-  } catch (e) {
+console.log("✅ Transaction solde effectuée pour le propriétaire du post !");
+if (typeof refreshBalanceDisplay === "function") {
+  refreshBalanceDisplay();
+}
+} catch (e) {
     console.error("❌ Erreur incrément vue:", e);
   }
 }
@@ -2905,46 +3129,43 @@ if (isFullscreen) {
   if (!isFullscreen) {
   w.appendChild(head);
 }
+// ---------- CONTENU ----------
+const cont = document.createElement('div');
+cont.className = 'post-content';
 
-  // ---------- CONTENU ----------
-  const cont = document.createElement('div');
-  cont.className = 'post-content';
+if (d.imageUrl) {
 
-  if (d.imageUrl) {
-    if (d.imageTitle) {
-      const titleWrapper = createTextBlockWithToggle(d.imageTitle, 200);
-      titleWrapper.querySelector('.text-bg').style.fontWeight = 'bold';
-      titleWrapper.querySelector('.text-bg').style.color = '#000000';
-      cont.appendChild(titleWrapper);
+    if (d.imageTitle && !isFullscreen) {
+        const titleWrapper = createTextBlockWithToggle(d.imageTitle, 200);
+        titleWrapper.querySelector('.text-bg').style.fontWeight = 'bold';
+        titleWrapper.querySelector('.text-bg').style.color = '#000000';
+        cont.appendChild(titleWrapper);
     }
 
     const imgEl = document.createElement('img');
     imgEl.src = d.imageUrl;
     imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
     cont.appendChild(imgEl);
+
     if (isFullscreen && d.imageTitle) {
+        const caption = createTextBlockWithToggle(d.imageTitle, 120);
+        caption.classList.add("fullscreen-caption");
+        cont.appendChild(caption);
+    }
 
-  const caption = createTextBlockWithToggle(
-    d.imageTitle,
-    120
-  );
+    if (isFullscreen) {
+        cont.appendChild(head);
+    }
 
-  caption.classList.add("fullscreen-caption");
+} else if (d.text) {
 
-  cont.appendChild(caption);
-}
-        if (isFullscreen) {
-  cont.appendChild(head);
-}
-
-  } else if (d.text) {
     const textWrapper = createTextBlockWithToggle(d.text, 200);
     textWrapper.querySelector('.text-bg').style.background = d.bgColor || '#fff';
     textWrapper.querySelector('.text-bg').style.color = d.textColor || '#000';
     cont.appendChild(textWrapper);
-  }
+}
 
-  w.appendChild(cont);
+w.appendChild(cont);
 
   // ---------- ACTIONS ----------
   const act = document.createElement('div');
@@ -3062,44 +3283,69 @@ if (isFullscreen) {
 
   cont.appendChild(sideActions);
 }
-  // ---------- COMMENTAIRES ----------
-  const comSec = document.createElement('div');
-  comSec.className = 'comments-section';
-  comSec.style.display = 'none';
+// ---------- COMMENTAIRES ----------
+const comSec = document.createElement('div');
+comSec.className = 'comments-section';
+const closeBtn = document.createElement('i');
+closeBtn.className = 'fa-solid fa-xmark';
+closeBtn.style.cssText = `
+    position:absolute;
+    top:18px;
+    right:20px;
+    font-size:24px;
+    cursor:pointer;
+    color:#444;
+`;
 
-  const comList = document.createElement('div');
-  comSec.appendChild(comList);
+closeBtn.onclick = () => {
+    comSec.classList.remove("open");
+};
 
-  if (currentUser) {
-    const inputBox = document.createElement('div');
-    inputBox.className = 'comment-input';
+comSec.appendChild(closeBtn);
+const comList = document.createElement('div');
+comSec.appendChild(comList);
 
-    const inp = document.createElement('input');
-    inp.placeholder = 'Ajouter un commentaire...';
+if (currentUser) {
+  const inputBox = document.createElement('div');
+  inputBox.className = 'comment-input';
 
-    const btn = document.createElement('button');
-    btn.textContent = 'Envoyer';
-    btn.onclick = async () => {
-      const t = inp.value.trim();
-      if (!t) return;
-      await addComment(id, t);
-      inp.value = '';
-      await loadComments(id, comList, comCnt);
-    };
+  const inp = document.createElement('textarea');
+inp.placeholder = 'Ajouter un commentaire...';
+inp.rows = 3;
+  const btn = document.createElement('button');
+  btn.textContent = 'Envoyer';
 
-    inputBox.append(inp, btn);
-    comSec.appendChild(inputBox);
-  }
+  btn.onclick = async () => {
+    const t = inp.value.trim();
+    if (!t) return;
 
-  w.appendChild(comSec);
-
-  comI.onclick = async () => {
-    const show = comSec.style.display === 'none';
-    comSec.style.display = show ? 'block' : 'none';
-    if (show) await loadComments(id, comList, comCnt);
+    await addComment(id, t);
+    inp.value = '';
+    await loadComments(id, comList, comCnt);
   };
 
-  loadComments(id, comList, comCnt).catch(console.error);
+  inputBox.append(inp, btn);
+  comSec.appendChild(inputBox);
+}
+
+w.appendChild(comSec);
+
+// Ouvrir / fermer les commentaires
+comI.onclick = async () => {
+
+  const show = !comSec.classList.contains("open");
+
+  if (show) {
+    comSec.classList.add("open");
+    await loadComments(id, comList, comCnt);
+  } else {
+    comSec.classList.remove("open");
+  }
+
+};
+
+// Mettre à jour uniquement le compteur au chargement
+loadComments(id, comList, comCnt).catch(console.error);
 
   const hr = document.createElement('hr');
   hr.style.border = 'none';
