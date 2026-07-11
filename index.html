@@ -683,115 +683,143 @@ hr {
   audio {
     filter: drop-shadow(0 0 0.75rem rgba(0, 0, 0, 0.1));
     }
+   /* PAGE */
 #replyPage{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:#f0f2f5;
-z-index:9999;
-display:none;
-flex-direction:column;
+    position:fixed;
+    inset:0;
+    display:none;
+    flex-direction:column;
+    background:#000;
+    color:#fff;
+    z-index:99999;
 }
 
 /* HEADER */
-
 .replyHeader{
-display:flex;
-align-items:center;
-gap:10px;
-background:white;
-padding:12px;
-border-bottom:1px solid #ddd;
-position:sticky;
-top:0;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:15px;
+    background:#000;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    position:sticky;
+    top:0;
+    z-index:10;
 }
 
 .replyHeader button{
-background:none;
-border:none;
-font-size:16px;
-cursor:pointer;
-color:#1877f2;
+    background:none;
+    border:none;
+    color:#fff;
+    font-size:24px;
+    cursor:pointer;
+}
+
+.replyHeader h3{
+    margin:0;
+    font-size:18px;
+    font-weight:600;
 }
 
 /* COMMENTAIRE PRINCIPAL */
-
 .mainComment{
-background:white;
-padding:15px;
-border-bottom:1px solid #ddd;
+    background:#161616;
+    margin:12px;
+    padding:14px;
+    border-radius:18px;
 }
 
 .mainComment b{
-display:block;
-color:#111;
-margin-bottom:4px;
+    color:#fff;
+    display:block;
+    margin-bottom:6px;
 }
 
-/* LISTE DES REPONSES */
-
+/* LISTE */
 .replyList{
-flex:1;
-overflow-y:auto;
-padding:10px;
+    flex:1;
+    overflow-y:auto;
+    padding:0 12px 90px;
 }
 
-/* BULLES DE REPONSE */
-
+/* UNE REPONSE */
 .replyItem{
-display:flex;
-gap:10px;
-margin-bottom:12px;
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:16px;
 }
 
 .replyItem img{
-width:35px;
-height:35px;
-border-radius:50%;
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    object-fit:cover;
 }
 
+/* BULLE */
 .replyBubble{
-background:white;
-padding:10px;
-border-radius:12px;
-box-shadow:0 1px 2px rgba(0,0,0,0.1);
-max-width:80%;
+    background:#1f1f1f;
+    color:#fff;
+    padding:12px 14px;
+    border-radius:18px;
+    max-width:80%;
 }
 
-/* INPUT EN BAS */
+.replyBubble b{
+    display:block;
+    color:#fff;
+    margin-bottom:4px;
+}
 
+.replyBubble small{
+    color:#999;
+}
+
+/* SAISIE */
 .replyInputBox{
-display:flex;
-gap:10px;
-padding:10px;
-background:white;
-border-top:1px solid #ddd;
-position:sticky;
-bottom:0;
+    position:sticky;
+    bottom:0;
+    display:flex;
+    gap:10px;
+    padding:12px;
+    background:#000;
+    border-top:1px solid rgba(255,255,255,.08);
 }
 
 .replyInputBox input{
-flex:1;
-padding:10px;
-border-radius:20px;
-border:1px solid #ccc;
-outline:none;
+    flex:1;
+    border:none;
+    outline:none;
+    background:#1f1f1f;
+    color:#fff;
+    padding:12px 18px;
+    border-radius:25px;
+    font-size:15px;
+}
+
+.replyInputBox input::placeholder{
+    color:#888;
 }
 
 .replyInputBox button{
-background:#1877f2;
-color:white;
-border:none;
-padding:8px 16px;
-border-radius:20px;
-cursor:pointer;
+    width:48px;
+    height:48px;
+    border:none;
+    border-radius:50%;
+    background:#fe2c55;
+    color:#fff;
+    font-size:20px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
 }
 
 .replyInputBox button:hover{
-background:#166fe5;
-}  
+    background:#ff4d6d;
+}
+
 hr.rouge {
   border: 1px solid #FF0000;
   background-color: #FF0000;
@@ -1353,18 +1381,105 @@ font-size:14px;
     <p style="text-align:center; color:#888;">Chargement des musiques…</p>
   </div>
 </section>
-<section id="mus" class="tabcontent"> 
-<br><br/>
+<section id="mus" class="tabcontent">
+  <br><br/>
+
   <div id="emailLoginBox">
-  <h2>Publier un morceau</h2>  
-  <input type="text" id="nom" placeholder="Votre nom d'artiste" />  
-  <input type="text" id="titre" placeholder="Titre de la musique" />  
-  <input type="file" id="audioFile" accept="audio/*" />  
-  <button onclick="publishMusic()">Publier</button>  
+    <h2>Publier un morceau</h2>
+
+    <input type="text" id="nom" placeholder="Votre nom d'artiste" />
+
+    <input type="text" id="titre" placeholder="Titre de la musique" />
+
+    <input type="file" id="audioFile" accept=".wav,.flac,audio/wav,audio/x-wav,audio/flac" />
+
+    <div style="display:flex;align-items:flex-start;gap:8px;margin:12px 0;">
+      <input type="checkbox" id="acceptRules">
+
+      <label for="acceptRules" style="font-size:14px;line-height:1.4;">
+        J'ai lu et j'accepte les conditions de publication.
+        <a href="#" onclick="openTab(event,'music-rules');return false;">
+          Voir les règles
+        </a>
+      </label>
+    </div>
+
+    <button onclick="publishMusic()">Publier</button>
   </div>
-  <div id="statusMsg"></div> 
-  <button onclick="openTab(event,'my-music')">Ma musique </button>
-</section>  
+
+  <div id="statusMsg"></div>
+
+  <button onclick="openTab(event,'my-music')">
+    Ma musique
+  </button>
+</section>
+<section id="music-rules" class="tabcontent">
+    <br><br/>
+    <h1>Règles de publication des musiques</h1>
+
+<p>
+En publiant une musique sur <strong>mboaskill.cm</strong>, vous acceptez les conditions suivantes.
+</p>
+
+<h2>1. Propriété intellectuelle</h2>
+
+<p>
+L'artiste déclare être le seul titulaire des droits d'auteur, des droits voisins et des droits d'enregistrement sur la musique téléversée.
+</p>
+
+<p>
+L'artiste accorde à <strong>mboaskill.cm</strong> une licence non exclusive, mondiale et gratuite permettant d'héberger, de reproduire et de diffuser la musique sur la plateforme.
+</p>
+
+<h2>2. Formats acceptés</h2>
+
+<ul>
+    <li>Seuls les fichiers <strong>.WAV</strong> et <strong>.FLAC</strong> sont acceptés.</li>
+    <li>Les fichiers <strong>.MP3</strong> sont refusés afin de limiter les risques de piratage et de préserver la qualité audio.</li>
+</ul>
+
+<h2>3. Vérification des contenus</h2>
+
+<p>
+mboaskill.cm utilise un système de reconnaissance audio pour détecter les contenus protégés.
+</p>
+
+<p>
+Toute musique identifiée comme appartenant à un tiers ou faisant l'objet d'une violation de droits d'auteur pourra être refusée ou supprimée sans préavis.
+</p>
+
+<h2>4. Demande de retrait (DMCA)</h2>
+
+<p>
+Si vous êtes titulaire de droits et estimez qu'un contenu porte atteinte à vos droits, veuillez envoyer un e-mail à :
+</p>
+
+<p>
+<strong>contact@mboaskill.cm</strong>
+</p>
+
+<p>Votre demande doit contenir :</p>
+
+<ul>
+    <li>Vos coordonnées complètes ;</li>
+    <li>Le lien de la musique concernée ;</li>
+    <li>Une preuve que vous détenez les droits sur cette œuvre.</li>
+</ul>
+
+<p>
+Après vérification, le contenu sera retiré dans un délai maximal de <strong>48 heures</strong> si la demande est fondée.
+</p>
+
+<h2>5. Sanctions</h2>
+
+<p>
+Tout abus du système de signalement est interdit.
+</p>
+
+<p>
+Après <strong>3 signalements abusifs</strong> ou en cas de violation répétée des présentes règles, le compte Artiste pourra être suspendu ou supprimé définitivement.
+</p>
+</section>
   <!-- ============ MES MUSIQUES ============ -->
 <section id="my-music" class="tabcontent">
   <h3 style="color: gold; text-align:center;">🎶 Mes musiques</h3>
@@ -3285,11 +3400,20 @@ const closeBtn = document.createElement('i');
 closeBtn.className = 'fa-solid fa-xmark';
 closeBtn.style.cssText = `
     position:absolute;
-    top:18px;
-    right:20px;
-    font-size:24px;
-    cursor:pointer;
+    top:15px;
+    right:15px;
+    width:36px;
+    height:36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+    font-size:22px;
     color:#444;
+    cursor:pointer;
+    z-index:10000;
 `;
 
 closeBtn.onclick = () => {
@@ -4711,6 +4835,7 @@ window.publishMusic = async function () {
   const titre = document.getElementById('titre').value.trim();
   const audioFile = document.getElementById('audioFile').files[0];
   const statusMsg = document.getElementById('statusMsg');
+
   statusMsg.textContent = '';
 
   if (!currentUser) {
@@ -4721,8 +4846,30 @@ window.publishMusic = async function () {
     return alert("Tous les champs sont requis.");
   }
 
+  // ✅ Vérification de l'acceptation des règles
+  if (!document.getElementById("acceptRules").checked) {
+    return alert("Veuillez accepter les règles de publication avant de continuer.");
+  }
+
+  // ✅ Vérification du format
+  const allowedExtensions = ['wav', 'flac'];
+  const extension = audioFile.name.split('.').pop().toLowerCase();
+
+  const allowedTypes = [
+    'audio/wav',
+    'audio/x-wav',
+    'audio/flac'
+  ];
+
+  if (
+    !allowedExtensions.includes(extension) ||
+    !allowedTypes.includes(audioFile.type)
+  ) {
+    return alert("Seuls les fichiers .wav et .flac sont autorisés.");
+  }
+
   try {
-    // 🔹 Vérification wallet
+    // 🔹 Vérification du portefeuille
     const walletRef = doc(db, 'wallets', currentUser.uid);
     const walletSnap = await getDoc(walletRef);
 
@@ -4731,20 +4878,23 @@ window.publishMusic = async function () {
     }
 
     const walletData = walletSnap.data();
-    const currentBalance = typeof walletData.balance === 'number' ? walletData.balance : 0;
+    const currentBalance =
+      typeof walletData.balance === 'number'
+        ? walletData.balance
+        : 0;
 
     if (currentBalance < 1500) {
       return alert("Solde insuffisant (minimum requis : 1500 FCFA).");
     }
 
-    // ✅ Déduction
+    // ✅ Déduction des frais
     await updateDoc(walletRef, {
       balance: currentBalance - 1500
     });
 
     statusMsg.textContent = "⏳ Upload audio...";
 
-    // 🔥 UPLOAD FIREBASE STORAGE
+    // 🔥 Upload Firebase Storage
     const filePath = `musics/${currentUser.uid}_${Date.now()}_${audioFile.name}`;
     const storageRef = ref(stg, filePath);
 
@@ -4756,17 +4906,21 @@ window.publishMusic = async function () {
       uploadTask.on(
         "state_changed",
         null,
-        (error) => reject(error),
+        reject,
         async () => {
-          audioUrl = await getDownloadURL(uploadTask.snapshot.ref);
-          resolve();
+          try {
+            audioUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve();
+          } catch (e) {
+            reject(e);
+          }
         }
       );
     });
 
     statusMsg.textContent = "⏳ Publication en cours...";
 
-    // 🔥 FIRESTORE
+    // 🔥 Enregistrement Firestore
     await addDoc(collection(db, 'musfeed'), {
       userId: currentUser.uid,
       nom,
@@ -4777,17 +4931,17 @@ window.publishMusic = async function () {
 
     statusMsg.textContent = "✅ Musique publiée avec succès.";
 
-    // 🔄 RESET
+    // 🔄 Réinitialisation du formulaire
     document.getElementById('nom').value = '';
     document.getElementById('titre').value = '';
     document.getElementById('audioFile').value = '';
+    document.getElementById('acceptRules').checked = false;
 
   } catch (err) {
     console.error("Erreur lors de la publication :", err);
     statusMsg.textContent = "❌ Erreur lors de la publication.";
   }
 };
-
 // 🔹 Rend le feed musique (trié par nombre d’écoutes)
 async function renderMusicFeed() {
   const container = document.getElementById('musicFeed');
