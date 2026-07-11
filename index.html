@@ -5618,11 +5618,28 @@ function showNotifications() {
       };
 
       // 🔥 PRIORITÉ AUX DONNÉES STOCKÉES DANS LA NOTIF
-      if (n.fromUserName || n.fromUserPhoto) {
-        userData.name = n.fromUserName || "Utilisateur";
-        userData.photo = n.fromUserPhoto || "https://via.placeholder.com/40";
-      }
+      
+if (n.fromUserId) {
+  try {
+    const userSnap = await getDoc(doc(db, "users", n.fromUserId));
 
+    if (userSnap.exists()) {
+      const u = userSnap.data();
+
+      userData.name =
+        u.name ||
+        u.userName ||
+        "Utilisateur";
+
+      userData.photo =
+        u.photoURL ||
+        u.photo ||
+        "https://via.placeholder.com/40";
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
       // 🔁 fallback (au cas où)
       else if (n.fromUserId) {
         try {
