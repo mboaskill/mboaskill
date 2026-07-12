@@ -19,12 +19,14 @@
     font-family:Arial,Helvetica,sans-serif;
     background-color:#888;
 }
-
+body:has(#musicPlayer.active) header .icons,
+body:has(#mus.active) header .icons,
 body:has(#feedme.active) header .icons,
 body:has(#mud.active) header .icons,
 body:has(#my-music.active) header .icons,
 body:has(#condis.active) header .icons,
 body:has(#paypalWithdraw.active) header .icons,
+body:has(#totalViewsSection.active) header .icons,
 body:has(#choises.active) header .icons,
 body:has(#account.active) header .icons,
 body:has(#conect.active) header .icons,
@@ -1109,6 +1111,8 @@ font-size:14px;
 </section>
 <section id="choises" class="tabcontent">
  <br><br/>
+  <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+
 <div id="emailLoginBox">
   <br><br/>
   <img 
@@ -1122,6 +1126,8 @@ font-size:14px;
 <!-- ============ ACCOUNT ============ -->
 <section id="account" class="tabcontent">
    <br><br/>
+    <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+
    <div id="emailLoginBox">
   <div class="post-header">
 <button onclick="openTab(event,'profilimg')">mon pays <i class="fas fa-flag"></i></button></div>
@@ -1246,6 +1252,9 @@ font-size:14px;
 
 <!-- ============ BOOST VIDEO LIST ============ -->
 <section id="video" class="tabcontent">
+  <br><br/>
+  <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+
   <div class="post-header">
       
 <button onclick="openTab(event,'videoFeed')">Pour toi <i class="fas fa-video tablinks"></i>
@@ -1256,6 +1265,9 @@ font-size:14px;
 
 <!-- ============ BOOST PANEL ============ -->
 <section id="vibo" class="tabcontent">
+ <br><br/>
+ <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+
  <h3>Recharger mon compte</h3>
 
  <div id="emailLoginBox">
@@ -1290,6 +1302,9 @@ font-size:14px;
 </section>
 <!-- ============ LOGIN FORM ============ -->
 <section id="conect" class="tabcontent">
+  <br><br/>
+  <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+
   <h3>Connectez-vous</h3>
   <div id="emailLoginBox">
     <input type="email"    id="loginEmail"    placeholder="Email" />
@@ -1322,6 +1337,9 @@ font-size:14px;
 </section>
 <!-- ============ SIGNUP FORM ============ -->
 <section id="inscrip" class="tabcontent">
+ <br><br/>
+ <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+ 
   <h3>Inscription</h3>
   <div id="emailSignupBox">
    <input type="text"
@@ -1383,6 +1401,7 @@ font-size:14px;
 </section>
 <section id="mus" class="tabcontent">
   <br><br/>
+<div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
 
   <div id="emailLoginBox">
     <h2>Publier un morceau</h2>
@@ -1415,6 +1434,8 @@ font-size:14px;
 </section>
 <section id="music-rules" class="tabcontent">
     <br><br/>
+    <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+
     <h1>Règles de publication des musiques</h1>
 
 <p>
@@ -1482,6 +1503,8 @@ Après <strong>3 signalements abusifs</strong> ou en cas de violation répétée
 </section>
   <!-- ============ MES MUSIQUES ============ -->
 <section id="my-music" class="tabcontent">
+  <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+
   <h3 style="color: gold; text-align:center;">🎶 Mes musiques</h3>
 
   <div id="myMusicList">Chargement…</div>
@@ -1489,9 +1512,13 @@ Après <strong>3 signalements abusifs</strong> ou en cas de violation répétée
 <!-- ============ MUSIC PLAYER ============ -->
 <section id="musicPlayer" class="tabcontent">
     <br><br/>
+    <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+
   <div id="openMusicById"></div>
 </section>
 <section id="condis" class="tabcontent">
+  <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+
   <h2> Critères generales de monetisation :
 
 </h2> 
