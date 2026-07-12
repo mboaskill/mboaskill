@@ -1548,8 +1548,8 @@ L'application mboa skills est disponible partout dans le monde (la monétisation
 position:fixed;
 top:0;
 left:0;
-width:60%;
-height:100%;
+width:100%;
+height:70%;
 background:white;
 z-index:9999;
 display:none;
@@ -1574,7 +1574,7 @@ padding:20px;
 
 <button id="sendReplyFull">Envoyer <i class="fas fa-paper-plane"></i></button>
 </div>
-<button onclick="closeReplyPage()">⬅ Retour <i class="fas fa-arrow-left"></i></button>
+<button onclick="closeReplyPage()">Fermer<i class="fas fa-arrow-left"></i></button>
 
 </section>
 
@@ -2094,39 +2094,56 @@ icons.forEach(icon => {
 window.signInWithGoogle=()=>signInWithPopup(auth,provider).catch(e=>alert(e.message));
 window.signOutUser=()=>signOut(auth);
 
-onAuthStateChanged(auth, async user => {
+onAuthStateChanged(auth, async (user) => {
   currentUser = user;
-  if(user){
 
-    // charger les notifications
+  if (user) {
     loadNotifications();
-
-    // afficher la liste des notifications
     showNotifications();
-
   }
 
   // 🔹 Activer la bonne section automatiquement
   const homeTab = document.getElementById("home");
   const accountTab = document.getElementById("conect");
 
+  document.querySelectorAll(".tabcontent").forEach(t => t.classList.remove("active"));
+
   if (!user) {
-    // utilisateur NON connecté
-    document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
-    accountTab.classList.add('active');
+    accountTab.classList.add("active");
   } else {
-    // utilisateur connecté
-    document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
-    homeTab.classList.add('active');
+    homeTab.classList.add("active");
   }
 
-  const p = user?.photoURL || 'https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/1000x999/';
-  qs('homeProfilePhoto').src = p;
-  qs('feedmeProfilePhoto').src = p;
+  // 🔹 Photo et nom utilisateur
+  let photo = user?.photoURL || "https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/1000x999/";
+  let name = user?.displayName || user?.email || "";
 
-  qs('authStatus').textContent = user ? ` ${user.displayName || user.email}` : '';
-  qs('accountStatus').textContent = user ? `• ${user.displayName || user.email}` : '';
-  qs('accountStatusFeed').textContent = qs('accountStatus').textContent;
+  if (user) {
+    try {
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+
+        if (data.name) {
+          name = data.name;
+        }
+
+        if (data.photoURL) {
+          photo = data.photoURL;
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  qs("homeProfilePhoto").src = photo;
+  qs("feedmeProfilePhoto").src = photo;
+
+  qs("authStatus").textContent = user ? name : "";
+  qs("accountStatus").textContent = user ? "• " + name : "";
+  qs("accountStatusFeed").textContent = qs("accountStatus").textContent;
 
   const btn = document.getElementById("certify-btn");
   const iconPara = document.getElementById("icon");
@@ -2139,59 +2156,69 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-   const verifiedRef = doc(db, "verified", user.uid);
-const snap = await getDoc(verifiedRef);
+  const verifiedRef = doc(db, "verified", user.uid);
+  const snap = await getDoc(verifiedRef);
 
-if (snap.exists()) {
-  const data = snap.data();
+  if (snap.exists()) {
+    const data = snap.data();
 
-  const isValid =
-    data.status === true &&
-    data.expiresAt &&
-    data.expiresAt > Date.now();
+    const isValid =
+      data.status === true &&
+      data.expiresAt &&
+      data.expiresAt > Date.now();
 
-  if (isValid) {
-    btn.style.display = "none";
-    iconPara.style.display = "block";
+    if (isValid) {
+      btn.style.display = "none";
+      iconPara.style.display = "block";
+    } else {
+      btn.style.display = "block";
+      iconPara.style.display = "none";
+
+      await setDoc(
+        verifiedRef,
+        { status: false },
+        { merge: true }
+      );
+    }
   } else {
     btn.style.display = "block";
     iconPara.style.display = "none";
-
-    // Désactiver automatiquement la certification expirée
-    await setDoc(
-      verifiedRef,
-      { status: false },
-      { merge: true }
-    );
   }
-}
-    if (user) {
-      currentUser = user;
-      await loadUserCountry();
-    } else {
-      currentUser = null;
-    }
-  
 
   if (user) {
-    await loadFollowing();  // fonction qui initialise followingIds
-    loadSuggestions();      // charge les suggestions
-  }
-
-if (user) {
+    currentUser = user;
+    await loadUserCountry();
+    await loadFollowing();
+    loadSuggestions();
     showProfileLink(user.uid);
-  }
-  if(user){
-    await loadWallet(); await loadFollowing(); await loadLikedPosts();
-    renderFeed();renderMyFeed();renderVideoFeed();renderBoostFeed();
+
+    await loadWallet();
+    await loadLikedPosts();
+
+    renderFeed();
+    renderMyFeed();
+    renderVideoFeed();
+    renderBoostFeed();
+
     await loadTotalViewsAndBalance();
-  }else{
-    likedPosts.clear();followingIds.clear();
-    ['feed','myFeed','videoFeedContent','videoFeedContentBoost','userFeedContent'].forEach(id=>qs(id).innerHTML='');
-    qs('totalViewsCount').textContent='';qs('currentBalance').textContent='Solde actuel: 0 FCFA';
+  } else {
+    currentUser = null;
+
+    likedPosts.clear();
+    followingIds.clear();
+
+    [
+      "feed",
+      "myFeed",
+      "videoFeedContent",
+      "videoFeedContentBoost",
+      "userFeedContent"
+    ].forEach(id => qs(id).innerHTML = "");
+
+    qs("totalViewsCount").textContent = "";
+    qs("currentBalance").textContent = "Solde actuel: 0 FCFA";
   }
 });
-
 /*──────────────────────────────────────────────────────────
 /*  6. FOLLOW / FOLLOWERS (collection : faces)
 ──────────────────────────────────────────────────────────*/
