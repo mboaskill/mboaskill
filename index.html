@@ -458,6 +458,17 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
     padding-bottom:0 !important;
 }
 
+#story.tabcontent{
+    max-width:none !important;
+    width:100vw !important;
+    margin:0 !important;
+
+    padding-top:6rem !important;
+    padding-left:0 !important;
+    padding-right:0 !important;
+    padding-bottom:0 !important;
+}
+
  /* === COMMENTS ===================================== */
 
 .comments-section{
@@ -880,22 +891,279 @@ font-size:14px;
 .modal-btn-danger{background:gold}
 @keyframes slideDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
+/* === STORY BAR HORIZONTALE === */
+.story-bar{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  padding:12px 10px;
+  background:#fff;
+  border-bottom:1px solid #eee;
+  scrollbar-width:none;
+}
+.story-bar::-webkit-scrollbar{display:none;}
+
+.story-item{
+  flex:0 0 auto;
+  width:75px;
+  text-align:center;
+  cursor:pointer;
+  position:relative;
+}
+
+.story-item .ring{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  padding:3px;
+  background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.story-item .ring.seen{
+  background:#ddd;
+}
+
+.story-item .ring.create{
+  background:linear-gradient(45deg,gold,#ffb700);
+}
+
+.story-item .ring img{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #fff;
+  background:#fff;
+}
+
+.story-item .ring .plus{
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  color:gold;
+  font-weight:bold;
+}
+
+.story-item small{
+  display:block;
+  font-size:11px;
+  color:#333;
+  margin-top:4px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:75px;
+}
+
+/* === VISIONNEUSE STORY PLEIN ÉCRAN === */
+#storyViewer {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 100000;
+  display: none;
+  flex-direction: column;
+  color: #fff;
+}
+#storyViewer.open { display: flex; }
+
+/* Barres de progression */
+.story-progress {
+  display: flex;
+  gap: 4px;
+  padding: 10px 10px 0;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+}
+.story-progress .bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.story-progress .bar .fill {
+  height: 100%;
+  width: 0%;
+  background: #fff;
+  transition: width .1s linear;
+}
+
+/* Header : avatar + nom + date + bouton suivre */
+.story-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 12px 8px;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 9;
+}
+.story-header img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  cursor: pointer;
+}
+.story-header .info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.story-header .name {
+  font-weight: bold;
+  color: #FFD700;
+  font-size: 15px;
+}
+.story-header .time {
+  font-size: 12px;
+  color: #ddd;
+}
+.story-header .actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.story-header .follow-btn-story {
+  background: transparent;
+  border: 1.5px solid #fff;
+  color: #fff;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background .2s;
+}
+.story-header .follow-btn-story:hover { background: rgba(255,255,255,.15); }
+.story-header .follow-btn-story.following {
+  background: rgba(255,255,255,.2);
+  border-color: transparent;
+}
+.story-header .more-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+/* Media */
+.story-media {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.story-media img,
+.story-media video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Légende */
+.story-caption {
+  position: absolute;
+  left: 12px; right: 12px; bottom: 110px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0,0,0,.9), 0 0 8px rgba(0,0,0,.8);
+  z-index: 8;
+}
+
+/* Pied de story : vues + boutons */
+.story-footer {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 12px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(transparent, rgba(0,0,0,.85));
+  z-index: 9;
+}
+.story-footer .views {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,0,0,.5);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #fff;
+}
+.story-footer .views i { font-size: 16px; }
+
+.story-footer .cta-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.story-footer .cta-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  color: #fff;
+  letter-spacing: .5px;
+  transition: opacity .2s;
+}
+.story-footer .cta-btn:hover { opacity: .9; }
+.story-footer .cta-btn.boost-btn {
+  background: #1abc9c; /* vert */
+}
+.story-footer .cta-btn.support-btn {
+  background: #8bc34a; /* vert lime */
+}
+
+/* Navigation tactile */
+.story-nav {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  z-index: 7;
+}
+.story-nav .prev,
+.story-nav .next {
+  flex: 1;
+  cursor: pointer;
+}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">Skill
   <div id="priix">
-            <i class="material-icons-outlined tablinks" onclick="window.open('https://directs.netlify.app', '_blank')">shopping_cart</i>
+   <i class="material-icons-outlined tablinks" onclick="openTab(event,'create-story')">add</i>
   <i class="material-icons-outlined tablinks" onclick="openTab(event,'vibo')">add_card</i>
 
-      <i class="material-icons-outlined tablinks" onclick="openTab(event,'account')">person</i>
+      <i class="material-icons-outlined tablinks" onclick="openTab(event,'account')">account_circle</i>
   </div></div>
   <div class="icons">
     <i class="material-icons-outlined tablinks selected" onclick="openTab(event,'home'); window.scrollTo({ top: 0, behavior: 'smooth' });">home</i>
-    <i class="material-icons-outlined tablinks" onclick="openTab(event,'music')">music_note</i>
-    <i class="material-icons-outlined tablinks" onclick="openTab(event,'videoFeed')">image</i>
-    <i class="material-icons-outlined tablinks" onclick="openTab(event,'post')">add</i>
+    <i class="material-icons-outlined tablinks" onclick="openTab(event,'story')">visibility</i>
+     <i class="material-icons-outlined tablinks" onclick="openTab(event,'videoFeed')">image</i>
+    <i class="material-icons-outlined tablinks" onclick="openTab(event,'post')">add_circle</i>
     <div class="notif-icon tablinks" onclick="openTab(event,'notifi')">
   <i class="material-icons-outlined">notifications</i>
   <span id="notifBadge">0</span>
@@ -954,7 +1222,13 @@ font-size:14px;
 </section>
 <!-- ============ VIDEO FEED ============ -->
 <section id="videoFeed" class="tabcontent">
-  
+   <br><br/>
+    <br><br/>
+     <br><br/>
+     <br><br/>
+      <br><br/>
+        <br><br/>
+          <br><br/>
   <div id="videoFeedContent"></div>
 </section>
 
@@ -1379,58 +1653,101 @@ font-size:14px;
 </div>
 </section>
 <!-- ============ MUSIC FEED ============ -->
-<section id="music" class="tabcontent">
+<section id="story" class="tabcontent">
   <br><br/>
+  <div id="storyBar" class="story-bar">
+    <!-- Rempli dynamiquement -->
+  </div>
+  <p style="text-align:center;color:#fff;margin-top:20px;">
+    Cliquez sur une story pour la visionner
+  </p>
 
-  <!-- Bouton importer musique -->
-  <div class="boutons">
-    <button onclick="openTab(event,'mus')">
-      Importer ma musique <i class="fas fa-upload"></i>
-    </button>
+<div id="storyViewer">
+  <div class="story-progress" id="storyProgress"></div>
+
+  <!-- Header : avatar + nom + date + suivre / menu -->
+  <div class="story-header">
+    <img id="storyViewerAvatar" src="" onclick="closeStoryViewer()" />
+    <div class="info">
+      <div class="name" id="storyViewerName"></div>
+      <div class="time" id="storyViewerTime"></div>
+    </div>
+    <div class="actions" id="storyHeaderActions">
+      <!-- Rempli dynamiquement (Suivre / ⋮) -->
+    </div>
   </div>
 
-  <!-- Titre -->
-  <h2 style="text-align:center; margin: 1rem 0; color: #000000;">
-    🎧 Musiques valides (30 jours max)
-  </h2>
+  <!-- Média -->
+  <div class="story-media" id="storyMedia"></div>
 
-  <!-- Conteneur du feed musique -->
-  <div id="musicFeed">
-    <p style="text-align:center; color:#888;">Chargement des musiques…</p>
+  <!-- Légende -->
+  <div class="story-caption" id="storyCaption"></div>
+
+  <!-- Pied : vues + boutons -->
+  <div class="story-footer">
+    <div class="views">
+      <i class="fas fa-eye"></i>
+      <span id="storyViewerViews">0</span> vue<span id="storyViewerViewsPlural"></span>
+    </div>
+    <div class="cta-group" id="storyCtaGroup">
+      <!-- Rempli dynamiquement (BOOSTER / SOUTENIR) -->
+    </div>
   </div>
+
+  <!-- Navigation tactile -->
+  <div class="story-nav">
+    <div class="prev" onclick="prevStory()"></div>
+    <div class="next" onclick="nextStory()"></div>
+  </div>
+</div>
 </section>
-<section id="mus" class="tabcontent">
+<section id="create-story" class="tabcontent">
   <br><br/>
-<div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+  <div class="priix" onclick="openTab(event,'home')">
+    <i class="fa-solid fa-arrow-left" style="font-size:40px;"></i>
+  </div>
+
+  <h3 style="text-align:center">Créer une story</h3>
 
   <div id="emailLoginBox">
-    <h2>Publier un morceau</h2>
-
-    <input type="text" id="nom" placeholder="Votre nom d'artiste" />
-
-    <input type="text" id="titre" placeholder="Titre de la musique" />
-
-    <input type="file" id="audioFile" accept=".wav,.flac,audio/wav,audio/x-wav,audio/flac" />
-
-    <div style="display:flex;align-items:flex-start;gap:8px;margin:12px 0;">
-      <input type="checkbox" id="acceptRules">
-
-      <label for="acceptRules" style="font-size:14px;line-height:1.4;">
-        J'ai lu et j'accepte les conditions de publication.
-        <a href="#" onclick="openTab(event,'music-rules');return false;">
-          Voir les règles
-        </a>
-      </label>
+    <div class="story-type-tabs">
+      <button id="tabStoryImage" class="active" onclick="switchStoryType('image')">
+        <i class="fas fa-image"></i> Image
+      </button>
+      <button id="tabStoryVideo" onclick="switchStoryType('video')">
+        <i class="fas fa-video"></i> Vidéo
+      </button>
     </div>
 
-    <button onclick="publishMusic()">Publier</button>
+    <!-- Image -->
+    <div id="storyImageForm">
+      <label>Upload image :</label>
+      <input type="file" id="storyImageFile" accept="image/*" />
+
+      <label>OU lien image :</label>
+      <input type="url" id="storyImageUrl" placeholder="https://..." />
+
+      <label>Légende (optionnel) :</label>
+      <input type="text" id="storyImageCaption" placeholder="Ma story..." />
+    </div>
+
+    <!-- Vidéo -->
+    <div id="storyVideoForm" style="display:none">
+      <label>Upload vidéo (max 30s, 20MB) :</label>
+      <input type="file" id="storyVideoFile" accept="video/*" />
+
+      <label>OU lien vidéo :</label>
+      <input type="url" id="storyVideoUrl" placeholder="https://...mp4" />
+
+      <label>Légende (optionnel) :</label>
+      <input type="text" id="storyVideoCaption" placeholder="Ma story..." />
+    </div>
+
+    <button onclick="publishStory()" style="margin-top:10px">
+      <i class="fas fa-paper-plane"></i> Publier la story
+    </button>
+    <p id="storyStatus" style="color:limegreen;text-align:center"></p>
   </div>
-
-  <div id="statusMsg"></div>
-
-  <button onclick="openTab(event,'my-music')">
-    Ma musique
-  </button>
 </section>
 <section id="music-rules" class="tabcontent">
     <br><br/>
@@ -1501,21 +1818,7 @@ Tout abus du système de signalement est interdit.
 Après <strong>3 signalements abusifs</strong> ou en cas de violation répétée des présentes règles, le compte Artiste pourra être suspendu ou supprimé définitivement.
 </p>
 </section>
-  <!-- ============ MES MUSIQUES ============ -->
-<section id="my-music" class="tabcontent">
-  <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
 
-  <h3 style="color: gold; text-align:center;">🎶 Mes musiques</h3>
-
-  <div id="myMusicList">Chargement…</div>
-</section>
-<!-- ============ MUSIC PLAYER ============ -->
-<section id="musicPlayer" class="tabcontent">
-    <br><br/>
-    <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
-
-  <div id="openMusicById"></div>
-</section>
 <section id="condis" class="tabcontent">
   <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
 
@@ -5797,6 +6100,662 @@ createdAt: serverTimestamp()
 });
 
 }
+
+
+</script>
+<!-- ═══════════ SCRIPT STORIES ISOLÉ ═══════════ -->
+<script type="module">
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+import {
+  getFirestore, collection, addDoc, query, orderBy, where,
+  doc, getDocs, getDoc, setDoc, serverTimestamp, deleteDoc, limit
+} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+import {
+  getStorage, ref, uploadBytesResumable, getDownloadURL
+} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
+
+const cfg = {
+  apiKey: "AIzaSyClSjd2LrIQpaJoVWO32vFRx7I9cvmDgBo",
+  authDomain: "mboa-ec602.firebaseapp.com",
+  projectId: "mboa-ec602",
+  storageBucket: "mboa-ec602.appspot.com",
+  messagingSenderId: "498505132403",
+  appId: "1:498505132403:web:eb46547745f8d1a77b3d06"
+};
+
+const app = getApps().length ? getApps()[0] : initializeApp(cfg);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const stg  = getStorage(app);
+
+let currentUser = null;
+let storyType = 'image';
+let storyViewerIndex = 0;
+let storyViewerList = [];
+let storyTimer = null;
+let storyPaused = false;
+
+onAuthStateChanged(auth, (u) => {
+  currentUser = u;
+  try { renderStoryBar(); } catch (e) { console.warn(e); }
+});
+
+function resetStoryForm(){
+  ['storyImageFile','storyImageUrl','storyImageCaption',
+   'storyVideoFile','storyVideoUrl','storyVideoCaption'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+async function uploadStoryFile(file){
+  if (!currentUser) throw new Error("Pas connecté");
+  const path = `stories/${currentUser.uid}_${Date.now()}_${file.name}`;
+  const storageRef = ref(stg, path);
+  const task = uploadBytesResumable(storageRef, file);
+  return new Promise((resolve, reject) => {
+    task.on('state_changed', null, reject, async () => {
+      try { resolve(await getDownloadURL(task.snapshot.ref)); }
+      catch (e) { reject(e); }
+    });
+  });
+}
+
+window.switchStoryType = function(type){
+  storyType = type;
+  document.getElementById('tabStoryImage')?.classList.toggle('active', type==='image');
+  document.getElementById('tabStoryVideo')?.classList.toggle('active', type==='video');
+  const fi = document.getElementById('storyImageForm');
+  const fv = document.getElementById('storyVideoForm');
+  if (fi) fi.style.display = type==='image' ? 'block' : 'none';
+  if (fv) fv.style.display = type==='video' ? 'block' : 'none';
+};
+
+window.publishStory = async function(){
+  if (!currentUser) return alert("Connectez-vous d'abord");
+
+  const statusEl = document.getElementById('storyStatus');
+  if (statusEl) statusEl.textContent = '';
+
+  let mediaUrl = null;
+  let caption = '';
+
+  try {
+    if (storyType === 'image') {
+      const file = document.getElementById('storyImageFile')?.files?.[0];
+      const url  = (document.getElementById('storyImageUrl')?.value || '').trim();
+      caption    = (document.getElementById('storyImageCaption')?.value || '').trim();
+
+      if (file) {
+        if (!file.type.startsWith('image/')) return alert("Fichier image requis");
+        if (file.size > 8*1024*1024) return alert("Image max 8MB");
+        if (statusEl) statusEl.textContent = "⏳ Upload image...";
+        mediaUrl = await uploadStoryFile(file);
+      } else if (url) {
+        if (!/^https?:\/\//.test(url)) return alert("Lien invalide");
+        mediaUrl = url;
+      } else return alert("Ajoutez une image (upload ou lien)");
+    } else {
+      const file = document.getElementById('storyVideoFile')?.files?.[0];
+      const url  = (document.getElementById('storyVideoUrl')?.value || '').trim();
+      caption    = (document.getElementById('storyVideoCaption')?.value || '').trim();
+
+      if (file) {
+        if (!file.type.startsWith('video/')) return alert("Fichier vidéo requis");
+        if (file.size > 20*1024*1024) return alert("Vidéo max 20MB");
+        if (statusEl) statusEl.textContent = "⏳ Upload vidéo...";
+        mediaUrl = await uploadStoryFile(file);
+      } else if (url) {
+        if (!/^https?:\/\//.test(url)) return alert("Lien invalide");
+        mediaUrl = url;
+      } else return alert("Ajoutez une vidéo (upload ou lien)");
+    }
+
+    if (!mediaUrl) return;
+    if (statusEl) statusEl.textContent = "⏳ Publication...";
+
+    let userName = currentUser.displayName || currentUser.email || 'Utilisateur';
+    let userPhoto = currentUser.photoURL || 'https://via.placeholder.com/40';
+
+    try {
+      const snap = await getDoc(doc(db, 'users', currentUser.uid));
+      if (snap.exists()) {
+        const u = snap.data();
+        userName = u.name || userName;
+        userPhoto = u.photoURL || userPhoto;
+      }
+    } catch (e) {}
+
+    const expiresAt = Date.now() + 24*60*60*1000;
+
+    await addDoc(collection(db, 'story'), {
+      userId: currentUser.uid,
+      userName,
+      userPhoto,
+      type: storyType,
+      mediaUrl,
+      caption,
+      createdAt: serverTimestamp(),
+      expiresAt,
+      viewsCount: 0
+    });
+
+    if (statusEl) statusEl.textContent = "✅ Story publiée !";
+    resetStoryForm();
+    await renderStoryBar();
+
+  } catch (err) {
+    console.error("Erreur publication story:", err);
+    if (statusEl) statusEl.textContent = "❌ Erreur publication";
+    alert("Erreur : " + (err.message || "publication impossible"));
+  }
+};
+
+async function renderStoryFeed(){
+  const bar = document.getElementById('storyBar');
+  if (!bar) return;
+  bar.innerHTML = '';
+
+  // Bouton "Créer"
+  if (currentUser) {
+    const createItem = document.createElement('div');
+    createItem.className = 'story-item';
+    createItem.onclick = () => {
+      const link = document.querySelector('.tablinks[onclick*="create-story"]');
+      if (link && typeof window.openTab === 'function') {
+        window.openTab({ currentTarget: link }, 'create-story');
+      }
+    };
+    createItem.innerHTML = `
+      <div class="ring create"><div class="plus">+</div></div>
+      <small>Créer</small>`;
+    bar.appendChild(createItem);
+  }
+
+  if (!currentUser) {
+    const p = document.createElement('p');
+    p.style.color = '#888'; p.style.margin = 'auto';
+    p.textContent = 'Connectez-vous pour voir les stories';
+    bar.appendChild(p);
+    return;
+  }
+
+  try {
+    // 1. Récupérer la liste des personnes que je suis
+    let myFollowing = new Set();
+    try {
+      const fSnap = await getDocs(collection(db, 'follows', currentUser.uid, 'list'));
+      myFollowing = new Set(fSnap.docs.map(d => d.id));
+    } catch(e){}
+
+    // 2. Récupérer toutes les stories
+    const q = query(collection(db, 'story'), orderBy('createdAt', 'desc'), limit(100));
+    const snap = await getDocs(q);
+    const now = Date.now();
+
+    const mine = [], following = [], boosted = [], expired = [];
+
+    // 3. Filtrer
+    snap.forEach(d => {
+      const s = d.data();
+      const isBoosted = s.boostedStory === true;
+      const expires = isBoosted
+        ? (s.boostExpiresAt || (s.expiresAt ? s.expiresAt + 24*3600*1000 : 0))
+        : (s.expiresAt || 0);
+
+      if (expires <= now) { expired.push(d.id); return; }
+
+      const entry = { id: d.id, data: s };
+      
+      if (s.userId === currentUser.uid) {
+        mine.push(entry);
+      } else if (myFollowing.has(s.userId)) {
+        following.push(entry);
+      } else if (isBoosted) {
+        boosted.push(entry);
+      }
+      // Note : les autres stories sans boost sont ignorées silencieusement.
+    });
+
+    // 4. Nettoyage des expirées
+    if (expired.length) Promise.all(expired.map(id => deleteDoc(doc(db,'story',id)).catch(()=>{})));
+
+    // 5. Grouper par utilisateur
+    const groupBy = (arr) => {
+      const map = new Map();
+      arr.forEach(s => {
+        if (!map.has(s.data.userId)) map.set(s.data.userId, []);
+        map.get(s.data.userId).push(s);
+      });
+      map.forEach(list => list.sort((a,b) =>
+        (a.data.createdAt?.toMillis?.()||0) - (b.data.createdAt?.toMillis?.()||0)
+      ));
+      return map;
+    };
+
+    const order = [];
+
+    // 6. Ordre final : Moi -> Suivis -> Boosters (aléatoire)
+    groupBy(mine).forEach((list, uid) => order.push({ uid, list, type: 'mine' }));
+    groupBy(following).forEach((list, uid) => order.push({ uid, list, type: 'following' }));
+
+    const boostedArr = [];
+    groupBy(boosted).forEach((list, uid) => boostedArr.push({ uid, list, type: 'boosted' }));
+    for (let i = boostedArr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [boostedArr[i], boostedArr[j]] = [boostedArr[j], boostedArr[i]];
+    }
+    order.push(...boostedArr);
+
+    // 7. Affichage
+    if (!order.length) {
+      const p = document.createElement('p');
+      p.style.color = '#888'; p.style.margin = 'auto';
+      p.textContent = 'Aucune story active';
+      bar.appendChild(p);
+      return;
+    }
+
+    order.forEach(({ uid, list, type }) => {
+      const first = list[0];
+      const item = document.createElement('div');
+      item.className = 'story-item';
+      item.style.position = 'relative';
+      item.onclick = () => window.openStoryViewer(uid);
+
+      const boostBadge = type === 'boosted'
+        ? `<span style="position:absolute;top:-4px;right:0;background:linear-gradient(45deg,#f39c12,#e67e22);color:#fff;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;">BOOST</span>`
+        : '';
+
+      const label = type === 'mine'
+        ? '<small style="color:gold;font-weight:bold;">Vous</small>'
+        : `<small>${first.data.userName || 'Utilisateur'}</small>`;
+
+      item.innerHTML = `
+        <div class="ring" style="position:relative;">
+          <img src="${first.data.userPhoto || 'https://via.placeholder.com/70'}" alt="">
+          ${boostBadge}
+        </div>
+        ${label}`;
+      bar.appendChild(item);
+    });
+
+  } catch (err) {
+    console.error("renderStoryFeed:", err);
+    const p = document.createElement('p');
+    p.style.color = '#e74c3c'; p.style.margin = 'auto';
+    p.textContent = 'Erreur de chargement';
+    bar.appendChild(p);
+  }
+}
+
+const renderStoryBar = renderStoryFeed;
+window.renderStoryBar = renderStoryFeed;
+window.renderStoryFeed = renderStoryFeed;
+
+window.openStoryViewer = async function(uid){
+  if (!uid) return;
+  try {
+    const q = query(
+      collection(db, 'story'),
+      where('userId', '==', uid),
+      orderBy('createdAt', 'asc')
+    );
+    const snap = await getDocs(q);
+    const now = Date.now();
+    const list = [];
+    snap.forEach(d => {
+      const s = d.data();
+      const isBoosted = s.boostedStory === true;
+      const expires = isBoosted
+        ? (s.boostExpiresAt || (s.expiresAt ? s.expiresAt + 24*3600*1000 : 0))
+        : (s.expiresAt || 0);
+      if (expires > now) list.push({ id: d.id, data: s });
+    });
+    if (!list.length) return alert("Aucune story active");
+
+    storyViewerList = list;
+    storyViewerIndex = 0;
+    storyPaused = false;
+
+    document.getElementById('storyViewer')?.classList.add('open');
+    showStoryAt(0);
+  } catch (err) {
+    console.error("openStoryViewer:", err);
+    alert("Erreur de chargement");
+  }
+};
+
+async function showStoryAt(idx){
+  const viewer = document.getElementById('storyViewer');
+  if (!viewer || !viewer.classList.contains('open')) return;
+  if (idx < 0) { storyViewerIndex = 0; idx = 0; }
+  if (idx >= storyViewerList.length) { window.closeStoryViewer(); return; }
+
+  storyViewerIndex = idx;
+  storyPaused = false;
+  const story = storyViewerList[idx];
+  const d = story.data;
+
+  const prog = document.getElementById('storyProgress');
+  if (prog) {
+    prog.innerHTML = '';
+    storyViewerList.forEach((_, i) => {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      const fill = document.createElement('div');
+      fill.className = 'fill';
+      if (i < idx) fill.style.width = '100%';
+      bar.appendChild(fill);
+      prog.appendChild(bar);
+    });
+  }
+
+  const av = document.getElementById('storyViewerAvatar');
+  const nm = document.getElementById('storyViewerName');
+  const tm = document.getElementById('storyViewerTime');
+  if (av) av.src = d.userPhoto || 'https://via.placeholder.com/40';
+  if (nm) nm.textContent = d.userName || 'Utilisateur';
+  if (tm) {
+    tm.textContent = d.createdAt?.toDate
+      ? formatStoryDate(d.createdAt.toDate())
+      : '';
+  }
+
+  await renderStoryHeaderActions({ ...d, id: story.id });
+
+  const media = document.getElementById('storyMedia');
+  if (media) {
+    media.innerHTML = '';
+    let el;
+    if (d.type === 'video') {
+      el = document.createElement('video');
+      el.src = d.mediaUrl;
+      el.autoplay = true;
+      el.playsInline = true;
+      el.muted = false;
+      el.onended = () => window.nextStory();
+      el.onloadedmetadata = () => startProgressBar(el.duration);
+    } else {
+      el = document.createElement('img');
+      el.src = d.mediaUrl;
+      el.onload = () => startProgressBar(5);
+      if (el.complete) startProgressBar(5);
+    }
+    media.appendChild(el);
+  }
+
+  const cap = document.getElementById('storyCaption');
+  if (cap) cap.textContent = d.caption || '';
+
+  await renderStoryFooter(story, d);
+
+  if (currentUser && story.id) {
+    try {
+      const viewRef = doc(db, 'story', story.id, 'viewsByUser', currentUser.uid);
+      const viewSnap = await getDoc(viewRef);
+      if (!viewSnap.exists()) {
+        await setDoc(viewRef, { seenAt: serverTimestamp() });
+        const storyRef = doc(db, 'story', story.id);
+        const curSnap = await getDoc(storyRef);
+        const currentCount = curSnap.exists() ? (curSnap.data().viewsCount || 0) : 0;
+        await setDoc(storyRef, { viewsCount: currentCount + 1 }, { merge: true });
+      }
+    } catch (e) { console.warn("vue story:", e); }
+  }
+}
+
+function formatStoryDate(date){
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+  const time = `${hh}:${mm}`;
+
+  if (isToday) return `Aujourd'hui, ${time}`;
+  if (isYesterday) return `Hier, ${time}`;
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + `, ${time}`;
+}
+
+async function renderStoryHeaderActions(storyData){
+  const box = document.getElementById('storyHeaderActions');
+  if (!box) return;
+  box.innerHTML = '';
+
+  if (!currentUser) return;
+
+  const isMine = storyData.userId === currentUser.uid;
+
+  if (isMine) {
+    const moreBtn = document.createElement('button');
+    moreBtn.className = 'more-btn';
+    moreBtn.innerHTML = '<i class="fas fa-ellipsis-vertical"></i>';
+    moreBtn.onclick = () => openStoryMenu(storyData);
+    box.appendChild(moreBtn);
+  } else {
+    const followBtn = document.createElement('button');
+    followBtn.className = 'follow-btn-story';
+
+    const listRef = doc(db, 'follows', currentUser.uid, 'list', storyData.userId);
+    const counterRef = doc(db, 'follows', storyData.userId);
+
+    const listSnap = await getDoc(listRef);
+    const isFollowing = listSnap.exists();
+
+    followBtn.textContent = isFollowing ? 'Suivi ✓' : 'Suivre +';
+    if (isFollowing) followBtn.classList.add('following');
+
+    followBtn.onclick = async () => {
+      try {
+        if (followBtn.classList.contains('following')) {
+          await deleteDoc(listRef);
+          try {
+            const cSnap = await getDoc(counterRef);
+            const currentFilo = cSnap.exists() ? (cSnap.data().filo || 0) : 0;
+            await setDoc(counterRef, { filo: Math.max(0, currentFilo - 1) }, { merge: true });
+          } catch(e) { console.warn(e); }
+          followBtn.textContent = 'Suivre +';
+          followBtn.classList.remove('following');
+        } else {
+          await setDoc(listRef, { date: serverTimestamp() });
+          try {
+            const cSnap = await getDoc(counterRef);
+            const currentFilo = cSnap.exists() ? (cSnap.data().filo || 0) : 0;
+            await setDoc(counterRef, { filo: currentFilo + 1 }, { merge: true });
+          } catch(e) { console.warn(e); }
+          followBtn.textContent = 'Suivi ✓';
+          followBtn.classList.add('following');
+        }
+      } catch (err) {
+        console.error("follow:", err);
+      }
+    };
+
+    box.appendChild(followBtn);
+  }
+}
+
+function openStoryMenu(storyData){
+  if (!storyData.id) return alert("ID story introuvable");
+  const choice = confirm("Voulez-vous supprimer cette story ?");
+  if (choice) {
+    deleteDoc(doc(db, 'story', storyData.id))
+      .then(() => {
+        alert("Story supprimée");
+        window.closeStoryViewer();
+        renderStoryBar();
+      })
+      .catch(err => alert("Erreur : " + err.message));
+  }
+}
+
+async function renderStoryFooter(story, d){
+  const viewsEl = document.getElementById('storyViewerViews');
+  const pluralEl = document.getElementById('storyViewerViewsPlural');
+  const ctaBox = document.getElementById('storyCtaGroup');
+  if (!viewsEl || !ctaBox) return;
+
+  const count = typeof d.viewsCount === 'number' ? d.viewsCount : 0;
+  viewsEl.textContent = count;
+  if (pluralEl) pluralEl.textContent = count > 1 ? 's' : '';
+
+  ctaBox.innerHTML = '';
+
+  if (!currentUser) return;
+  const isMine = d.userId === currentUser.uid;
+
+  // CAS 1 : MA STORY
+  if (isMine) {
+    if (!d.boostedStory) {
+      const boostBtn = document.createElement('button');
+      boostBtn.className = 'cta-btn boost-btn';
+      boostBtn.innerHTML = `<i class="fas fa-rocket"></i> BOOSTER (1 000 XAF)`;
+      boostBtn.onclick = async () => {
+        const confirmBoost = confirm("Booster MA story pendant 48h pour 1 000 XAF ?");
+        if (!confirmBoost) return;
+
+        try {
+          const walletRef = doc(db, 'wallets', currentUser.uid);
+          const walletSnap = await getDoc(walletRef);
+          const balance = walletSnap.exists() ? (walletSnap.data().balance || 0) : 0;
+
+          if (balance < 1000) return alert("Solde insuffisant (1 000 XAF requis).");
+
+          await setDoc(walletRef, { balance: balance - 1000 }, { merge: true });
+
+          const now = Date.now();
+          const boostExpiresAt = now + 48 * 60 * 60 * 1000;
+          const expiresAt = d.expiresAt || (now + 24 * 60 * 60 * 1000);
+
+          await setDoc(doc(db, 'story', story.id), {
+            boostedStory: true,
+            boostedAt: now,
+            boostExpiresAt,
+            expiresAt: Math.max(expiresAt, boostExpiresAt),
+            boostedBy: currentUser.uid
+          }, { merge: true });
+
+          alert("✅ Votre story est boostée pour 48h !");
+          window.closeStoryViewer();
+          renderStoryBar();
+        } catch (err) {
+          console.error("Boost story:", err);
+          alert("Erreur boost: " + err.message);
+        }
+      };
+      ctaBox.appendChild(boostBtn);
+    } else {
+      const boostedLabel = document.createElement('span');
+      boostedLabel.style.cssText = 'color:#f39c12;font-weight:bold;font-size:13px;';
+      boostedLabel.innerHTML = '<i class="fas fa-rocket"></i> Boostée (48h)';
+      ctaBox.appendChild(boostedLabel);
+    }
+    return;
+  }
+
+  // CAS 2 : STORY D'UN AUTRE
+  const supportBtn = document.createElement('button');
+  supportBtn.className = 'cta-btn support-btn';
+  supportBtn.innerHTML = `SOUTENIR (25 XAF)`;
+  supportBtn.onclick = async () => {
+    try {
+      const walletRef = doc(db, 'wallets', currentUser.uid);
+      const walletSnap = await getDoc(walletRef);
+      const balance = walletSnap.exists() ? (walletSnap.data().balance || 0) : 0;
+
+      if (balance < 25) return alert("Solde insuffisant (25 XAF requis).");
+
+      await setDoc(walletRef, { balance: balance - 25 }, { merge: true });
+
+      const soldeRef = doc(db, 'soldes', d.userId);
+      const soldeSnap = await getDoc(soldeRef);
+      const currentGain = soldeSnap.exists() ? (soldeSnap.data().gainVues || 0) : 0;
+      await setDoc(soldeRef, { gainVues: currentGain + 20, updatedAt: new Date() }, { merge: true });
+
+      alert("✅ Soutien envoyé (25 XAF) !");
+    } catch (err) {
+      console.error("Soutien story:", err);
+      alert("Erreur: " + err.message);
+    }
+  };
+  ctaBox.appendChild(supportBtn);
+}
+
+function startProgressBar(duration){
+  clearInterval(storyTimer);
+  storyPaused = false;
+
+  const fills = document.querySelectorAll('#storyProgress .fill');
+  const currentFill = fills[storyViewerIndex];
+  if (!currentFill) return;
+  if (currentFill.style.width === '100%') return;
+
+  let elapsed = 0;
+  const step = 100;
+  const totalMs = (duration && duration > 0 ? duration : 5) * 1000;
+
+  storyTimer = setInterval(() => {
+    if (storyPaused) return;
+    elapsed += step;
+    const pct = Math.min(100, (elapsed / totalMs) * 100);
+    currentFill.style.width = pct + '%';
+    if (pct >= 100) {
+      clearInterval(storyTimer);
+      window.nextStory();
+    }
+  }, step);
+}
+
+window.nextStory = function(){
+  clearInterval(storyTimer);
+  if (storyViewerIndex + 1 >= storyViewerList.length) {
+    window.closeStoryViewer();
+  } else {
+    showStoryAt(storyViewerIndex + 1);
+  }
+};
+
+window.prevStory = function(){
+  clearInterval(storyTimer);
+  if (storyViewerIndex - 1 < 0) showStoryAt(0);
+  else showStoryAt(storyViewerIndex - 1);
+};
+
+window.closeStoryViewer = function(){
+  clearInterval(storyTimer);
+  storyPaused = false;
+  document.getElementById('storyViewer')?.classList.remove('open');
+  const media = document.getElementById('storyMedia');
+  if (media) media.innerHTML = '';
+  storyViewerList = [];
+  storyViewerIndex = 0;
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const media = document.getElementById('storyMedia');
+  if (!media) return;
+  const pause = () => {
+    storyPaused = true;
+    media.querySelector('video')?.pause();
+  };
+  const resume = () => {
+    if (!storyPaused) return;
+    storyPaused = false;
+    media.querySelector('video')?.play().catch(()=>{});
+  };
+  media.addEventListener('touchstart', pause, { passive: true });
+  media.addEventListener('touchend', resume, { passive: true });
+  media.addEventListener('mousedown', pause);
+  media.addEventListener('mouseup', resume);
+  media.addEventListener('mouseleave', resume);
+});
+
+console.log("✅ Script STORIES isolé chargé — publishStory:", typeof window.publishStory);
 </script>
 </body>
 </html>
