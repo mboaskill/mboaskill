@@ -964,6 +964,7 @@ font-size:14px;
 }
 
 /* === VISIONNEUSE STORY PLEIN ÉCRAN === */
+/* === VISIONNEUSE STORY PLEIN ÉCRAN === */
 #storyViewer {
   position: fixed;
   inset: 0;
@@ -1036,21 +1037,29 @@ font-size:14px;
   align-items: center;
   gap: 10px;
 }
+
+/* ✅ BOUTON SUIVRE ROSE (comme sur ta capture) */
 .story-header .follow-btn-story {
-  background: transparent;
-  border: 1.5px solid #fff;
+  background: #ff4081;
+  border: none;
   color: #fff;
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 13px;
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 14px;
   font-weight: bold;
   cursor: pointer;
-  transition: background .2s;
+  box-shadow: 0 2px 6px rgba(255, 64, 129, 0.4);
+  transition: transform .15s, background .2s;
 }
-.story-header .follow-btn-story:hover { background: rgba(255,255,255,.15); }
+.story-header .follow-btn-story:hover {
+  transform: scale(1.05);
+  background: #ff5c93;
+}
 .story-header .follow-btn-story.following {
-  background: rgba(255,255,255,.2);
-  border-color: transparent;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+  box-shadow: none;
 }
 .story-header .more-btn {
   background: none;
@@ -6104,6 +6113,7 @@ createdAt: serverTimestamp()
 
 </script>
 <!-- ═══════════ SCRIPT STORIES ISOLÉ ═══════════ -->
+
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
@@ -6257,7 +6267,6 @@ async function renderStoryFeed(){
   if (!bar) return;
   bar.innerHTML = '';
 
-  // Bouton "Créer"
   if (currentUser) {
     const createItem = document.createElement('div');
     createItem.className = 'story-item';
@@ -6282,21 +6291,18 @@ async function renderStoryFeed(){
   }
 
   try {
-    // 1. Récupérer la liste des personnes que je suis
     let myFollowing = new Set();
     try {
       const fSnap = await getDocs(collection(db, 'follows', currentUser.uid, 'list'));
       myFollowing = new Set(fSnap.docs.map(d => d.id));
     } catch(e){}
 
-    // 2. Récupérer toutes les stories
     const q = query(collection(db, 'story'), orderBy('createdAt', 'desc'), limit(100));
     const snap = await getDocs(q);
     const now = Date.now();
 
     const mine = [], following = [], boosted = [], expired = [];
 
-    // 3. Filtrer
     snap.forEach(d => {
       const s = d.data();
       const isBoosted = s.boostedStory === true;
@@ -6315,13 +6321,10 @@ async function renderStoryFeed(){
       } else if (isBoosted) {
         boosted.push(entry);
       }
-      // Note : les autres stories sans boost sont ignorées silencieusement.
     });
 
-    // 4. Nettoyage des expirées
     if (expired.length) Promise.all(expired.map(id => deleteDoc(doc(db,'story',id)).catch(()=>{})));
 
-    // 5. Grouper par utilisateur
     const groupBy = (arr) => {
       const map = new Map();
       arr.forEach(s => {
@@ -6336,7 +6339,6 @@ async function renderStoryFeed(){
 
     const order = [];
 
-    // 6. Ordre final : Moi -> Suivis -> Boosters (aléatoire)
     groupBy(mine).forEach((list, uid) => order.push({ uid, list, type: 'mine' }));
     groupBy(following).forEach((list, uid) => order.push({ uid, list, type: 'following' }));
 
@@ -6348,7 +6350,6 @@ async function renderStoryFeed(){
     }
     order.push(...boostedArr);
 
-    // 7. Affichage
     if (!order.length) {
       const p = document.createElement('p');
       p.style.color = '#888'; p.style.margin = 'auto';
@@ -6609,7 +6610,6 @@ async function renderStoryFooter(story, d){
   if (!currentUser) return;
   const isMine = d.userId === currentUser.uid;
 
-  // CAS 1 : MA STORY
   if (isMine) {
     if (!d.boostedStory) {
       const boostBtn = document.createElement('button');
@@ -6658,7 +6658,6 @@ async function renderStoryFooter(story, d){
     return;
   }
 
-  // CAS 2 : STORY D'UN AUTRE
   const supportBtn = document.createElement('button');
   supportBtn.className = 'cta-btn support-btn';
   supportBtn.innerHTML = `SOUTENIR (25 XAF)`;
