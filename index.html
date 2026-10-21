@@ -1098,23 +1098,27 @@ font-size:14px;
   flex: 1;
   cursor: pointer;
 }
-/* === VISIONNEUSE STORY PLEIN ÉCRAN === */
+/* === VISIONNEUSE STORY PLEIN ÉCRAN (FORCÉ) === */
 #storyViewer {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100vw;
-  height: 100vh;
-  background: #000;
-  z-index: 100000;
-  display: none;
-  flex-direction: column;
-  color: #fff;
-  overflow: hidden;
-}
-#storyViewer.open { 
-  display: flex; 
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #000 !important;
+    z-index: 9999999 !important;
+    display: none;
+    flex-direction: column;
+    color: #fff;
+    overflow: hidden;
 }
 
+#storyViewer.open { 
+    display: flex !important; 
+}
 /* Barres de progression */
 .story-progress {
   display: flex;
