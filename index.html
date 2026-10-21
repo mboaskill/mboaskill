@@ -964,42 +964,8 @@ font-size:14px;
 }
 
 /* === VISIONNEUSE STORY PLEIN ÉCRAN === */
-/* === VISIONNEUSE STORY PLEIN ÉCRAN === */
-#storyViewer {
-  position: fixed;
-  inset: 0;
-  background: #000;
-  z-index: 100000;
-  display: none;
-  flex-direction: column;
-  color: #fff;
-}
-#storyViewer.open { display: flex; }
 
-/* Barres de progression */
-.story-progress {
-  display: flex;
-  gap: 4px;
-  padding: 10px 10px 0;
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  z-index: 10;
-}
-.story-progress .bar {
-  flex: 1;
-  height: 3px;
-  background: rgba(255,255,255,.3);
-  border-radius: 2px;
-  overflow: hidden;
-}
-.story-progress .bar .fill {
-  height: 100%;
-  width: 0%;
-  background: #fff;
-  transition: width .1s linear;
-}
-
-/* Header : avatar + nom + date + bouton suivre */
+/* Header : avatar + nom + date (SANS boutons suivre) */
 .story-header {
   display: flex;
   align-items: center;
@@ -1037,29 +1003,178 @@ font-size:14px;
   align-items: center;
   gap: 10px;
 }
+.story-header .more-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
 
-/* ✅ BOUTON SUIVRE ROSE (comme sur ta capture) */
-.story-header .follow-btn-story {
+/* Pied de story : vues + TOUS les boutons */
+.story-footer {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 12px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(transparent, rgba(0,0,0,.85));
+  z-index: 9;
+}
+.story-footer .views {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,0,0,.5);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #fff;
+}
+.story-footer .views i { font-size: 16px; }
+
+.story-footer .cta-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.story-footer .cta-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  color: #fff;
+  letter-spacing: .5px;
+  transition: opacity .2s;
+}
+.story-footer .cta-btn:hover { opacity: .9; }
+.story-footer .cta-btn.boost-btn {
+  background: #1abc9c;
+}
+.story-footer .cta-btn.support-btn {
+  background: #8bc34a;
+}
+
+/* ✅ NOUVEAU : Bouton Suivre DANS LE FOOTER (rose) */
+.story-footer .follow-btn-story {
   background: #ff4081;
   border: none;
   color: #fff;
-  padding: 6px 16px;
-  border-radius: 4px;
-  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(255, 64, 129, 0.4);
   transition: transform .15s, background .2s;
 }
-.story-header .follow-btn-story:hover {
+.story-footer .follow-btn-story:hover {
   transform: scale(1.05);
   background: #ff5c93;
 }
-.story-header .follow-btn-story.following {
+.story-footer .follow-btn-story.following {
   background: rgba(255, 255, 255, 0.2);
   border: 1.5px solid rgba(255, 255, 255, 0.5);
   color: #fff;
   box-shadow: none;
+  cursor: default;
+}
+
+/* Navigation tactile */
+.story-nav {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  z-index: 7;
+}
+.story-nav .prev,
+.story-nav .next {
+  flex: 1;
+  cursor: pointer;
+}
+/* === VISIONNEUSE STORY PLEIN ÉCRAN === */
+#storyViewer {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  z-index: 100000;
+  display: none;
+  flex-direction: column;
+  color: #fff;
+  overflow: hidden;
+}
+#storyViewer.open { 
+  display: flex; 
+}
+
+/* Barres de progression */
+.story-progress {
+  display: flex;
+  gap: 4px;
+  padding: 10px 10px 0;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+}
+.story-progress .bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,.3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.story-progress .bar .fill {
+  height: 100%;
+  width: 0%;
+  background: #fff;
+  transition: width .1s linear;
+}
+
+/* Header : avatar + nom + date + bouton ⋮ */
+.story-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 12px 8px;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 9;
+}
+.story-header img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  cursor: pointer;
+}
+.story-header .info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.story-header .name {
+  font-weight: bold;
+  color: #FFD700;
+  font-size: 15px;
+}
+.story-header .time {
+  font-size: 12px;
+  color: #ddd;
+}
+.story-header .actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 .story-header .more-btn {
   background: none;
@@ -1077,6 +1192,8 @@ font-size:14px;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 .story-media img,
 .story-media video {
@@ -1096,7 +1213,7 @@ font-size:14px;
   z-index: 8;
 }
 
-/* Pied de story : vues + boutons */
+/* Pied de story : vues + TOUS les boutons */
 .story-footer {
   position: absolute;
   bottom: 0; left: 0; right: 0;
@@ -1109,8 +1226,43 @@ font-size:14px;
   background: linear-gradient(transparent, rgba(0,0,0,.85));
   z-index: 9;
 }
+.story-footer .views {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,0,0,.5);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #fff;
+}
+.story-footer .views i { font-size: 16px; }
 
-/* ✅ NOUVEAU : Style du bouton Suivre quand il est en bas */
+.story-footer .cta-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.story-footer .cta-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+  color: #fff;
+  letter-spacing: .5px;
+  transition: opacity .2s;
+}
+.story-footer .cta-btn:hover { opacity: .9; }
+.story-footer .cta-btn.boost-btn {
+  background: #1abc9c;
+}
+.story-footer .cta-btn.support-btn {
+  background: #8bc34a;
+}
+
+/* ✅ Bouton Suivre DANS LE FOOTER (rose) */
 .story-footer .follow-btn-story {
   background: #ff4081;
   border: none;
@@ -1122,20 +1274,19 @@ font-size:14px;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(255, 64, 129, 0.4);
   transition: transform .15s, background .2s;
-  margin-right: 8px; /* espace avec le bouton SOUTENIR */
 }
-
 .story-footer .follow-btn-story:hover {
   transform: scale(1.05);
   background: #ff5c93;
 }
-
 .story-footer .follow-btn-story.following {
   background: rgba(255, 255, 255, 0.2);
   border: 1.5px solid rgba(255, 255, 255, 0.5);
   color: #fff;
   box-shadow: none;
+  cursor: default;
 }
+
 /* Navigation tactile */
 .story-nav {
   position: absolute;
@@ -1653,6 +1804,7 @@ font-size:14px;
 </div>
 </section>
 <!-- ============ MUSIC FEED ============ -->
+<!-- Section Story (qui contient juste la barre horizontale) -->
 <section id="story" class="tabcontent">
   <br><br/>
   <div id="storyBar" class="story-bar">
@@ -1661,31 +1813,43 @@ font-size:14px;
   <p style="text-align:center;color:#fff;margin-top:20px;">
     Cliquez sur une story pour la visionner
   </p>
-
-<!-- Header : avatar + nom + date (SANS actions en haut) -->
-<div class="story-header">
-  <img id="storyViewerAvatar" src="" onclick="closeStoryViewer()" />
-  <div class="info">
-    <div class="name" id="storyViewerName"></div>
-    <div class="time" id="storyViewerTime"></div>
-  </div>
-  <!-- On garde cette div mais elle ne servira que pour le menu ⋮ (ma story) -->
-  <div class="actions" id="storyHeaderActions"></div>
-</div>
-
-<!-- ... média, caption ... -->
-
-<!-- Pied : vues + TOUS les boutons (suivre / booster / soutenir) -->
-<div class="story-footer">
-  <div class="views">
-    <i class="fas fa-eye"></i>
-    <span id="storyViewerViews">0</span> vue<span id="storyViewerViewsPlural"></span>
-  </div>
-  <div class="cta-group" id="storyCtaGroup">
-    <!-- Le bouton Suivre s'affichera ICI dynamiquement -->
-  </div>
-</div>
 </section>
+
+<!-- ... autres sections (create-story, etc.) ... -->
+
+<!-- ⚠️ LA VISIONNEUSE DOIT ÊTRE ICI (Hors des sections) -->
+<div id="storyViewer">
+  <div class="story-progress" id="storyProgress"></div>
+
+  <div class="story-header">
+    <img id="storyViewerAvatar" src="" onclick="closeStoryViewer()" />
+    <div class="info">
+      <div class="name" id="storyViewerName"></div>
+      <div class="time" id="storyViewerTime"></div>
+    </div>
+    <div class="actions" id="storyHeaderActions"></div>
+  </div>
+
+  <div class="story-media" id="storyMedia"></div>
+  <div class="story-caption" id="storyCaption"></div>
+
+  <div class="story-footer">
+    <div class="views">
+      <i class="fas fa-eye"></i>
+      <span id="storyViewerViews">0</span> vue<span id="storyViewerViewsPlural"></span>
+    </div>
+    <div class="cta-group" id="storyCtaGroup"></div>
+  </div>
+
+  <div class="story-nav">
+    <div class="prev" onclick="prevStory()"></div>
+    <div class="next" onclick="nextStory()"></div>
+  </div>
+</div>
+<!-- ⚠️ FIN DE LA VISIONNEUSE -->
+
+<!-- Tes scripts ... -->
+
 <section id="create-story" class="tabcontent">
   <br><br/>
   <div class="priix" onclick="openTab(event,'home')">
@@ -6127,6 +6291,7 @@ onAuthStateChanged(auth, (u) => {
   try { renderStoryBar(); } catch (e) { console.warn(e); }
 });
 
+// --- FONCTIONS DE BASE (Upload, etc.) ---
 function resetStoryForm(){
   ['storyImageFile','storyImageUrl','storyImageCaption',
    'storyVideoFile','storyVideoUrl','storyVideoCaption'].forEach(id => {
@@ -6160,7 +6325,6 @@ window.switchStoryType = function(type){
 
 window.publishStory = async function(){
   if (!currentUser) return alert("Connectez-vous d'abord");
-
   const statusEl = document.getElementById('storyStatus');
   if (statusEl) statusEl.textContent = '';
 
@@ -6252,9 +6416,7 @@ async function renderStoryFeed(){
         window.openTab({ currentTarget: link }, 'create-story');
       }
     };
-    createItem.innerHTML = `
-      <div class="ring create"><div class="plus">+</div></div>
-      <small>Créer</small>`;
+    createItem.innerHTML = `<div class="ring create"><div class="plus">+</div></div><small>Créer</small>`;
     bar.appendChild(createItem);
   }
 
@@ -6290,13 +6452,9 @@ async function renderStoryFeed(){
 
       const entry = { id: d.id, data: s };
       
-      if (s.userId === currentUser.uid) {
-        mine.push(entry);
-      } else if (myFollowing.has(s.userId)) {
-        following.push(entry);
-      } else if (isBoosted) {
-        boosted.push(entry);
-      }
+      if (s.userId === currentUser.uid) mine.push(entry);
+      else if (myFollowing.has(s.userId)) following.push(entry);
+      else if (isBoosted) boosted.push(entry);
     });
 
     if (expired.length) Promise.all(expired.map(id => deleteDoc(doc(db,'story',id)).catch(()=>{})));
@@ -6307,14 +6465,11 @@ async function renderStoryFeed(){
         if (!map.has(s.data.userId)) map.set(s.data.userId, []);
         map.get(s.data.userId).push(s);
       });
-      map.forEach(list => list.sort((a,b) =>
-        (a.data.createdAt?.toMillis?.()||0) - (b.data.createdAt?.toMillis?.()||0)
-      ));
+      map.forEach(list => list.sort((a,b) => (a.data.createdAt?.toMillis?.()||0) - (b.data.createdAt?.toMillis?.()||0)));
       return map;
     };
 
     const order = [];
-
     groupBy(mine).forEach((list, uid) => order.push({ uid, list, type: 'mine' }));
     groupBy(following).forEach((list, uid) => order.push({ uid, list, type: 'following' }));
 
@@ -6328,8 +6483,7 @@ async function renderStoryFeed(){
 
     if (!order.length) {
       const p = document.createElement('p');
-      p.style.color = '#888'; p.style.margin = 'auto';
-      p.textContent = 'Aucune story active';
+      p.style.color = '#888'; p.style.margin = 'auto'; p.textContent = 'Aucune story active';
       bar.appendChild(p);
       return;
     }
@@ -6361,8 +6515,7 @@ async function renderStoryFeed(){
   } catch (err) {
     console.error("renderStoryFeed:", err);
     const p = document.createElement('p');
-    p.style.color = '#e74c3c'; p.style.margin = 'auto';
-    p.textContent = 'Erreur de chargement';
+    p.style.color = '#e74c3c'; p.style.margin = 'auto'; p.textContent = 'Erreur de chargement';
     bar.appendChild(p);
   }
 }
@@ -6371,8 +6524,11 @@ const renderStoryBar = renderStoryFeed;
 window.renderStoryBar = renderStoryFeed;
 window.renderStoryFeed = renderStoryFeed;
 
+// 🎯 C'EST ICI QUE SE PASSE L'OUVERTURE
 window.openStoryViewer = async function(uid){
+  console.log("👉 Clic sur story, UID:", uid); // LOG 1
   if (!uid) return;
+
   try {
     const q = query(
       collection(db, 'story'),
@@ -6380,6 +6536,8 @@ window.openStoryViewer = async function(uid){
       orderBy('createdAt', 'asc')
     );
     const snap = await getDocs(q);
+    console.log("👉 Stories trouvées dans Firestore:", snap.size); // LOG 2
+
     const now = Date.now();
     const list = [];
     snap.forEach(d => {
@@ -6390,17 +6548,30 @@ window.openStoryViewer = async function(uid){
         : (s.expiresAt || 0);
       if (expires > now) list.push({ id: d.id, data: s });
     });
-    if (!list.length) return alert("Aucune story active");
+    
+    console.log("👉 Stories valides (non expirées):", list.length); // LOG 3
+
+    if (!list.length) {
+      alert("Aucune story active");
+      return;
+    }
 
     storyViewerList = list;
     storyViewerIndex = 0;
     storyPaused = false;
 
-    document.getElementById('storyViewer')?.classList.add('open');
+    const viewer = document.getElementById('storyViewer');
+    if (!viewer) {
+      console.error("❌ ERREUR: L'élément #storyViewer n'existe pas dans le HTML !");
+      return;
+    }
+
+    console.log("👉 Ouverture de la visionneuse..."); // LOG 4
+    viewer.classList.add('open');
     showStoryAt(0);
   } catch (err) {
-    console.error("openStoryViewer:", err);
-    alert("Erreur de chargement");
+    console.error("❌ Erreur openStoryViewer:", err);
+    alert("Erreur de chargement : " + err.message);
   }
 };
 
@@ -6435,9 +6606,7 @@ async function showStoryAt(idx){
   if (av) av.src = d.userPhoto || 'https://via.placeholder.com/40';
   if (nm) nm.textContent = d.userName || 'Utilisateur';
   if (tm) {
-    tm.textContent = d.createdAt?.toDate
-      ? formatStoryDate(d.createdAt.toDate())
-      : '';
+    tm.textContent = d.createdAt?.toDate ? formatStoryDate(d.createdAt.toDate()) : '';
   }
 
   await renderStoryHeaderActions({ ...d, id: story.id });
@@ -6508,7 +6677,6 @@ async function renderStoryHeaderActions(storyData){
 
   const isMine = storyData.userId === currentUser.uid;
 
-  // Le bouton Suivre n'est plus ici, on ne garde que le menu ⋮ pour ma story
   if (isMine) {
     const moreBtn = document.createElement('button');
     moreBtn.className = 'more-btn';
@@ -6547,9 +6715,6 @@ async function renderStoryFooter(story, d){
   if (!currentUser) return;
   const isMine = d.userId === currentUser.uid;
 
-  // ═══════════════════════════════════════════════
-  //  CAS 1 : C'EST MA STORY
-  // ═══════════════════════════════════════════════
   if (isMine) {
     if (!d.boostedStory) {
       const boostBtn = document.createElement('button');
@@ -6598,17 +6763,12 @@ async function renderStoryFooter(story, d){
     return;
   }
 
-  // ═══════════════════════════════════════════════
-  //  CAS 2 : C'EST LA STORY D'UN AUTRE
-  // ═══════════════════════════════════════════════
-  
-  // 1. Bouton "Suivre +"
   const listRef = doc(db, 'follows', currentUser.uid, 'list', d.userId);
   const counterRef = doc(db, 'follows', d.userId);
   const listSnap = await getDoc(listRef);
   const isFollowing = listSnap.exists();
 
-  if (!isFollowing) { // On affiche le bouton seulement si on ne suit pas encore
+  if (!isFollowing) {
     const followBtn = document.createElement('button');
     followBtn.className = 'follow-btn-story';
     followBtn.textContent = 'Suivre +';
@@ -6624,7 +6784,7 @@ async function renderStoryFooter(story, d){
         
         followBtn.textContent = 'Suivi ✓';
         followBtn.classList.add('following');
-        followBtn.disabled = true; // Empêche de re-cliquer
+        followBtn.disabled = true;
       } catch (err) {
         console.error("follow:", err);
       }
@@ -6632,7 +6792,6 @@ async function renderStoryFooter(story, d){
     ctaBox.appendChild(followBtn);
   }
 
-  // 2. Bouton "Soutenir"
   const supportBtn = document.createElement('button');
   supportBtn.className = 'cta-btn support-btn';
   supportBtn.innerHTML = `SOUTENIR (25 XAF)`;
