@@ -6254,7 +6254,7 @@ import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/11.9.
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
 import {
   getFirestore, collection, addDoc, query, orderBy, where,
-  doc, getDocs, getDoc, setDoc, serverTimestamp, deleteDoc, limit
+  doc, getDocs, getDoc, setDoc, serverTimestamp, deleteDoc, limit, documentId
 } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 import {
   getStorage, ref, uploadBytesResumable, getDownloadURL
@@ -6281,12 +6281,102 @@ let storyViewerList = [];
 let storyTimer = null;
 let storyPaused = false;
 
+// 🔹 Cache de vérification (évite les requêtes en double)
+const verifiedCache = new Map();
+
 onAuthStateChanged(auth, (u) => {
   currentUser = u;
   try { renderStoryBar(); } catch (e) { console.warn(e); }
 });
 
-// --- FONCTIONS DE BASE (Upload, etc.) ---
+/*──────────────────────────────────────────────────────────
+  🔹 UTILITAIRE : Vérifie si un utilisateur est certifié
+  (badge valide = status true ET expiresAt non expiré)
+──────────────────────────────────────────────────────────*/
+async function isUserVerified(uid) {
+  if (!uid) return false;
+  if (verifiedCache.has(uid)) return verifiedCache.get(uid);
+  try {
+    const snap = await getDoc(doc(db, 'verified', uid));
+    let ok = false;
+    if (snap.exists()) {
+      const data = snap.data();
+      ok = (
+        data.status === true &&
+        data.expiresAt &&
+        data.expiresAt > Date.now()
+      );
+    }
+    verifiedCache.set(uid, ok);
+    return ok;
+  } catch (e) {
+    console.warn("isUserVerified:", e);
+    return false;
+  }
+}
+
+// 🔹 Vérification en batch (plus rapide pour plusieurs UIDs)
+async function batchVerified(uids) {
+  const result = new Map();
+  const needFetch = [];
+  uids.forEach(uid => {
+    if (verifiedCache.has(uid)) result.set(uid, verifiedCache.get(uid));
+    else needFetch.push(uid);
+  });
+
+  if (!needFetch.length) return result;
+
+  // Firestore limite 'in' à 30 éléments
+  const chunks = [];
+  for (let i = 0; i < needFetch.length; i += 30) {
+    chunks.push(needFetch.slice(i, i + 30));
+  }
+
+  for (const chunk of chunks) {
+    try {
+      const q = query(collection(db, 'verified'), where(documentId(), 'in', chunk));
+      const snap = await getDocs(q);
+      const found = new Set();
+      snap.forEach(d => {
+        const data = d.data();
+        const ok = (
+          data.status === true &&
+          data.expiresAt &&
+          data.expiresAt > Date.now()
+        );
+        result.set(d.id, ok);
+        verifiedCache.set(d.id, ok);
+        found.add(d.id);
+      });
+      // Les non trouvés = non vérifiés
+      chunk.forEach(uid => {
+        if (!found.has(uid)) {
+          result.set(uid, false);
+          verifiedCache.set(uid, false);
+        }
+      });
+    } catch (e) {
+      console.warn("batchVerified:", e);
+      chunk.forEach(uid => {
+        result.set(uid, false);
+        verifiedCache.set(uid, false);
+      });
+    }
+  }
+  return result;
+}
+
+// 🔹 Renvoie le HTML du badge (ou chaîne vide)
+function verifiedBadgeHTML(size = 14) {
+  return `<span class="verified-badge" style="display:inline-block;width:${size}px;height:${size}px;margin-left:5px;vertical-align:middle;position:relative;">
+    <i class="fas fa-certificate" style="color:#1877f2;font-size:${size}px;"></i>
+    <i class="fas fa-check checkmark" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:${Math.round(size*0.55)}px;color:#fff;pointer-events:none;"></i>
+  </span>`;
+}
+
+/*──────────────────────────────────────────────────────────
+  🔹 FONCTIONS DE BASE (Upload, etc.)
+──────────────────────────────────────────────────────────*/
 function resetStoryForm(){
   ['storyImageFile','storyImageUrl','storyImageCaption',
    'storyVideoFile','storyVideoUrl','storyVideoCaption'].forEach(id => {
@@ -6397,6 +6487,9 @@ window.publishStory = async function(){
   }
 };
 
+/*──────────────────────────────────────────────────────────
+  🔹 BARRE DE STORIES (avec badge vérifié ✅)
+──────────────────────────────────────────────────────────*/
 async function renderStoryFeed(){
   const bar = document.getElementById('storyBar');
   if (!bar) return;
@@ -6483,6 +6576,10 @@ async function renderStoryFeed(){
       return;
     }
 
+    // ✅ Récupère la certification de TOUS les UIDs en un minimum de requêtes
+    const allUids = [...new Set(order.map(o => o.uid))];
+    const verifiedMap = await batchVerified(allUids);
+
     order.forEach(({ uid, list, type }) => {
       const first = list[0];
       const item = document.createElement('div');
@@ -6494,9 +6591,13 @@ async function renderStoryFeed(){
         ? `<span style="position:absolute;top:-4px;right:0;background:linear-gradient(45deg,#f39c12,#e67e22);color:#fff;font-size:9px;padding:1px 4px;border-radius:6px;font-weight:bold;">BOOST</span>`
         : '';
 
+      // ✅ Badge vérifié (petit format pour la barre)
+      const verified = verifiedMap.get(uid) === true;
+      const verifiedIcon = verified ? verifiedBadgeHTML(12) : '';
+
       const label = type === 'mine'
-        ? '<small style="color:gold;font-weight:bold;">Vous</small>'
-        : `<small>${first.data.userName || 'Utilisateur'}</small>`;
+        ? `<small style="color:gold;font-weight:bold;">Vous${verifiedIcon}</small>`
+        : `<small>${first.data.userName || 'Utilisateur'}${verifiedIcon}</small>`;
 
       item.innerHTML = `
         <div class="ring" style="position:relative;">
@@ -6519,9 +6620,11 @@ const renderStoryBar = renderStoryFeed;
 window.renderStoryBar = renderStoryFeed;
 window.renderStoryFeed = renderStoryFeed;
 
-// 🎯 C'EST ICI QUE SE PASSE L'OUVERTURE
+/*──────────────────────────────────────────────────────────
+  🔹 OUVERTURE DE LA VISIONNEUSE
+──────────────────────────────────────────────────────────*/
 window.openStoryViewer = async function(uid){
-  console.log("👉 Clic sur story, UID:", uid); // LOG 1
+  console.log("👉 Clic sur story, UID:", uid);
   if (!uid) return;
 
   try {
@@ -6531,7 +6634,7 @@ window.openStoryViewer = async function(uid){
       orderBy('createdAt', 'asc')
     );
     const snap = await getDocs(q);
-    console.log("👉 Stories trouvées dans Firestore:", snap.size); // LOG 2
+    console.log("👉 Stories trouvées dans Firestore:", snap.size);
 
     const now = Date.now();
     const list = [];
@@ -6544,7 +6647,7 @@ window.openStoryViewer = async function(uid){
       if (expires > now) list.push({ id: d.id, data: s });
     });
     
-    console.log("👉 Stories valides (non expirées):", list.length); // LOG 3
+    console.log("👉 Stories valides (non expirées):", list.length);
 
     if (!list.length) {
       alert("Aucune story active");
@@ -6561,7 +6664,7 @@ window.openStoryViewer = async function(uid){
       return;
     }
 
-    console.log("👉 Ouverture de la visionneuse..."); // LOG 4
+    console.log("👉 Ouverture de la visionneuse...");
     viewer.classList.add('open');
     showStoryAt(0);
   } catch (err) {
@@ -6570,6 +6673,9 @@ window.openStoryViewer = async function(uid){
   }
 };
 
+/*──────────────────────────────────────────────────────────
+  🔹 AFFICHAGE D'UNE STORY (avec badge vérifié ✅)
+──────────────────────────────────────────────────────────*/
 async function showStoryAt(idx){
   const viewer = document.getElementById('storyViewer');
   if (!viewer || !viewer.classList.contains('open')) return;
@@ -6599,7 +6705,14 @@ async function showStoryAt(idx){
   const nm = document.getElementById('storyViewerName');
   const tm = document.getElementById('storyViewerTime');
   if (av) av.src = d.userPhoto || 'https://via.placeholder.com/40';
-  if (nm) nm.textContent = d.userName || 'Utilisateur';
+
+  // ✅ Badge vérifié dans le header de la visionneuse
+  if (nm) {
+    const verified = await isUserVerified(d.userId);
+    const badge = verified ? verifiedBadgeHTML(14) : '';
+    nm.innerHTML = `${d.userName || 'Utilisateur'}${badge}`;
+  }
+
   if (tm) {
     tm.textContent = d.createdAt?.toDate ? formatStoryDate(d.createdAt.toDate()) : '';
   }
@@ -6802,7 +6915,7 @@ async function renderStoryFooter(story, d){
 
       const soldeRef = doc(db, 'soldes', d.userId);
       const soldeSnap = await getDoc(soldeRef);
-      const currentGain = soldeSnap.exists() ? (soldeSnap.data().gainVues || 0) : 0;
+      const currentGain = soldeSnap.exists() ? (soldeSnap.data().gainVain || soldeSnap.data().gainVues || 0) : 0;
       await setDoc(soldeRef, { gainVues: currentGain + 20, updatedAt: new Date() }, { merge: true });
 
       alert("✅ Soutien envoyé (25 XAF) !");
