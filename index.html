@@ -1109,42 +1109,33 @@ font-size:14px;
   background: linear-gradient(transparent, rgba(0,0,0,.85));
   z-index: 9;
 }
-.story-footer .views {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(0,0,0,.5);
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 14px;
-  color: #fff;
-}
-.story-footer .views i { font-size: 16px; }
 
-.story-footer .cta-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.story-footer .cta-btn {
-  padding: 8px 16px;
+/* ✅ NOUVEAU : Style du bouton Suivre quand il est en bas */
+.story-footer .follow-btn-story {
+  background: #ff4081;
   border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  font-size: 13px;
-  cursor: pointer;
   color: #fff;
-  letter-spacing: .5px;
-  transition: opacity .2s;
-}
-.story-footer .cta-btn:hover { opacity: .9; }
-.story-footer .cta-btn.boost-btn {
-  background: #1abc9c; /* vert */
-}
-.story-footer .cta-btn.support-btn {
-  background: #8bc34a; /* vert lime */
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(255, 64, 129, 0.4);
+  transition: transform .15s, background .2s;
+  margin-right: 8px; /* espace avec le bouton SOUTENIR */
 }
 
+.story-footer .follow-btn-story:hover {
+  transform: scale(1.05);
+  background: #ff5c93;
+}
+
+.story-footer .follow-btn-story.following {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  color: #fff;
+  box-shadow: none;
+}
 /* Navigation tactile */
 .story-nav {
   position: absolute;
@@ -1671,42 +1662,27 @@ font-size:14px;
     Cliquez sur une story pour la visionner
   </p>
 
-<div id="storyViewer">
-  <div class="story-progress" id="storyProgress"></div>
-
-  <!-- Header : avatar + nom + date + suivre / menu -->
-  <div class="story-header">
-    <img id="storyViewerAvatar" src="" onclick="closeStoryViewer()" />
-    <div class="info">
-      <div class="name" id="storyViewerName"></div>
-      <div class="time" id="storyViewerTime"></div>
-    </div>
-    <div class="actions" id="storyHeaderActions">
-      <!-- Rempli dynamiquement (Suivre / ⋮) -->
-    </div>
+<!-- Header : avatar + nom + date (SANS actions en haut) -->
+<div class="story-header">
+  <img id="storyViewerAvatar" src="" onclick="closeStoryViewer()" />
+  <div class="info">
+    <div class="name" id="storyViewerName"></div>
+    <div class="time" id="storyViewerTime"></div>
   </div>
+  <!-- On garde cette div mais elle ne servira que pour le menu ⋮ (ma story) -->
+  <div class="actions" id="storyHeaderActions"></div>
+</div>
 
-  <!-- Média -->
-  <div class="story-media" id="storyMedia"></div>
+<!-- ... média, caption ... -->
 
-  <!-- Légende -->
-  <div class="story-caption" id="storyCaption"></div>
-
-  <!-- Pied : vues + boutons -->
-  <div class="story-footer">
-    <div class="views">
-      <i class="fas fa-eye"></i>
-      <span id="storyViewerViews">0</span> vue<span id="storyViewerViewsPlural"></span>
-    </div>
-    <div class="cta-group" id="storyCtaGroup">
-      <!-- Rempli dynamiquement (BOOSTER / SOUTENIR) -->
-    </div>
+<!-- Pied : vues + TOUS les boutons (suivre / booster / soutenir) -->
+<div class="story-footer">
+  <div class="views">
+    <i class="fas fa-eye"></i>
+    <span id="storyViewerViews">0</span> vue<span id="storyViewerViewsPlural"></span>
   </div>
-
-  <!-- Navigation tactile -->
-  <div class="story-nav">
-    <div class="prev" onclick="prevStory()"></div>
-    <div class="next" onclick="nextStory()"></div>
+  <div class="cta-group" id="storyCtaGroup">
+    <!-- Le bouton Suivre s'affichera ICI dynamiquement -->
   </div>
 </div>
 </section>
@@ -6532,52 +6508,13 @@ async function renderStoryHeaderActions(storyData){
 
   const isMine = storyData.userId === currentUser.uid;
 
+  // Le bouton Suivre n'est plus ici, on ne garde que le menu ⋮ pour ma story
   if (isMine) {
     const moreBtn = document.createElement('button');
     moreBtn.className = 'more-btn';
     moreBtn.innerHTML = '<i class="fas fa-ellipsis-vertical"></i>';
     moreBtn.onclick = () => openStoryMenu(storyData);
     box.appendChild(moreBtn);
-  } else {
-    const followBtn = document.createElement('button');
-    followBtn.className = 'follow-btn-story';
-
-    const listRef = doc(db, 'follows', currentUser.uid, 'list', storyData.userId);
-    const counterRef = doc(db, 'follows', storyData.userId);
-
-    const listSnap = await getDoc(listRef);
-    const isFollowing = listSnap.exists();
-
-    followBtn.textContent = isFollowing ? 'Suivi ✓' : 'Suivre +';
-    if (isFollowing) followBtn.classList.add('following');
-
-    followBtn.onclick = async () => {
-      try {
-        if (followBtn.classList.contains('following')) {
-          await deleteDoc(listRef);
-          try {
-            const cSnap = await getDoc(counterRef);
-            const currentFilo = cSnap.exists() ? (cSnap.data().filo || 0) : 0;
-            await setDoc(counterRef, { filo: Math.max(0, currentFilo - 1) }, { merge: true });
-          } catch(e) { console.warn(e); }
-          followBtn.textContent = 'Suivre +';
-          followBtn.classList.remove('following');
-        } else {
-          await setDoc(listRef, { date: serverTimestamp() });
-          try {
-            const cSnap = await getDoc(counterRef);
-            const currentFilo = cSnap.exists() ? (cSnap.data().filo || 0) : 0;
-            await setDoc(counterRef, { filo: currentFilo + 1 }, { merge: true });
-          } catch(e) { console.warn(e); }
-          followBtn.textContent = 'Suivi ✓';
-          followBtn.classList.add('following');
-        }
-      } catch (err) {
-        console.error("follow:", err);
-      }
-    };
-
-    box.appendChild(followBtn);
   }
 }
 
@@ -6610,6 +6547,9 @@ async function renderStoryFooter(story, d){
   if (!currentUser) return;
   const isMine = d.userId === currentUser.uid;
 
+  // ═══════════════════════════════════════════════
+  //  CAS 1 : C'EST MA STORY
+  // ═══════════════════════════════════════════════
   if (isMine) {
     if (!d.boostedStory) {
       const boostBtn = document.createElement('button');
@@ -6658,6 +6598,41 @@ async function renderStoryFooter(story, d){
     return;
   }
 
+  // ═══════════════════════════════════════════════
+  //  CAS 2 : C'EST LA STORY D'UN AUTRE
+  // ═══════════════════════════════════════════════
+  
+  // 1. Bouton "Suivre +"
+  const listRef = doc(db, 'follows', currentUser.uid, 'list', d.userId);
+  const counterRef = doc(db, 'follows', d.userId);
+  const listSnap = await getDoc(listRef);
+  const isFollowing = listSnap.exists();
+
+  if (!isFollowing) { // On affiche le bouton seulement si on ne suit pas encore
+    const followBtn = document.createElement('button');
+    followBtn.className = 'follow-btn-story';
+    followBtn.textContent = 'Suivre +';
+    
+    followBtn.onclick = async () => {
+      try {
+        await setDoc(listRef, { date: serverTimestamp() });
+        try {
+          const cSnap = await getDoc(counterRef);
+          const currentFilo = cSnap.exists() ? (cSnap.data().filo || 0) : 0;
+          await setDoc(counterRef, { filo: currentFilo + 1 }, { merge: true });
+        } catch(e) { console.warn(e); }
+        
+        followBtn.textContent = 'Suivi ✓';
+        followBtn.classList.add('following');
+        followBtn.disabled = true; // Empêche de re-cliquer
+      } catch (err) {
+        console.error("follow:", err);
+      }
+    };
+    ctaBox.appendChild(followBtn);
+  }
+
+  // 2. Bouton "Soutenir"
   const supportBtn = document.createElement('button');
   supportBtn.className = 'cta-btn support-btn';
   supportBtn.innerHTML = `SOUTENIR (25 XAF)`;
