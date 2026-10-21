@@ -1013,18 +1013,6 @@ font-size:14px;
 }
 
 /* Pied de story : vues + TOUS les boutons */
-.story-footer {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 12px;
-  padding-bottom: calc(50px + env(safe-area-inset-bottom));
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  background: linear-gradient(transparent, rgba(0,0,0,.85));
-  z-index: 9;
-}
 .story-footer .views {
   display: flex;
   align-items: center;
@@ -1205,11 +1193,12 @@ font-size:14px;
   max-height: 100%;
   object-fit: contain;
 }
-
+    
 /* Légende */
 .story-caption {
   position: absolute;
-  left: 12px; right: 12px; bottom: 110px;
+  left: 12px; right: 12px; 
+  bottom: 160px !important; /* Remonté pour laisser la place aux boutons */
   font-size: 16px;
   font-weight: bold;
   text-align: center;
@@ -1221,59 +1210,53 @@ font-size:14px;
 .story-footer {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  padding: 16px 12px; /* On augmente un peu le padding */
-  padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important; /* Remonte les boutons de 24px */
+  padding: 16px;
+  /* 🔼 80px de marge en bas + zone de sécurité du téléphone */
+  padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; 
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(transparent, rgba(0,0,0,.6), rgba(0,0,0,.9)); /* Dégradé plus doux et sombre en bas */
-  z-index: 9;
+  background: linear-gradient(transparent, rgba(0,0,0,.7), rgba(0,0,0,.95)) !important;
+  z-index: 999 !important; /* S'assure d'être au-dessus de tout */
 }
 
+/* Bouton Suivre (rose) */
+.story-footer .follow-btn-story {
+  background: #ff4081;
+  border: none;
+  color: #fff;
+  padding: 12px 20px !important;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+/* Bouton Soutenir (vert) */
+.story-footer .cta-btn.support-btn {
+  background: #8bc34a;
+  border: none;
+  color: #fff;
+  padding: 12px 20px !important;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+/* Compteur de vues */
 .story-footer .views {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(0,0,0,.6);
-  padding: 8px 14px;
+  background: rgba(0,0,0,.8);
+  padding: 10px 16px !important;
   border-radius: 20px;
   font-size: 14px;
   color: #fff;
-  border: 1px solid rgba(255,255,255,0.15); /* Petite bordure pour détacher du fond */
+  border: 1px solid rgba(255,255,255,0.2);
 }
-.story-footer .views i { font-size: 16px; }
-
-.story-footer .cta-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.story-footer .cta-btn {
-  padding: 10px 16px; /* Un peu plus grand */
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  font-size: 14px;
-  cursor: pointer;
-  color: #fff;
-  letter-spacing: .5px;
-  transition: opacity .2s, transform .15s;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3); /* Ombre pour ressortir sur l'image */
-}
-.story-footer .cta-btn:hover { 
-  opacity: .9; 
-  transform: scale(1.02);
-}
-
-.story-footer .cta-btn.boost-btn {
-  background: #1abc9c;
-}
-.story-footer .cta-btn.support-btn {
-  background: #8bc34a;
-}
-
+    
 /* ✅ Bouton Suivre DANS LE FOOTER (rose) */
 .story-footer .follow-btn-story {
   background: #ff4081;
