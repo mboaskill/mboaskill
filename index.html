@@ -1221,24 +1221,26 @@ font-size:14px;
 .story-footer {
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  padding: 12px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  padding: 16px 12px; /* On augmente un peu le padding */
+  padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important; /* Remonte les boutons de 24px */
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  background: linear-gradient(transparent, rgba(0,0,0,.85));
+  background: linear-gradient(transparent, rgba(0,0,0,.6), rgba(0,0,0,.9)); /* Dégradé plus doux et sombre en bas */
   z-index: 9;
 }
+
 .story-footer .views {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(0,0,0,.5);
-  padding: 6px 12px;
+  background: rgba(0,0,0,.6);
+  padding: 8px 14px;
   border-radius: 20px;
   font-size: 14px;
   color: #fff;
+  border: 1px solid rgba(255,255,255,0.15); /* Petite bordure pour détacher du fond */
 }
 .story-footer .views i { font-size: 16px; }
 
@@ -1247,18 +1249,24 @@ font-size:14px;
   align-items: center;
   gap: 8px;
 }
+
 .story-footer .cta-btn {
-  padding: 8px 16px;
+  padding: 10px 16px; /* Un peu plus grand */
   border: none;
   border-radius: 6px;
   font-weight: bold;
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   color: #fff;
   letter-spacing: .5px;
-  transition: opacity .2s;
+  transition: opacity .2s, transform .15s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3); /* Ombre pour ressortir sur l'image */
 }
-.story-footer .cta-btn:hover { opacity: .9; }
+.story-footer .cta-btn:hover { 
+  opacity: .9; 
+  transform: scale(1.02);
+}
+
 .story-footer .cta-btn.boost-btn {
   background: #1abc9c;
 }
@@ -1271,9 +1279,9 @@ font-size:14px;
   background: #ff4081;
   border: none;
   color: #fff;
-  padding: 8px 16px;
+  padding: 10px 16px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(255, 64, 129, 0.4);
@@ -1290,7 +1298,7 @@ font-size:14px;
   box-shadow: none;
   cursor: default;
 }
-
+    
 /* Navigation tactile */
 .story-nav {
   position: absolute;
