@@ -3452,13 +3452,30 @@ scheduleMidnightReset();
 ──────────────────────────────────────────────────────────*/
 document.getElementById('notchpayBtn')?.addEventListener('click', async () => {
   if (!currentUser) return alert("Connectez-vous");
+  
   const amount = parseFloat(document.getElementById('montant').value);
-  if (!amount || amount < 150) return alert("Min 150 XAF");
-  // TODO : intégrer l'API NotchPay (création transaction + redirection)
-  alert("Intégration NotchPay à connecter côté serveur (Supabase Edge Function recommandée).");
-});
-document.getElementById('paypalBtn')?.addEventListener('click', () => {
-  alert("Intégration PayPal à connecter côté serveur.");
+  if (!amount || amount < 200) return alert("Min 200 XAF");
+
+  try {
+    alert("⏳ Redirection vers NotchPay...");
+    
+    // Appeler notre Edge Function Supabase
+    const { data, error } = await supabase.functions.invoke('notchpay-init', {
+      body: { amount: amount }
+    });
+
+    if (error) throw error;
+
+    // Rediriger l'utilisateur vers la page de paiement NotchPay
+    if (data?.authorization_url) {
+      window.location.href = data.authorization_url;
+    } else {
+      alert("Erreur: URL de paiement introuvable");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Erreur lors de l'initialisation du paiement: " + err.message);
+  }
 });
 
 /*──────────────────────────────────────────────────────────
