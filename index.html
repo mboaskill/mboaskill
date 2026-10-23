@@ -392,14 +392,27 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
       0 1px 2px rgba(0,0,0,.8),
       0 0 6px rgba(0,0,0,.8);
 }
+/* NOUVEAU : Fond pour les icônes sur les images */
+.fullscreen-post .post-actions {
+    background: rgba(0, 0, 0, 0.5); /* Fond noir semi-transparent */
+    border-radius: 0 0 12px 12px; /* Arrondir le bas pour coller à l'image */
+    border-top: none; /* Enlever la ligne grise */
+    color: #fff; /* Mettre les icônes en blanc */
+}
+
+/* Pour que le cœur, les yeux et les commentaires soient bien blancs */
+.fullscreen-post .post-actions i,
+.fullscreen-post .post-actions span {
+    color: #fff !important;
+}
 
 /* ===========================
-   MASQUER ACTIONS CLASSIQUES
+   MASQUER ACTIONS CLASSIQUES (CORRIGÉ : on ne cache plus)
 =========================== */
 
-.fullscreen-post .post-actions{
+/* .fullscreen-post .post-actions{
     display:none !important;
-}
+} */
 
 /* ===========================
    MOBILE
@@ -1301,6 +1314,29 @@ font-size:14px;
 }
 /* Masquer le compteur de vues si non-propriétaire */
 .story-footer .views[style*="display: none"] { display: none !important; }
+/* === BANNIÈRE MONÉTISATION === */
+.monetization-banner {
+  display: none; /* Caché par défaut, le JS l'affichera */
+  background: linear-gradient(135deg, #8bc34a, #4caf50); /* Dégradé vert comme ton bouton SOUTENIR */
+  color: #fff;
+  padding: 15px;
+  margin: 15px 10px; /* Un peu d'espace sur les côtés et en haut/bas */
+  border-radius: 10px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Effet quand on passe la souris ou qu'on clique dessus */
+.monetization-banner:hover, 
+.monetization-banner:active {
+  transform: scale(1.02); /* Grossit légèrement */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #9ccc65, #43a047); /* Vert un peu plus clair */
+}
 </style>
 
 </head>
@@ -1344,6 +1380,13 @@ font-size:14px;
          <div id="storyBar" class="story-bar">
     <!-- Rempli dynamiquement -->
   </div>
+ <!-- 👇 TON NOUVEAU DIV ICI 👇 -->
+<div id="monetizationBanner" class="monetization-banner" onclick="openTab(event, 'vibo')">
+  <i class="material-icons-outlined" style="font-size: 28px; vertical-align: middle; margin-right: 8px;">monetization_on</i>
+  Activer la monétisation du contenu <br>
+  <span style="font-size: 14px; font-weight: normal; opacity: 0.9;">(avec 200 XAF)</span>
+</div>
+<!-- 👆 FIN DU NOUVEAU DIV 👆 -->
       <hr>
   </div>
   <div id="feed"></div>
@@ -1719,13 +1762,6 @@ font-size:14px;
       style="padding:6px 12px;background:#1877f2;color:white;border:none;border-radius:4px;cursor:pointer;">
       Déposer (Mobile Money)<i class="fas fa-mobile-alt"></i>
     </button>
-
-    <!-- 🔹 PAYPAL -->
-    <button id="paypalBtn"
-      style="padding:6px 12px;background:#0070ba;color:white;border:none;border-radius:4px;cursor:pointer;">
-      Déposer (PayPal / Carte) <i class="fas fa-credit-card"></i>
-    </button>
-
   </div>
 
 
@@ -2010,7 +2046,8 @@ L'application mboa skills est disponible partout dans le monde (la monétisation
    </div> 
    <hr>
 </section>
-<section id="mabio" class="tabcontent" style="display:none;padding:15px">
+<!-- CORRECTION : suppression du style="display:none;" -->
+<section id="mabio" class="tabcontent" style="padding:15px">
  <br><br/>
   <h2>Modifier ma bio</h2>
   <textarea id="bioInput" placeholder="Écris quelque chose sur toi..." 
@@ -2203,11 +2240,12 @@ let currentProfile = null;
 let followingIds = new Set();
 let likedPosts = new Set();
 let boostId = '';
-let currentBalance = 0; // 👈 AJOUTE CETTE LIGNE
+let currentBalance = 0; 
 let firstRenderDone = false;
 let cachedPosts = [];
 const usersCache = new Map(); 
 const timers = new Map();
+let hasDeposited = false; 
 const realtimeChannels = [];
 
 const qs = id => document.getElementById(id);
@@ -2480,6 +2518,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   await loadLikedPosts();
   await checkSuggestReset();
   await loadMyBio(); 
+await checkFirstDeposit();
 
   renderFeed();
   renderMyFeed();
@@ -2944,7 +2983,9 @@ function card(id, d, isMine) {
   left.className = 'left';
   left.append(like, lCnt);
   act.append(left, center, right);
-  if (!isFullscreen) w.appendChild(act);
+  
+  // CORRECTION : Toujours afficher les actions, même en fullscreen
+  w.appendChild(act); 
 
   const comSec = document.createElement('div');
   comSec.className = 'comments-section';
@@ -3265,8 +3306,8 @@ window.openUserFeed = async (uid) => {
     b.innerHTML = 'Modifier ma bio <i class="fas fa-pen"></i>';
     b.style.cssText = 'margin-top:6px;background:#1877f2;color:#fff;padding:4px 8px;border:none;border-radius:4px;cursor:pointer;';
     b.onclick = () => {
-      document.querySelectorAll('.tabcontent').forEach(sec => sec.classList.remove('active'));
-      document.getElementById('mabio').classList.add('active');
+      // CORRECTION : Utilisation de openTab pour afficher la page mabio
+      openTab({ currentTarget: b }, 'mabio');
       loadMyBio();
     };
     info.appendChild(b);
@@ -3781,10 +3822,21 @@ async function renderCurrentStory() {
   cta.innerHTML = '';
 
   if (isOwner) {
+    // C'est MA story : Bouton Booster et Bouton Supprimer
+    const boostBtn = document.createElement('button');
+    boostBtn.className = 'cta-btn boost-btn';
+    boostBtn.style.background = '#1abc9c'; 
+    boostBtn.innerHTML = 'BOOSTER';
+    boostBtn.onclick = () => {
+        closeStoryViewer();
+        selectBoostPost(story.id, story.caption || 'Story');
+    };
+    cta.appendChild(boostBtn);
+
     const del = document.createElement('button');
     del.className = 'cta-btn';
     del.style.background = '#e53935';
-    del.innerHTML = '<i class="fas fa-trash"></i> Supprimer';
+    del.innerHTML = '<i class="fas fa-trash"></i>';
     del.onclick = async () => {
       const ok = await prompt("Supprimer cette story ? (oui/non)", "oui");
       if (ok?.toLowerCase() !== 'oui') return;
@@ -3803,6 +3855,8 @@ async function renderCurrentStory() {
     };
     cta.appendChild(del);
   } else if (currentUser) {
+    // C'est la story de QUELQU'UN D'AUTRE : Bouton Suivre et Bouton Soutenir
+    
     // Bouton suivre
     const followBtn = document.createElement('button');
     followBtn.className = 'follow-btn-story';
@@ -3830,12 +3884,12 @@ async function renderCurrentStory() {
     if ((targetUser?.followers_count || 0) > 100) {
       const supportBtn = document.createElement('button');
       supportBtn.className = 'cta-btn support-btn';
-      supportBtn.innerHTML = '<i class="fas fa-star"></i> Soutenir';
+      supportBtn.innerHTML = '<i class="fas fa-star"></i> SOUTENIR (25 XAF)';
       supportBtn.onclick = async () => {
-        const ok = await prompt("Envoyer 1000 XAF de soutien ? (oui/non)", "oui");
+        const ok = await prompt("Envoyer 25 XAF de soutien ? (oui/non)", "oui");
         if (ok?.toLowerCase() !== 'oui') return;
         const { data: success } = await supabase.rpc('support_user', {
-          p_from: currentUser.id, p_to: group.user_id, p_amount: 1000
+          p_from: currentUser.id, p_to: group.user_id, p_amount: 25
         });
         if (!success) return alert('Solde insuffisant');
         alert('✅ Soutien envoyé');
@@ -4039,6 +4093,38 @@ window.updatePassword = async () => {
     window.location.href = '/#conect';
   }
 };
+/*──────────────────────────────────────────────────────────
+  VÉRIFICATION DU PREMIER DÉPÔT (MONÉTISATION)
+──────────────────────────────────────────────────────────*/
+async function checkFirstDeposit() {
+  if (!currentUser) return;
+  
+  const banner = document.getElementById('monetizationBanner');
+  if (!banner) return;
+
+  try {
+    // On vérifie si l'utilisateur a déjà fait un dépôt.
+    // On cherche dans la table 'transactions' ou 'deposits' si elle existe.
+    // Si tu n'as pas cette table, on se base sur le solde.
+    const { data: wallet } = await supabase
+      .from('wallets')
+      .select('balance')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    // RÈGLE : Si le solde est à 0 ou si le wallet n'existe pas, on considère
+    // qu'il n'a pas encore activé la monétisation.
+    if (!wallet || (wallet.balance || 0) <= 0) {
+      hasDeposited = false;
+      banner.style.display = 'block'; // On affiche le bandeau
+    } else {
+      hasDeposited = true;
+      banner.style.display = 'none'; // On cache le bandeau
+    }
+  } catch (err) {
+    console.error("Erreur vérification dépôt:", err);
+  }
+}
 </script>
 </body>
 </html>
