@@ -1563,7 +1563,6 @@ font-size:14px;
     <button onclick="openTab(event,'conect')">Connexion</button>
     <button onclick="openTab(event,'inscrip')">Inscription</button>
     
-  <button onclick="signInWithGoogle()"><i class="fab fa-google"></i> Continuer avec Google</button>
   </div>
   </div>
   </div>
@@ -1744,14 +1743,10 @@ font-size:14px;
   </div>
   
   <div id="emailLoginBox">
-    <div class="boutons">
-    <p>Continuer avec Google </p> <img class="circle" src="https://ucarecdn.com/25f768b6-513b-4b08-b2fb-387768728b52/-/preview/225x225/" onclick="signInWithGoogle()"></img>
-    </div>
-    </div>
-  <div id="emailLoginBox">
-    <p>vous n'avez pas encore  de compte ?</p> 
+      <p>vous n'avez pas encore  de compte ?</p> 
     <button onclick="openTab(event,'inscrip')">Inscription</button>
-  </div>
+   
+    </div>
 </section>
 <section id="oublie" class="tabcontent">
 <br><br/> 
@@ -1761,6 +1756,18 @@ font-size:14px;
   <input type="email" id="resetEmail" placeholder="Votre email" />
   
   <button onclick="sendResetLink()">Envoyer le lien</button>
+  </div>
+</section>
+<!-- ============ NOUVEAU MOT DE PASSE ============ -->
+<section id="update-password" class="tabcontent">
+  <br><br/>
+  <div id="emailLoginBox">
+    <h3>Réinitialiser le mot de passe</h3>
+    <p style="color:#555; font-size:14px; margin-bottom:15px;">Choisissez un nouveau mot de passe pour sécuriser votre compte.</p>
+    
+    <input type="password" id="newPassword" placeholder="Nouveau mot de passe (≥ 6 car.)" />
+    
+    <button onclick="updatePassword()">Enregistrer le mot de passe</button>
   </div>
 </section>
 <!-- ============ SIGNUP FORM ============ -->
@@ -2379,6 +2386,19 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   const user = session?.user || null;
   currentUser = user;
 
+  // =========================================================
+  // 🔥 AJOUT : Gestion du lien de réinitialisation de mot de passe
+  // =========================================================
+  if (event === 'PASSWORD_RECOVERY') {
+    document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
+    const pwdTab = document.getElementById('update-password');
+    if (pwdTab) pwdTab.classList.add('active');
+    return; // On stoppe ici pour ne pas charger l'accueil
+  }
+
+  // =========================================================
+  // GESTION NORMALE DES ONGLETS
+  // =========================================================
   document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
   if (!user) {
     document.getElementById('conect').classList.add('active');
@@ -2397,6 +2417,9 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     return;
   }
 
+  // =========================================================
+  // CHARGEMENT DU PROFIL
+  // =========================================================
   currentProfile = await loadProfile(user.id);
   if (!currentProfile) {
     // au cas où le trigger n'aurait pas tourné
@@ -2412,13 +2435,15 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   const photo = currentProfile?.photo_url || "https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/1000x999/";
   const name = currentProfile?.name || user.email;
 
-  qs('homeProfilePhoto').src = photo;
-  qs('feedmeProfilePhoto').src = photo;
-  qs('authStatus').textContent = name;
-  qs('accountStatus').textContent = '• ' + name;
-  qs('accountStatusFeed').textContent = qs('accountStatus').textContent;
+  if (qs('homeProfilePhoto')) qs('homeProfilePhoto').src = photo;
+  if (qs('feedmeProfilePhoto')) qs('feedmeProfilePhoto').src = photo;
+  if (qs('authStatus')) qs('authStatus').textContent = name;
+  if (qs('accountStatus')) qs('accountStatus').textContent = '• ' + name;
+  if (qs('accountStatusFeed')) qs('accountStatusFeed').textContent = qs('accountStatus').textContent;
 
-  // vérif certif
+  // =========================================================
+  // VÉRIFICATION CERTIFICATION
+  // =========================================================
   const { data: v } = await supabase.from('verifications').select('*').eq('user_id', user.id).maybeSingle();
   const btn = document.getElementById('certify-btn');
   const iconP = document.getElementById('icon');
@@ -2426,6 +2451,9 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   if (btn) btn.style.display = isValid ? 'none' : 'block';
   if (iconP) iconP.style.display = isValid ? 'block' : 'none';
 
+  // =========================================================
+  // CHARGEMENT DES DONNÉES DE L'APPLICATION
+  // =========================================================
   await loadUserCountry();
   await loadFollowing();
   await loadWallet();
@@ -3917,6 +3945,27 @@ function openStoryMenu(story, group) {
     }).then(() => alert('✅ Story signalée'));
   }
 }
+
+window.updatePassword = async () => {
+  const newPassword = document.getElementById('newPassword').value;
+  
+  if (!newPassword || newPassword.length < 6) {
+    return alert("Le mot de passe doit faire au moins 6 caractères.");
+  }
+
+  // C'est cette fonction qui met à jour le mot de passe
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword
+  });
+
+  if (error) {
+    alert("Erreur : " + error.message);
+  } else {
+    alert("✅ Mot de passe mis à jour avec succès ! Vous pouvez vous connecter.");
+    // Rediriger vers la page de connexion
+    window.location.href = '/#conect';
+  }
+};
 </script>
 </body>
 </html>
