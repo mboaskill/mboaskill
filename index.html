@@ -10,9 +10,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
   <script src="https://js.notchpay.co/v1/checkout.js"></script>
 
-  <!-- ⬇️ Le CSS reste identique à ton fichier original, non inclus ici pour la lisibilité -->
   <link rel="stylesheet" href="style.css">
-  <script src="https://js.notchpay.co/v1/checkout.js"></script>
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
@@ -1301,10 +1299,18 @@ font-size:14px;
   flex: 1;
   cursor: pointer;
 }
+/* Masquer le compteur de vues si non-propriétaire */
+.story-footer .views[style*="display: none"] { display: none !important; }
 </style>
 
 </head>
 <body>
+
+<!-- 🌟 LOADER ANTI-CLIGNOTEMENT -->
+<div id="global-loader" style="position:fixed;inset:0;background:#888;z-index:99999999;display:flex;align-items:center;justify-content:center;color:gold;font-size:24px;font-weight:bold;">
+  Chargement de Skill...
+</div>
+
 <header>
   <div class="logo">Skill
   <div id="priix">
@@ -1742,11 +1748,18 @@ font-size:14px;
     <button onclick="loginWithEmail()">Se connecter</button>
   </div>
   
+  <!-- ✅ BOUTON GOOGLE RESTAURÉ -->
   <div id="emailLoginBox">
-      <p>vous n'avez pas encore  de compte ?</p> 
-    <button onclick="openTab(event,'inscrip')">Inscription</button>
-   
+    <div class="boutons">
+      <p>Continuer avec Google </p> 
+      <img class="circle" src="https://ucarecdn.com/25f768b6-513b-4b08-b2fb-387768728b52/-/preview/225x225/" onclick="signInWithGoogle()" style="cursor:pointer"></img>
     </div>
+  </div>
+
+  <div id="emailLoginBox">
+      <p>vous n'avez pas encore de compte ?</p> 
+    <button onclick="openTab(event,'inscrip')">Inscription</button>
+  </div>
 </section>
 <section id="oublie" class="tabcontent">
 <br><br/> 
@@ -1825,8 +1838,6 @@ font-size:14px;
   </p>
 </section>
 
-<!-- ... autres sections (create-story, etc.) ... -->
-
 <!-- ⚠️ LA VISIONNEUSE DOIT ÊTRE ICI (Hors des sections) -->
 <div id="storyViewer">
   <div class="story-progress" id="storyProgress"></div>
@@ -1857,8 +1868,6 @@ font-size:14px;
   </div>
 </div>
 <!-- ⚠️ FIN DE LA VISIONNEUSE -->
-
-<!-- Tes scripts ... -->
 
 <section id="create-story" class="tabcontent">
   <br><br/>
@@ -2181,8 +2190,8 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 /*──────────────────────────────────────────────────────────
   1. CONFIG SUPABASE
 ──────────────────────────────────────────────────────────*/
-const SUPABASE_URL = 'https://hlvqvtitedwcacwmalis.supabase.co';        // ← REMPLACE
-const SUPABASE_ANON_KEY = 'sb_publishable_XpUS6YuJfD12fjfbSeA3Sg_opYayt74';                  // ← REMPLACE
+const SUPABASE_URL = 'https://hlvqvtitedwcacwmalis.supabase.co';        
+const SUPABASE_ANON_KEY = 'sb_publishable_XpUS6YuJfD12fjfbSeA3Sg_opYayt74';                  
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -2194,9 +2203,10 @@ let currentProfile = null;
 let followingIds = new Set();
 let likedPosts = new Set();
 let boostId = '';
+let currentBalance = 0; // 👈 AJOUTE CETTE LIGNE
 let firstRenderDone = false;
 let cachedPosts = [];
-const usersCache = new Map(); // id → {name, photo_url}
+const usersCache = new Map(); 
 const timers = new Map();
 const realtimeChannels = [];
 
@@ -2213,7 +2223,7 @@ function timeSince(date) {
 }
 
 /*──────────────────────────────────────────────────────────
-  3. CUSTOM ALERT / PROMPT (identique à ton code)
+  3. CUSTOM ALERT / PROMPT
 ──────────────────────────────────────────────────────────*/
 window.showCustomAlert = function(message, title = "Notification") {
   document.getElementById("customAlertTitle").textContent = title;
@@ -2256,7 +2266,7 @@ document.getElementById("customPromptInput")?.addEventListener('keypress', funct
 });
 
 /*──────────────────────────────────────────────────────────
-  4. NAVIGATION / TABS (identique)
+  4. NAVIGATION / TABS
 ──────────────────────────────────────────────────────────*/
 window.openTab = (evt, id) => {
   const tab = document.getElementById(id);
@@ -2283,12 +2293,35 @@ window.addEventListener('popstate', (event) => {
   }
 });
 window.addEventListener('load', () => {
+  // 1. Gestion des hashtags classiques (#home, #conect, etc.)
   const hash = location.hash.substring(1);
   if (hash) {
     const tab = document.getElementById(hash);
     if (tab) {
       document.querySelectorAll('.tabcontent').forEach(t => t.classList.toggle('active', t.id === hash));
     }
+  }
+
+  // 2. Gestion des liens de profil partagés (?profile=ID)
+  const urlParams = new URLSearchParams(window.location.search);
+  const profileId = urlParams.get('profile');
+  
+  if (profileId) {
+    // On attend 1.2 seconde que Supabase vérifie la session 
+    // et charge currentUser avant d'ouvrir le profil
+    setTimeout(() => {
+      if (currentUser) {
+        // Si connecté, on ouvre le profil
+        openUserFeed(profileId);
+        
+        // On nettoie l'URL pour enlever le "?profile=..." après ouverture
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else {
+        // Si non connecté, on lui demande de se connecter
+        alert("Connectez-vous pour voir ce profil.");
+        openTab({ currentTarget: document.querySelector('.tablinks[onclick*="account"]') }, 'account');
+      }
+    }, 1200);
   }
 });
 
@@ -2365,7 +2398,7 @@ window.sendResetLink = async () => {
 };
 
 /*──────────────────────────────────────────────────────────
-  6. CHARGEMENT DU PROFIL UTILISATEUR
+  6. CHARGEMENT DU PROFIL
 ──────────────────────────────────────────────────────────*/
 async function loadProfile(userId) {
   const { data, error } = await supabase.from('users').select('*').eq('id', userId).maybeSingle();
@@ -2383,22 +2416,19 @@ async function ensureUsersCache() {
   7. SESSION
 ──────────────────────────────────────────────────────────*/
 supabase.auth.onAuthStateChange(async (event, session) => {
+  const loader = document.getElementById('global-loader');
+  if (loader) loader.style.display = 'none';
+
   const user = session?.user || null;
   currentUser = user;
 
-  // =========================================================
-  // 🔥 AJOUT : Gestion du lien de réinitialisation de mot de passe
-  // =========================================================
   if (event === 'PASSWORD_RECOVERY') {
     document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
     const pwdTab = document.getElementById('update-password');
     if (pwdTab) pwdTab.classList.add('active');
-    return; // On stoppe ici pour ne pas charger l'accueil
+    return;
   }
 
-  // =========================================================
-  // GESTION NORMALE DES ONGLETS
-  // =========================================================
   document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
   if (!user) {
     document.getElementById('conect').classList.add('active');
@@ -2417,12 +2447,8 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     return;
   }
 
-  // =========================================================
-  // CHARGEMENT DU PROFIL
-  // =========================================================
   currentProfile = await loadProfile(user.id);
   if (!currentProfile) {
-    // au cas où le trigger n'aurait pas tourné
     await supabase.from('users').upsert({
       id: user.id,
       name: user.user_metadata?.name || user.email,
@@ -2441,9 +2467,6 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   if (qs('accountStatus')) qs('accountStatus').textContent = '• ' + name;
   if (qs('accountStatusFeed')) qs('accountStatusFeed').textContent = qs('accountStatus').textContent;
 
-  // =========================================================
-  // VÉRIFICATION CERTIFICATION
-  // =========================================================
   const { data: v } = await supabase.from('verifications').select('*').eq('user_id', user.id).maybeSingle();
   const btn = document.getElementById('certify-btn');
   const iconP = document.getElementById('icon');
@@ -2451,14 +2474,12 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   if (btn) btn.style.display = isValid ? 'none' : 'block';
   if (iconP) iconP.style.display = isValid ? 'block' : 'none';
 
-  // =========================================================
-  // CHARGEMENT DES DONNÉES DE L'APPLICATION
-  // =========================================================
   await loadUserCountry();
   await loadFollowing();
   await loadWallet();
   await loadLikedPosts();
   await checkSuggestReset();
+  await loadMyBio(); 
 
   renderFeed();
   renderMyFeed();
@@ -2548,7 +2569,6 @@ window.publishPost = async () => {
 
   if (error) { qs('status').textContent = ''; return alert(error.message); }
 
-  // Mentions
   const matches = [...text.matchAll(/@([\wÀ-ÿ0-9]+)/g)];
   for (const m of matches) {
     const { data: users } = await supabase.from('users').select('id').eq('name', m[1]);
@@ -2586,7 +2606,7 @@ profileInput?.addEventListener('change', async (e) => {
 
   alert("⏳ Upload…");
   const path = `${currentUser.id}/avatar_${Date.now()}`;
-  const { error } = await supabase.storage.from('profiles').upload(path, file, { upsert: true });
+  const { error } = await supabase.storage.from('profiles').upload(path, file);
   if (error) { alert(error.message); return; }
 
   const publicUrl = supabase.storage.from('profiles').getPublicUrl(path).data.publicUrl;
@@ -2606,12 +2626,12 @@ profileInput?.addEventListener('change', async (e) => {
 });
 
 /*──────────────────────────────────────────────────────────
-  12. FEED PRINCIPAL
+  12. FEED PRINCIPAL (SANS CLIGNOTEMENT)
 ──────────────────────────────────────────────────────────*/
 async function renderFeed() {
   const c = qs('feed');
   if (!c || !currentUser) return;
-  c.textContent = 'Chargement…';
+  c.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Chargement du fil...</p>';
 
   const { data: myData } = await supabase.from('users').select('country_index').eq('id', currentUser.id).single();
   const userCountry = myData?.country_index || 1;
@@ -2620,7 +2640,6 @@ async function renderFeed() {
 
   const posts = [];
 
-  // Boostés
   const { data: boosted } = await supabase.from('posts')
     .select('*').gt('boosted', 0)
     .order('boosted', { ascending: false })
@@ -2637,7 +2656,6 @@ async function renderFeed() {
     }
   }
 
-  // Posts des suivis (3 récents)
   if (followingIds.size > 0) {
     const { data: followPosts } = await supabase.from('posts')
       .select('*')
@@ -2653,28 +2671,32 @@ async function renderFeed() {
     Object.values(byUser).forEach(arr => posts.push(...arr));
   }
 
-  // Mélange
   for (let i = posts.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [posts[i], posts[j]] = [posts[j], posts[i]];
   }
 
-  c.innerHTML = '';
+  const fragment = document.createDocumentFragment();
   const insertIndex = Math.floor(Math.random() * (posts.length + 1));
+  
   for (let i = 0; i < posts.length; i++) {
-    if (i === insertIndex) await injectSuggestions(c, userCountry);
+    if (i === insertIndex) {
+      const box = document.createElement('div');
+      box.style.cssText = 'margin:15px 0;background:#fff;border-radius:10px;padding:10px;';
+      box.innerHTML = '<h3 style="color:#111;">Vous connaissez peut-être :</h3><p style="color:#888;font-size:14px">Chargement...</p>';
+      fragment.appendChild(box);
+      injectSuggestions(box, userCountry);
+    }
     const el = card(posts[i].id, posts[i], false);
-    c.appendChild(el);
+    fragment.appendChild(el);
     observePost(el);
   }
+
+  c.innerHTML = '';
+  c.appendChild(fragment);
 }
 
 async function injectSuggestions(container, userCountry) {
-  const box = document.createElement('div');
-  box.style.cssText = 'margin:15px 0;background:#fff;border-radius:10px;padding:10px;';
-  box.innerHTML = '<h3 style="color:#111;">Vous connaissez peut-être :</h3>';
-  container.appendChild(box);
-
   const { data: users } = await supabase.from('users')
     .select('id, name, photo_url')
     .gte('suggest_score', 45)
@@ -2688,14 +2710,16 @@ async function injectSuggestions(container, userCountry) {
     [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
   }
 
+  container.innerHTML = '<h3 style="color:#111;">Vous connaissez peut-être :</h3>';
+
   if (filtered.length === 0) {
-    box.innerHTML += '<p style="color:#777;font-size:14px">Aucune suggestion.</p>';
+    container.innerHTML += '<p style="color:#777;font-size:14px">Aucune suggestion.</p>';
     return;
   }
 
   const grid = document.createElement('div');
   grid.style.cssText = 'display:flex;overflow-x:auto;gap:10px;padding:4px 0;';
-  box.appendChild(grid);
+  container.appendChild(grid);
 
   filtered.forEach(u => {
     const d = document.createElement('div');
@@ -2715,13 +2739,13 @@ async function injectSuggestions(container, userCountry) {
 }
 
 /*──────────────────────────────────────────────────────────
-  13. MON FEED
+  13. MON FEED (SANS CLIGNOTEMENT)
 ──────────────────────────────────────────────────────────*/
 async function renderMyFeed() {
   if (!currentUser) return;
   const c = qs('myFeed');
   if (!c) return;
-  c.textContent = 'Chargement…';
+  c.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Chargement de vos publications...</p>';
 
   const fol = document.createElement('p');
   fol.style.cssText = 'background:#050505;color:#fff;padding:6px;border-radius:6px;';
@@ -2734,20 +2758,26 @@ async function renderMyFeed() {
 
   c.innerHTML = '';
   c.appendChild(fol);
+  
   if (!posts?.length) {
-    c.innerHTML += '<p>Aucune publication.</p>';
+    const p = document.createElement('p');
+    p.textContent = 'Aucune publication.';
+    c.appendChild(p);
     return;
   }
-  posts.forEach(p => c.appendChild(card(p.id, p, true)));
+  
+  const fragment = document.createDocumentFragment();
+  posts.forEach(p => fragment.appendChild(card(p.id, p, true)));
+  c.appendChild(fragment);
 }
 
 /*──────────────────────────────────────────────────────────
-  14. VIDEO FEED
+  14. VIDEO FEED (SANS CLIGNOTEMENT)
 ──────────────────────────────────────────────────────────*/
 async function renderVideoFeed() {
   const c = qs('videoFeedContent');
   if (!c || !currentUser) return;
-  c.textContent = 'Chargement…';
+  c.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Chargement...</p>';
 
   const { data: myData } = await supabase.from('users').select('country_index').eq('id', currentUser.id).single();
   const country = myData?.country_index || 1;
@@ -2762,18 +2792,21 @@ async function renderVideoFeed() {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 
-  c.innerHTML = '';
+  const fragment = document.createDocumentFragment();
   arr.forEach(p => {
     const el = card(p.id, p, false);
-    c.appendChild(el);
+    fragment.appendChild(el);
     observePost(el);
   });
+
+  c.innerHTML = '';
+  c.appendChild(fragment);
 }
 
 async function renderBoostFeed() {
   const c = qs('videoFeedContentBoost');
   if (!c || !currentUser) return;
-  c.textContent = 'Chargement…';
+  c.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Chargement...</p>';
 
   const { data } = await supabase.from('posts')
     .select('*').eq('user_id', currentUser.id)
@@ -2795,7 +2828,6 @@ function card(id, d, isMine) {
   const isFullscreen = d.image_url && window.innerWidth <= 768;
   if (isFullscreen) w.classList.add('fullscreen-post');
 
-  // HEADER
   const head = document.createElement('div');
   head.className = 'post-header';
   const img = document.createElement('img');
@@ -2834,7 +2866,6 @@ function card(id, d, isMine) {
   }
   if (!isFullscreen) w.appendChild(head);
 
-  // CONTENU
   const cont = document.createElement('div');
   cont.className = 'post-content';
 
@@ -2858,7 +2889,6 @@ function card(id, d, isMine) {
   }
   w.appendChild(cont);
 
-  // ACTIONS
   const act = document.createElement('div');
   act.className = 'post-actions';
 
@@ -2916,7 +2946,6 @@ function card(id, d, isMine) {
   act.append(left, center, right);
   if (!isFullscreen) w.appendChild(act);
 
-  // COMMENTAIRES
   const comSec = document.createElement('div');
   comSec.className = 'comments-section';
   const closeBtn = document.createElement('i');
@@ -3086,7 +3115,6 @@ async function sendReply(pid, commentId) {
   await supabase.from('comment_replies').insert({
     comment_id: commentId, user_id: currentUser.id, text
   });
-  // notifier l'auteur du commentaire
   const { data: parent } = await supabase.from('comments').select('user_id').eq('id', commentId).single();
   if (parent && parent.user_id !== currentUser.id) {
     await supabase.from('notifications').insert({
@@ -3247,7 +3275,6 @@ window.openUserFeed = async (uid) => {
     if (b) info.appendChild(b);
   }
 
-  // Bouton soutien (si followers > 100)
   if (currentUser && uid !== currentUser.id && (user?.followers_count || 0) > 100) {
     const sBtn = document.createElement('button');
     sBtn.innerHTML = '<i class="fa-solid fa-star"></i> Soutenir (1000 XAF)';
@@ -3411,13 +3438,42 @@ async function loadSuggestions() {
 ──────────────────────────────────────────────────────────*/
 function showProfileLink(uid) {
   const inp = document.getElementById('profile-link');
-  if (inp) inp.value = `${location.origin}/#profile/${uid}`;
+  if (!inp) return;
+  
+  // Si on est en local (localhost), on utilise l'adresse locale.
+  // Sinon, on force l'URL officielle de production.
+  const baseUrl = location.hostname === 'localhost' || location.hostname === '127.0.0.1' 
+    ? location.origin 
+    : 'https://mboaskill.cm';
+    
+  inp.value = `${baseUrl}/?profile=${uid}`;
 }
-document.getElementById('copy-link-btn')?.addEventListener('click', () => {
-  const inp = document.getElementById('profile-link');
-  if (inp) { inp.select(); document.execCommand('copy'); alert('✅ Lien copié'); }
-});
 
+document.getElementById('copy-link-btn')?.addEventListener('click', async () => {
+  const inp = document.getElementById('profile-link');
+  if (!inp) return;
+  
+  const link = inp.value;
+  
+  // Si le navigateur supporte le partage natif (mobile)
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Mon profil Mboa Skill',
+        text: 'Rejoins-moi sur Mboa Skill !',
+        url: link,
+      });
+      return; // On s'arrête là si le partage a réussi
+    } catch (err) {
+      console.log('Partage annulé ou erreur');
+    }
+  }
+  
+  // Sinon (PC) on fait le copier-coller classique
+  inp.select(); 
+  document.execCommand('copy'); 
+  alert('✅ Lien de profil copié !');
+});
 /*──────────────────────────────────────────────────────────
   29. TOTAL VUES & SOLDE
 ──────────────────────────────────────────────────────────*/
@@ -3460,7 +3516,7 @@ document.getElementById('notchpayBtn')?.addEventListener('click', async () => {
     alert("⏳ Redirection vers NotchPay...");
     
     // Appeler notre Edge Function Supabase
-    const { data, error } = await supabase.functions.invoke('notchpay-init', {
+    const { data, error } = await supabase.functions.invoke('clever-api', {
       body: { amount: amount }
     });
 
