@@ -2467,10 +2467,33 @@ window.openTab = (evt, id) => {
 };
 
 window.addEventListener('popstate', (event) => {
+  // 🆕 Garde anti-boucle : on est en train de fermer manuellement la story
+  if (closingStory) return;
+
+  // ✅ Priorité 1 : fermer la story si elle est ouverte
+  const viewer = document.getElementById('storyViewer');
+  if (viewer && viewer.classList.contains('open')) {
+    closeStoryViewer(true);   // true = le bouton retour a déjà dépilé l'historique
+    return;
+  }
+
+  // ✅ Priorité 2 : navigation entre les tabs (ton code existant)
   if (event.state?.tab) {
-    document.querySelectorAll('.tabcontent').forEach(t => t.classList.toggle('active', t.id === event.state.tab));
+    document.querySelectorAll('.tabcontent').forEach(t =>
+      t.classList.toggle('active', t.id === event.state.tab)
+    );
   }
 });
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    const viewer = document.getElementById('storyViewer');
+    if (viewer && viewer.classList.contains('open')) {
+      closeStoryViewer();
+    }
+  }
+});
+
 window.addEventListener('load', () => {
   // 1. Gestion des hashtags classiques (#home, #conect, etc.)
   const hash = location.hash.substring(1);
@@ -4331,6 +4354,7 @@ const STORY_DURATION = 5000; // 5 secondes par story
 ──────────────────────────────────────────────────────────*/
 window.openStoryViewer = (groupIndex, storyIndex = 0) => {
   if (!allStoriesGrouped.length) return;
+
   svState.groupIndex = groupIndex;
   svState.storyIndex = storyIndex;
   svState.isOpen = true;
@@ -4338,19 +4362,38 @@ window.openStoryViewer = (groupIndex, storyIndex = 0) => {
 
   const viewer = document.getElementById('storyViewer');
   if (!viewer) return;
+
+  // ✅ Empiler un état dans l'historique pour que le bouton retour ferme la story
+  history.pushState({ storyViewer: true }, '', '#story');
+
   viewer.classList.add('open');
 
   renderCurrentStory();
 };
 
-window.closeStoryViewer = () => {
-  svState.isOpen = false;
-  clearTimers();
-  const viewer = document.getElementById('storyViewer');
-  if (viewer) viewer.classList.remove('open');
-  document.getElementById('storyMedia').innerHTML = '';
-};
+let closingStory = false;  // 🆕 variable globale anti-boucle
 
+function closeStoryViewer(fromBackButton = false) {
+  const viewer = document.getElementById('storyViewer');
+  if (!viewer) return;
+
+  // ✅ Fermer visuellement
+  viewer.classList.remove('open');
+
+  // ✅ Nettoyer les médias (couper la vidéo en cours, etc.)
+  const media = document.getElementById('storyMedia');
+  if (media) media.innerHTML = '';
+  const caption = document.getElementById('storyCaption');
+  if (caption) caption.textContent = '';
+
+  // ✅ Si la story a été ouverte et qu'on ferme manuellement (croix, clic)
+  // il faut consommer l'entrée d'historique qu'on avait poussée
+  if (!fromBackButton && history.state?.storyViewer) {
+    closingStory = true;
+    history.back();   // déclenche popstate → mais la garde closingStory évite la double-fermeture
+    setTimeout(() => { closingStory = false; }, 150);
+  }
+}
 function clearTimers() {
   if (svState.timer) clearTimeout(svState.timer);
   if (svState.progressInterval) clearInterval(svState.progressInterval);
@@ -4522,14 +4565,14 @@ async function renderCurrentStory() {
     };
     cta.appendChild(followBtn);
 
-    // 2b. Bouton Soutenir (25 XAF) — visible si auteur ≥ 100 followers
+    // 2b. Bouton Soutenir (25 XAF) — visible si auteur ≥ 1 followers
     const { data: targetUser } = await supabase
       .from('users')
       .select('followers_count')
       .eq('id', group.user_id)
       .maybeSingle();
 
-    if ((targetUser?.followers_count || 0) > 100) {
+    if ((targetUser?.followers_count || 0) > 0) {
       const supportBtn = document.createElement('button');
       supportBtn.className = 'cta-btn support-btn';
       supportBtn.innerHTML = '<i class="fas fa-star"></i> SOUTENIR (25 XAF)';
