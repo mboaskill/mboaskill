@@ -3724,14 +3724,12 @@ window.boostPost = async () => {
   // ② Mettre à jour la bonne table
   let error;
   if (boostTargetType === 'story') {
-    ({ error } = await supabase
-      .from('stories')
-      .update({
-        boosted: v,
-        boost_at: new Date().toISOString(),
-        boost_country: countryIndex
-      })
-      .eq('id', boostId));
+    // ✅ Méthode RPC (contourne le cache PostgREST)
+    ({ error } = await supabase.rpc('boost_story', {
+      p_story_id: boostId,
+      p_boosted: v,
+      p_boost_country: countryIndex
+    }));
   } else {
     ({ error } = await supabase
       .from('posts')
