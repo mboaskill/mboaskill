@@ -241,169 +241,239 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
    MODE PLEIN ÉCRAN
 =========================== */
 
-.post.fullscreen-post{
-    position:relative;
-    width:100%;
-    padding:0;
-    margin:0 0 15px 0;
-    overflow:hidden;
-    background:#000;
-    border-radius:12px;
-
-    /* annule le style .post */
-    box-shadow:none;
+/* ============================================================
+   POST EN MODE PLEIN ÉCRAN (mobile ≤ 768px)
+============================================================ */
+.post.fullscreen-post {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 15px 0;
+  overflow: hidden;
+  background: #000;
+  border-radius: 12px;
+  box-shadow: none;
 }
 
-/* CONTENU */
-.fullscreen-post .post-content{
-    position:relative;
-    width:100%;
-    margin:0;
+/* ============================================================
+   CONTENU (image + titre + header)
+============================================================ */
+.fullscreen-post .post-content {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  display: block;
 }
 
-.fullscreen-post .post-content img{
-    width:100%;
-    max-height:80vh;
-    object-fit:cover;
-    display:block;
-    border-radius:0;
+.fullscreen-post .post-content img {
+  width: 100%;
+  max-height: 80vh;
+  object-fit: cover;
+  display: block;
+  border-radius: 0;
+  position: relative;
+  z-index: 1; /* reste sous le titre et header */
 }
 
-/* Overlay noir dégradé */
-.fullscreen-post .post-content::after{
-    content:"";
-    position:absolute;
-    left:0;
-    right:0;
-    bottom:0;
-    height:35%;
-    background:linear-gradient(
-        transparent,
-        rgba(0,0,0,.25),
-        rgba(0,0,0,.65)
-    );
-    pointer-events:none;
+/* ============================================================
+   ✅ TITRE DE L'IMAGE — VISIBLE AU-DESSUS DE L'OVERLAY
+============================================================ */
+.fullscreen-post .post-title {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 20;
+
+  color: #fff !important;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.4;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
-/* ===========================
-   HEADER
-=========================== */
-
-.fullscreen-post .post-header{
-    position:absolute;
-    left:12px;
-    bottom:105px;
-    z-index:30;
-
-    display:flex;
-    align-items:center;
-    flex-wrap:nowrap;
-    gap:8px;
-
-    color:#fff;
-    border:none;
-
-    width:auto;
-    max-width:75%;
+/* ============================================================
+   OVERLAY NOIR DÉGRADÉ (derrière le titre et le header)
+============================================================ */
+.fullscreen-post .post-content::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 50%;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.85) 0%,
+    rgba(0, 0, 0, 0.5) 40%,
+    rgba(0, 0, 0, 0.25) 70%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 10; /* sous le header (30) mais au-dessus de l'image (1) */
 }
 
-.fullscreen-post .post-header img{
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    border:2px solid #fff;
-    object-fit:cover;
-    flex-shrink:0;
+/* ============================================================
+   HEADER (avatar + nom + badge + time)
+============================================================ */
+.fullscreen-post .post-header {
+  position: absolute;
+  left: 12px;
+  bottom: 105px;
+  z-index: 30;
+
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+
+  color: #fff;
+  border: none;
+
+  width: auto;
+  max-width: calc(100% - 90px); /* laisse la place aux actions */
+  padding: 0;
+  background: transparent;
 }
 
-.fullscreen-post .username{
-    display:flex;
-    align-items:center;
-
-    color:#FFD700 !important;
-    font-size:18px;
-    font-weight:700;
-
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-
-    max-width:200px;
+.fullscreen-post .post-header img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
-.fullscreen-post .post-header small{
-    color:#ddd !important;
-    white-space:nowrap;
-    flex-shrink:0;
-    font-size:13px;
+.fullscreen-post .username {
+  display: flex;
+  align-items: center;
+  color: #ffd700 !important;
+  font-size: 18px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
-.fullscreen-post .verified-badge{
-    margin-left:4px;
-    flex-shrink:0;
+.fullscreen-post .post-header small {
+  color: #e0e0e0 !important;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 13px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
-/* ===========================
-   ACTIONS À DROITE
-=========================== */
-
-.fullscreen-actions{
-    position:absolute;
-    right:12px;
-    bottom:85px;
-    z-index:30;
-
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:22px;
-
-    color:#fff;
+.fullscreen-post .verified-badge {
+  margin-left: 4px;
+  flex-shrink: 0;
 }
 
-.fullscreen-actions i{
-    font-size:30px;
+/* ============================================================
+   ✅ LÉGENDE / DESCRIPTION DU POST
+   (si tu veux ajouter le texte d'un post image en dessous)
+============================================================ */
+.fullscreen-post .post-caption {
+  position: absolute;
+  left: 12px;
+  right: 75px;
+  bottom: 18px;
+  z-index: 25;
+
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.4;
+
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    0 0 6px rgba(0, 0, 0, 0.8);
 }
 
-.fullscreen-actions span{
-    display:block;
-    margin-top:4px;
-    text-align:center;
-    font-size:14px;
+.fullscreen-post .post-caption a {
+  color: #ffd700;
+  font-weight: bold;
+  text-decoration: none;
 }
 
-/* ===========================
-   DESCRIPTION
-=========================== */
-
-.fullscreen-caption{
-    position:absolute;
-    left:12px;
-    right:75px;
-    bottom:18px;
-
-    color:#fff;
-    font-size:14px;
-    line-height:1.4;
-
-    z-index:30;
-
-    text-shadow:
-      0 1px 2px rgba(0,0,0,.8),
-      0 0 6px rgba(0,0,0,.8);
-}
-/* NOUVEAU : Fond pour les icônes sur les images */
+/* ============================================================
+   ACTIONS (like / vues / commentaires / edit / boost)
+============================================================ */
 .fullscreen-post .post-actions {
-    background: rgba(0, 0, 0, 0.5); /* Fond noir semi-transparent */
-    border-radius: 0 0 12px 12px; /* Arrondir le bas pour coller à l'image */
-    border-top: none; /* Enlever la ligne grise */
-    color: #fff; /* Mettre les icônes en blanc */
+  position: relative;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: 0 0 12px 12px;
+  border-top: none;
+  color: #fff;
+  padding: 10px 14px;
 }
 
-/* Pour que le cœur, les yeux et les commentaires soient bien blancs */
 .fullscreen-post .post-actions i,
 .fullscreen-post .post-actions span {
-    color: #fff !important;
+  color: #fff !important;
+}
+
+.fullscreen-post .post-actions .boost-btn {
+  background: #ffa500;
+  color: #fff;
+}
+
+/* ============================================================
+   ✅ CORRECTION : tous les ENFANTS non-img de post-content
+   reçoivent un z-index élevé pour rester visibles
+============================================================ */
+.fullscreen-post .post-content > *:not(img) {
+  position: relative;
+  z-index: 15;
+}
+
+/* Exception : le header garde son z-index 30 */
+.fullscreen-post .post-content > .post-header {
+  z-index: 30;
+}
+
+/* ============================================================
+   MOBILE : ajustements de hauteur et de position
+============================================================ */
+@media (max-width: 768px) {
+  .fullscreen-post .post-content img {
+    max-height: 75vh;
+  }
+
+  .fullscreen-post .post-title {
+    font-size: 15px;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    padding: 6px 10px;
+  }
+
+  .fullscreen-post .post-header {
+    bottom: 95px;
+    max-width: calc(100% - 80px);
+  }
+
+  .fullscreen-post .post-caption {
+    bottom: 15px;
+    font-size: 13px;
+  }
+
+  .fullscreen-post .post-actions {
+    padding: 8px 12px;
+  }
 }
 
 /* ===========================
@@ -418,25 +488,6 @@ section#home,#videoFeed,#userFeed,#feedme,#music {
    MOBILE
 =========================== */
 
-@media (max-width:768px){
-
-    .fullscreen-post .post-content img{
-        max-height:75vh;
-    }
-
-    .fullscreen-post .post-header{
-        bottom:95px;
-    }
-
-    .fullscreen-actions{
-        bottom:75px;
-    }
-
-    .fullscreen-caption{
-        bottom:15px;
-        font-size:13px;
-    }
-}
 #videoFeed.tabcontent{
     max-width:none !important;
     width:100vw !important;
@@ -1821,28 +1872,107 @@ font-size:14px;
 </section>
 <!-- ============ SIGNUP FORM ============ -->
 <section id="inscrip" class="tabcontent">
- <br><br/>
- <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
- 
+  <br><br/>
+  <div class="priix" onclick="openTab(event,'home')">
+    <i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i>
+  </div>
+
   <h3>Inscription</h3>
   <div id="emailSignupBox">
-   <input type="text"
-       id="signupName"
-       placeholder="Nom complet"
-       pattern="[a-zA-ZÀ-ÿ0-9\s]+"
-       required/>  
-    <input type="email"    id="signupEmail"    placeholder="Email" />
-    <input type="password" id="signupPassword" placeholder="Mot de passe (≥ 6 car.)" />
-    <input type="number"   id="signupAge"      placeholder="Âge (min 18)" min="18" />
-     <button style="background-color:transparent">
-    <u onclick="openTab(event,'condir')" style="color:blue">j'ai acceptez les conditions generales d'utulisations</u>
-  </button>
 
+    <input type="text"
+      id="signupName"
+      placeholder="Nom complet"
+      pattern="[a-zA-ZÀ-ÿ0-9\s]+"
+      required/>
 
-    <button onclick="signupWithEmail()">S’inscrire</button>
-    </div>
-  </section>
+    <input type="email"
+      id="signupEmail"
+      placeholder="Email" />
 
+    <input type="password"
+      id="signupPassword"
+      placeholder="Mot de passe (≥ 6 car.)" />
+
+    <input type="number"
+      id="signupAge"
+      placeholder="Âge (min 18)"
+      min="18" />
+
+    <!-- ✅ NOUVEAU : Choix du pays à l'inscription -->
+    <label for="signupCountry" style="display:block;margin:8px 0 4px;font-weight:bold;color:#333;">
+      🌍 Votre pays :
+    </label>
+    <select id="signupCountry" required>
+      <option value="1">Cameroun 🇨🇲</option>
+      <option value="2">Côte d’Ivoire 🇨🇮</option>
+      <option value="3">Gabon 🇬🇦</option>
+      <option value="4">Sénégal 🇸🇳</option>
+      <option value="5">Bénin 🇧🇯</option>
+      <option value="6">RDC Congo 🇨🇩</option>
+      <option value="7">Nigeria 🇳🇬</option>
+      <option value="8">Togo 🇹🇬</option>
+      <option value="9">Burkina Faso 🇧🇫</option>
+      <option value="10">Mali 🇲🇱</option>
+      <option value="11">Niger 🇳🇪</option>
+      <option value="12">Guinée 🇬🇳</option>
+      <option value="13">Guinée-Bissau 🇬🇼</option>
+      <option value="14">Libéria 🇱🇷</option>
+      <option value="15">Sierra Leone 🇸🇱</option>
+      <option value="16">Ghana 🇬🇭</option>
+      <option value="17">Mauritanie 🇲🇷</option>
+      <option value="18">Maroc 🇲🇦</option>
+      <option value="19">Algérie 🇩🇿</option>
+      <option value="20">Tunisie 🇹🇳</option>
+      <option value="21">Libye 🇱🇾</option>
+      <option value="22">Égypte 🇪🇬</option>
+      <option value="23">Tchad 🇹🇩</option>
+      <option value="24">République centrafricaine 🇨🇫</option>
+      <option value="25">Congo 🇨🇬</option>
+      <option value="26">Angola 🇦🇴</option>
+      <option value="27">Zambie 🇿🇲</option>
+      <option value="28">Zimbabwe 🇿🇼</option>
+      <option value="29">Namibie 🇳🇦</option>
+      <option value="30">Botswana 🇧🇼</option>
+      <option value="31">Afrique du Sud 🇿🇦</option>
+      <option value="32">Mozambique 🇲🇿</option>
+      <option value="33">Madagascar 🇲🇬</option>
+      <option value="34">Comores 🇰🇲</option>
+      <option value="35">Maurice 🇲🇺</option>
+      <option value="36">Seychelles 🇸🇨</option>
+      <option value="37">Rwanda 🇷🇼</option>
+      <option value="38">Burundi 🇧🇮</option>
+      <option value="39">Ouganda 🇺🇬</option>
+      <option value="40">Kenya 🇰🇪</option>
+      <option value="41">Tanzanie 🇹🇿</option>
+      <option value="42">Éthiopie 🇪🇹</option>
+      <option value="43">Somalie 🇸🇴</option>
+      <option value="44">Djibouti 🇩🇯</option>
+      <option value="45">Érythrée 🇪🇷</option>
+      <option value="46">Soudan 🇸🇩</option>
+      <option value="47">Soudan du Sud 🇸🇸</option>
+      <option value="48">Guinée équatoriale 🇬🇶</option>
+      <option value="49">Sao Tomé-et-Principe 🇸🇹</option>
+      <option value="50">Eswatini 🇸🇿</option>
+      <option value="51">Lesotho 🇱🇸</option>
+      <option value="52">Cap-Vert 🇨🇻</option>
+      <option value="53">France 🇫🇷</option>
+      <option value="54">Belgique 🇧🇪</option>
+      <option value="55">Canada 🇨🇦</option>
+      <option value="56">États-Unis 🇺🇸</option>
+    </select>
+
+    <button style="background-color:transparent;margin-top:10px">
+      <u onclick="openTab(event,'condir')" style="color:blue">
+        J'ai accepté les conditions générales d'utilisation
+      </u>
+    </button>
+
+    <button onclick="signupWithEmail()" style="margin-top:12px">
+      S'inscrire
+    </button>
+  </div>
+</section>
 <!-- ============ OTHER USER FEED ============ -->
 <section id="userFeed" class="tabcontent">
   <br><br/>
@@ -2412,17 +2542,71 @@ window.signupWithEmail = async () => {
   const email = qs('signupEmail').value.trim();
   const password = qs('signupPassword').value;
   const age = parseInt(qs('signupAge').value);
+  const countryIndex = parseInt(qs('signupCountry').value) || 1; // ✅ nouveau
 
-  if (!name || !email || !password) return alert("Remplis tous les champs");
-  if (password.length < 6) return alert("Mot de passe ≥ 6 caractères");
-  if (isNaN(age) || age < 18) return alert("Âge minimum 18 ans");
+  // ----- VALIDATIONS -----
+  if (!name || !email || !password) {
+    return alert("Remplis tous les champs");
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return alert("Email invalide");
+  }
+  if (password.length < 6) {
+    return alert("Mot de passe ≥ 6 caractères");
+  }
+  if (isNaN(age) || age < 18) {
+    return alert("Âge minimum 18 ans");
+  }
+  if (!countryIndex || countryIndex < 1 || countryIndex > 56) {
+    return alert("Choisis un pays valide");
+  }
 
+  // ----- INSCRIPTION SUPABASE AUTH -----
   const { data, error } = await supabase.auth.signUp({
-    email, password,
-    options: { data: { name } }
+    email,
+    password,
+    options: {
+      data: {
+        name,
+        age,
+        country_index: countryIndex // ✅ stocké dans user_metadata
+      }
+    }
   });
+
   if (error) return alert(error.message);
-  alert("✅ Inscription réussie. Vérifie tes emails si la confirmation est activée.");
+
+  // ----- MISE À JOUR DU PROFIL PUBLIC -----
+  // La table `users` est créée via trigger Supabase au signup,
+  // MAIS le champ `country_index` n'est pas forcément rempli.
+  // On fait un upsert pour être sûr.
+  if (data?.user?.id) {
+    const { error: profileErr } = await supabase
+      .from('users')
+      .upsert({
+        id: data.user.id,
+        name,
+        email,
+        country_index: countryIndex
+      }, { onConflict: 'id' });
+
+    if (profileErr) {
+      console.warn("Profil non mis à jour :", profileErr.message);
+      // Non bloquant — l'utilisateur pourra le faire manuellement
+    }
+  }
+
+  alert("✅ Inscription réussie ! Vérifie tes emails si la confirmation est activée.");
+
+  // ----- RESET DU FORMULAIRE -----
+  qs('signupName').value = '';
+  qs('signupEmail').value = '';
+  qs('signupPassword').value = '';
+  qs('signupAge').value = '';
+  qs('signupCountry').value = '1';
+
+  // ----- REDIRECTION VERS LA CONNEXION -----
+  openTab({ currentTarget: null }, 'conect');
 };
 
 window.sendResetLink = async () => {
@@ -2581,54 +2765,148 @@ async function deposit(amount) {
 /*──────────────────────────────────────────────────────────
   10. PUBLIER UN POST
 ──────────────────────────────────────────────────────────*/
+
 window.publishPost = async () => {
+  // ----- 1. AUTH -----
   if (!currentUser) return alert("Connectez-vous");
 
-  const text = qs('postText').value.trim();
-  const file = qs('imageFile').files[0];
-  const title = qs('imageTitle').value.trim();
-  if (!text && !file) return alert("Ajoutez un texte ou une image");
+  const textInput = qs('postText');
+  const fileInput = qs('imageFile');
+  const titleInput = qs('imageTitle');
+  const bgColorInput = qs('bgColor'); // ✅ récupérer la couleur
+  const statusEl = qs('status');
 
-  qs('status').textContent = "⏳ Publication…";
-  let imageUrl = null;
+  const text = textInput?.value.trim() || '';
+  const file = fileInput?.files[0] || null;
+  const title = titleInput?.value.trim() || '';
+  const bgColor = bgColorInput?.value || '#FFA500';
 
-  if (file) {
-    const path = `${currentUser.id}/${Date.now()}_${file.name}`;
-    const { error: upErr } = await supabase.storage.from('media').upload(path, file);
-    if (upErr) { qs('status').textContent = ''; return alert("Échec upload: " + upErr.message); }
-    imageUrl = supabase.storage.from('media').getPublicUrl(path).data.publicUrl;
+  if (!text && !file) {
+    return alert("Ajoutez un texte ou une image");
   }
 
-  const { data: post, error } = await supabase.from('posts').insert({
-    user_id: currentUser.id,
-    text: text || null,
-    image_url: imageUrl,
-    image_title: title || null
-  }).select().single();
-
-  if (error) { qs('status').textContent = ''; return alert(error.message); }
-
-  const matches = [...text.matchAll(/@([\wÀ-ÿ0-9]+)/g)];
-  for (const m of matches) {
-    const { data: users } = await supabase.from('users').select('id').eq('name', m[1]);
-    for (const u of (users || [])) {
-      if (u.id === currentUser.id) continue;
-      await supabase.from('notifications').insert({
-        to_user_id: u.id,
-        from_user_id: currentUser.id,
-        from_user_name: currentProfile?.name || currentUser.email,
-        type: 'mention',
-        post_id: post.id
-      });
+  // ----- 2. VALIDATION FICHIER -----
+  if (file) {
+    if (!file.type.startsWith('image/')) {
+      return alert("Le fichier doit être une image.");
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      return alert("Image trop volumineuse (max 4 MB).");
     }
   }
 
-  await supabase.rpc('bump_suggest_score', { p_user_id: currentUser.id, p_amount: 15 });
+  // ----- 3. UPLOAD IMAGE -----
+  statusEl.textContent = "⏳ Publication…";
 
-  qs('postText').value = '';
-  qs('imageFile').value = '';
-  qs('imageTitle').value = '';
-  qs('status').textContent = "✅ Publié !";
+  let imageUrl = null;
+  let uploadedPath = null;
+
+  if (file) {
+    const ext = file.name.split('.').pop() || 'jpg';
+    uploadedPath = `${currentUser.id}/${Date.now()}.${ext}`;
+
+    const { error: upErr } = await supabase
+      .storage.from('media')
+      .upload(uploadedPath, file);
+
+    if (upErr) {
+      statusEl.textContent = '';
+      return alert("Échec upload : " + upErr.message);
+    }
+
+    imageUrl = supabase.storage.from('media').getPublicUrl(uploadedPath).data.publicUrl;
+  }
+
+  // ----- 4. INSERTION EN BASE -----
+  const insertPayload = {
+    user_id: currentUser.id,
+    text: text || null,
+    image_url: imageUrl,
+    image_title: title || null,
+    bg_color: bgColor,          // ✅ sauvegarder la couleur
+    text_color: text ? '#fff' : '#000' // ✅ couleur texte lisible sur bg
+  };
+
+  const { data: post, error: insertErr } = await supabase
+    .from('posts')
+    .insert(insertPayload)
+    .select()
+    .single();
+
+  if (insertErr) {
+    // ✅ Rollback : supprimer l'image uploadée si l'insert échoue
+    if (uploadedPath) {
+      await supabase.storage.from('media').remove([uploadedPath]).catch(() => {});
+    }
+    statusEl.textContent = '';
+    return alert("Erreur publication : " + insertErr.message);
+  }
+
+  // ----- 5. DÉTECTION DES MENTIONS @ -----
+  // Regex : capture les noms d'utilisateurs (lettres, chiffres, underscore)
+  // Supporte les accents. NE capture PAS les espaces (pour éviter
+  // d'avaler tout le texte après le @).
+  const mentionRe = /@([\wÀ-ÖØ-öø-ÿ0-9]+)/g;
+  const matches = text ? [...text.matchAll(mentionRe)] : [];
+
+  // ✅ Déduplication : un même user ne reçoit qu'une seule notification
+  // même s'il est mentionné plusieurs fois dans le texte
+  const uniqueUsernames = new Set(
+    matches.map(m => m[1].toLowerCase()).filter(Boolean)
+  );
+
+  if (uniqueUsernames.size > 0) {
+    // ✅ Récupérer tous les users en UNE seule requête (plus rapide)
+    const { data: allUsers } = await supabase
+      .from('users')
+      .select('id, name');
+
+    if (allUsers?.length) {
+      const notifications = [];
+
+      for (const uname of uniqueUsernames) {
+        // ✅ ilike pour insensibilité à la casse
+        const matched = allUsers.filter(
+          u => u.name && u.name.toLowerCase() === uname
+        );
+
+        for (const u of matched) {
+          if (u.id === currentUser.id) continue; // ✅ pas d'auto-notif
+          notifications.push({
+            to_user_id: u.id,
+            from_user_id: currentUser.id,
+            from_user_name: currentProfile?.name || currentUser.email,
+            type: 'mention',
+            post_id: post.id
+          });
+        }
+      }
+
+      if (notifications.length > 0) {
+        // ✅ Insertion en batch (plus rapide que boucle await)
+        await supabase.from('notifications').insert(notifications);
+      }
+    }
+  }
+
+  // ----- 6. BUMP SCORE SUGGESTION -----
+  await supabase
+    .rpc('bump_suggest_score', {
+      p_user_id: currentUser.id,
+      p_amount: 15
+    })
+    .catch(() => {}); // non bloquant
+
+  // ----- 7. RÉINITIALISATION FORMULAIRE -----
+  if (textInput) textInput.value = '';
+  if (fileInput) fileInput.value = '';
+  if (titleInput) titleInput.value = '';
+  if (bgColorInput) bgColorInput.value = '#FFA500';
+
+  statusEl.textContent = "✅ Publié !";
+  setTimeout(() => { statusEl.textContent = ''; }, 2000);
+
+  // ----- 8. RAFRAÎCHIR LES FEEDS -----
   renderFeed();
   renderMyFeed();
 };
@@ -2859,6 +3137,7 @@ async function renderBoostFeed() {
 /*──────────────────────────────────────────────────────────
   15. CARTE POST (le cœur)
 ──────────────────────────────────────────────────────────*/
+
 function card(id, d, isMine) {
   const w = document.createElement('div');
   w.className = 'post';
@@ -2867,29 +3146,49 @@ function card(id, d, isMine) {
   const isFullscreen = d.image_url && window.innerWidth <= 768;
   if (isFullscreen) w.classList.add('fullscreen-post');
 
+  /* ============================================================
+     HEADER (avatar + nom + temps + badge vérifié + follow)
+  ============================================================ */
   const head = document.createElement('div');
   head.className = 'post-header';
+
   const img = document.createElement('img');
+  img.alt = 'avatar';
   img.onclick = () => openUserFeed(d.user_id);
+
   const name = document.createElement('a');
   name.className = 'username';
   name.href = '#';
   name.onclick = (e) => { e.preventDefault(); openUserFeed(d.user_id); };
   name.textContent = 'Chargement…';
+
   const time = document.createElement('small');
   time.style.cssText = 'margin-left:8px;color:#888;';
   if (d.created_at) time.textContent = `• il y a ${timeSince(new Date(d.created_at))}`;
 
   head.append(img, name, time);
 
+  // Chargement async du profil + badge vérifié
   (async () => {
-    const { data: u } = await supabase.from('users')
-      .select('name, photo_url').eq('id', d.user_id).maybeSingle();
+    const { data: u } = await supabase
+      .from('users')
+      .select('name, photo_url')
+      .eq('id', d.user_id)
+      .maybeSingle();
     img.src = u?.photo_url || 'https://via.placeholder.com/40';
-    const { data: v } = await supabase.from('verifications')
-      .select('status').eq('user_id', d.user_id).maybeSingle();
+
+    const { data: v } = await supabase
+      .from('verifications')
+      .select('status')
+      .eq('user_id', d.user_id)
+      .maybeSingle();
+
     if (v?.status === true) {
-      name.innerHTML = `${u?.name || 'Utilisateur'} <span class="verified-badge"><i class="fas fa-certificate"></i><i class="fas fa-check checkmark"></i></span>`;
+      name.innerHTML = `${escapeHtml(u?.name || 'Utilisateur')} 
+        <span class="verified-badge">
+          <i class="fas fa-certificate"></i>
+          <i class="fas fa-check checkmark"></i>
+        </span>`;
     } else {
       name.textContent = u?.name || 'Utilisateur';
     }
@@ -2897,55 +3196,103 @@ function card(id, d, isMine) {
 
   const fbtn = renderFollowBtn(d.user_id);
   if (fbtn) head.appendChild(fbtn);
+
   if ((d.boosted || 0) > 0) {
     const tag = document.createElement('span');
     tag.innerHTML = '<i class="fa-solid fa-trophy" style="color:gold"></i>';
     tag.style.cssText = 'margin-left:auto;color:#ffa500;font-size:12px;font-weight:bold;';
     head.appendChild(tag);
   }
+
+  // ⚠️ En fullscreen, on n'ajoute PAS head ici (il sera ajouté DANS le contenu image)
   if (!isFullscreen) w.appendChild(head);
 
+  /* ============================================================
+     CONTENU (image ou texte)
+  ============================================================ */
   const cont = document.createElement('div');
   cont.className = 'post-content';
 
   if (d.image_url) {
+    // ---- Titre de l'image (VISIBLE en fullscreen grâce au z-index) ----
     if (d.image_title) {
       const tw = document.createElement('div');
-      tw.style.cssText = 'padding:8px;font-weight:bold;';
+      tw.className = 'post-title';
+      tw.style.cssText = `
+        padding:8px;
+        font-weight:bold;
+        position:relative;
+        z-index:6;
+        color:${isFullscreen ? '#fff' : '#000'};
+        text-shadow:${isFullscreen ? '0 1px 3px rgba(0,0,0,.9)' : 'none'};
+      `;
       tw.textContent = d.image_title;
       cont.appendChild(tw);
     }
+
+    // ---- Image ----
     const imgEl = document.createElement('img');
     imgEl.src = d.image_url;
-    imgEl.style.cssText = 'max-width:100%;border-radius:2px;';
+    imgEl.alt = d.image_title || 'publication';
+    imgEl.style.cssText = 'max-width:100%;border-radius:2px;display:block;';
     cont.appendChild(imgEl);
-    if (isFullscreen) cont.appendChild(head);
+
+    // ---- En fullscreen : on REMET le header par-dessus l'image ----
+    if (isFullscreen) {
+      head.style.cssText = 'position:absolute;left:12px;bottom:105px;z-index:30;display:flex;align-items:center;gap:8px;';
+      cont.appendChild(head);
+    }
   } else if (d.text) {
     const tw = document.createElement('div');
-    tw.style.cssText = `padding:8px;border-radius:6px;background:${d.bg_color || '#fff'};color:${d.text_color || '#000'};white-space:pre-wrap;word-break:break-word;`;
+    tw.style.cssText = `
+      padding:8px;
+      border-radius:6px;
+      background:${d.bg_color || '#fff'};
+      color:${d.text_color || '#000'};
+      white-space:pre-wrap;
+      word-break:break-word;
+      position:relative;
+      z-index:5;
+    `;
     renderLinkedText(d.text, tw);
     cont.appendChild(tw);
   }
+
   w.appendChild(cont);
 
+  /* ============================================================
+     ACTIONS (like / vues / commentaires / edit / boost)
+  ============================================================ */
   const act = document.createElement('div');
   act.className = 'post-actions';
 
   const like = document.createElement('i');
   like.className = 'fa-regular fa-heart like';
+
   const lCnt = document.createElement('span');
   lCnt.textContent = fmt(d.likes || 0);
 
   (async () => {
-    const { data } = await supabase.from('post_likes').select('post_id')
-      .eq('post_id', id).eq('user_id', currentUser?.id).maybeSingle();
+    const { data } = await supabase
+      .from('post_likes')
+      .select('post_id')
+      .eq('post_id', id)
+      .eq('user_id', currentUser?.id)
+      .maybeSingle();
     if (data) like.classList.add('fa-solid', 'liked');
   })();
 
   like.onclick = async () => {
     if (!currentUser) return alert('Connectez-vous');
-    await supabase.rpc('toggle_like', { p_post_id: id, p_user_id: currentUser.id });
-    const { data } = await supabase.from('posts').select('likes').eq('id', id).single();
+    await supabase.rpc('toggle_like', {
+      p_post_id: id,
+      p_user_id: currentUser.id
+    });
+    const { data } = await supabase
+      .from('posts')
+      .select('likes')
+      .eq('id', id)
+      .single();
     lCnt.textContent = fmt(data?.likes || 0);
     like.classList.toggle('liked');
     like.classList.toggle('fa-solid');
@@ -2983,15 +3330,28 @@ function card(id, d, isMine) {
   left.className = 'left';
   left.append(like, lCnt);
   act.append(left, center, right);
-  
-  // CORRECTION : Toujours afficher les actions, même en fullscreen
-  w.appendChild(act); 
 
+  w.appendChild(act);
+
+  /* ============================================================
+     SECTION COMMENTAIRES (drawer)
+  ============================================================ */
   const comSec = document.createElement('div');
   comSec.className = 'comments-section';
+
   const closeBtn = document.createElement('i');
   closeBtn.className = 'fa-solid fa-xmark';
-  closeBtn.style.cssText = 'position:absolute;top:15px;right:15px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);font-size:22px;color:#444;cursor:pointer;z-index:10000;';
+  closeBtn.style.cssText = `
+    position:absolute;
+    top:15px;right:15px;
+    width:36px;height:36px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+    font-size:22px;color:#444;
+    cursor:pointer;z-index:10000;
+  `;
   closeBtn.onclick = () => comSec.classList.remove('open');
   comSec.appendChild(closeBtn);
 
@@ -3001,9 +3361,11 @@ function card(id, d, isMine) {
   if (currentUser) {
     const inputBox = document.createElement('div');
     inputBox.className = 'comment-input';
+
     const inp = document.createElement('textarea');
     inp.placeholder = 'Ajouter un commentaire...';
     inp.rows = 2;
+
     const btn = document.createElement('button');
     btn.textContent = 'Envoyer';
     btn.onclick = async () => {
@@ -3013,6 +3375,7 @@ function card(id, d, isMine) {
       inp.value = '';
       await loadComments(id, comList, comCnt);
     };
+
     inputBox.append(inp, btn);
     comSec.appendChild(inputBox);
   }
@@ -3023,8 +3386,12 @@ function card(id, d, isMine) {
     comSec.classList.toggle('open', show);
     if (show) await loadComments(id, comList, comCnt);
   };
+
   loadComments(id, comList, comCnt).catch(console.error);
 
+  /* ============================================================
+     HR de séparation
+  ============================================================ */
   const hr = document.createElement('hr');
   hr.style.cssText = 'border:none;border-top:1px solid #ddd;margin:16px 0;';
   w.appendChild(hr);
@@ -3353,9 +3720,34 @@ window.openUserFeed = async (uid) => {
 };
 
 async function openUserFeedByName(name) {
-  const { data } = await supabase.from('users').select('id').eq('name', name).maybeSingle();
-  if (data) openUserFeed(data.id);
-  else alert("Utilisateur introuvable");
+  const clean = name.trim();
+  if (!clean) return;
+
+  // 1️⃣ D'abord : correspondance EXACTE (insensible à la casse)
+  let { data } = await supabase
+    .from('users')
+    .select('id, name')
+    .ilike('name', clean)
+    .maybeSingle();
+
+  // 2️⃣ Si rien : recherche partielle, mais un seul résultat
+  if (!data) {
+    const { data: list } = await supabase
+      .from('users')
+      .select('id, name')
+      .ilike('name', `%${clean}%`)
+      .limit(2);
+
+    if (!list || list.length === 0) {
+      return alert("Utilisateur introuvable : @" + clean);
+    }
+    if (list.length > 1) {
+      return alert("Plusieurs utilisateurs correspondent à @" + clean);
+    }
+    data = list[0];
+  }
+
+  openUserFeed(data.id);
 }
 
 /*──────────────────────────────────────────────────────────
@@ -4124,6 +4516,59 @@ async function checkFirstDeposit() {
   } catch (err) {
     console.error("Erreur vérification dépôt:", err);
   }
+}
+/*──────────────────────────────────────────────────────────
+  SYSTÈME DE MENTIONS (@) - RECHERCHE PARTIELLE
+──────────────────────────────────────────────────────────*/
+const postTextarea = document.getElementById('postText');
+const suggestionsBox = document.getElementById('mentionSuggestions');
+
+if (postTextarea && suggestionsBox) {
+  postTextarea.addEventListener('input', async () => {
+    const value = postTextarea.value;
+    const cursorPos = postTextarea.selectionStart;
+    const textBeforeCursor = value.substring(0, cursorPos);
+    const lastAt = textBeforeCursor.lastIndexOf('@');
+
+    // On cherche @ suivi de lettres sans espace
+    const afterAt = textBeforeCursor.substring(lastAt + 1);
+    
+    if (lastAt !== -1 && !afterAt.includes(' ') && afterAt.length > 0) {
+      const { data: users } = await supabase
+        .from('users')
+        .select('id, name, photo_url')
+        .ilike('name', `%${afterAt}%`)
+        .neq('id', currentUser?.id)
+        .limit(5);
+
+      if (users && users.length > 0) {
+        suggestionsBox.innerHTML = '';
+        const rect = postTextarea.getBoundingClientRect();
+        suggestionsBox.style.left = rect.left + 'px';
+        suggestionsBox.style.top = (rect.top + postTextarea.offsetHeight + 5) + 'px';
+        suggestionsBox.style.width = rect.width + 'px';
+        
+        users.forEach(u => {
+          const div = document.createElement('div');
+          div.style.cssText = 'padding:8px; cursor:pointer; display:flex; align-items:center; gap:10px; border-bottom:1px solid #eee;';
+          div.innerHTML = `<img src="${u.photo_url || 'https://via.placeholder.com/30'}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;"><span style="font-weight:bold;color:#333;">${u.name}</span>`;
+          div.onclick = () => {
+            const before = postTextarea.value.substring(0, lastAt);
+            const after = postTextarea.value.substring(postTextarea.selectionStart);
+            postTextarea.value = before + '@' + u.name + ' ' + after;
+            suggestionsBox.style.display = 'none';
+            postTextarea.focus();
+          };
+          suggestionsBox.appendChild(div);
+        });
+        suggestionsBox.style.display = 'block';
+      } else {
+        suggestionsBox.style.display = 'none';
+      }
+    } else {
+      suggestionsBox.style.display = 'none';
+    }
+  });
 }
 </script>
 </body>
