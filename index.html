@@ -2637,13 +2637,20 @@ async function ensureUsersCache() {
 /*──────────────────────────────────────────────────────────
   7. SESSION
 ──────────────────────────────────────────────────────────*/
+
 supabase.auth.onAuthStateChange(async (event, session) => {
+  /*──────────────────────────────────────────────
+    1. LOADER
+  ──────────────────────────────────────────────*/
   const loader = document.getElementById('global-loader');
   if (loader) loader.style.display = 'none';
 
   const user = session?.user || null;
   currentUser = user;
 
+  /*──────────────────────────────────────────────
+    2. RÉCUPÉRATION DE MOT DE PASSE
+  ──────────────────────────────────────────────*/
   if (event === 'PASSWORD_RECOVERY') {
     document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
     const pwdTab = document.getElementById('update-password');
@@ -2651,67 +2658,164 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     return;
   }
 
+  /*──────────────────────────────────────────────
+    3. NAVIGATION PAR DÉFAUT
+  ──────────────────────────────────────────────*/
   document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
   if (!user) {
-    document.getElementById('conect').classList.add('active');
+    document.getElementById('conect')?.classList.add('active');
   } else {
-    document.getElementById('home').classList.add('active');
+    document.getElementById('home')?.classList.add('active');
   }
 
+  /*──────────────────────────────────────────────
+    4. UTILISATEUR DÉCONNECTÉ → RESET
+  ──────────────────────────────────────────────*/
   if (!user) {
     currentProfile = null;
     followingIds.clear();
     likedPosts.clear();
-    ['feed','myFeed','videoFeedContent','videoFeedContentBoost','userFeedContent']
+    ['feed', 'myFeed', 'videoFeedContent', 'videoFeedContentBoost', 'userFeedContent']
       .forEach(id => { const el = qs(id); if (el) el.innerHTML = ''; });
-    qs('authStatus').textContent = '';
-    qs('accountStatus').textContent = '';
+    qs('authStatus') && (qs('authStatus').textContent = '');
+    qs('accountStatus') && (qs('accountStatus').textContent = '');
+    qs('notificationsList') && (qs('notificationsList').innerHTML = '');
+
+    // Reset visuel certification
+    const btn = document.getElementById('certify-btn');
+    const iconP = document.getElementById('icon');
+    if (btn) btn.style.display = 'block';
+    if (iconP) iconP.style.display = 'none';
+
+    // Reset banner monétisation
+    const banner = document.getElementById('monetizationBanner');
+    if (banner) banner.style.display = 'none';
+
+    // Vide la barre de stories
+    const bar = document.getElementById('storyBar');
+    if (bar) bar.innerHTML = '';
+    allStoriesGrouped = [];
+
     return;
   }
 
-  currentProfile = await loadProfile(user.id);
-  if (!currentProfile) {
-    await supabase.from('users').upsert({
-      id: user.id,
-      name: user.user_metadata?.name || user.email,
-      email: user.email,
-      photo_url: user.user_metadata?.avatar_url || null
-    });
+  /*──────────────────────────────────────────────
+    5. CHARGEMENT DU PROFIL
+  ──────────────────────────────────────────────*/
+  try {
     currentProfile = await loadProfile(user.id);
+
+    if (!currentProfile) {
+      await supabase.from('users').upsert({
+        id: user.id,
+        name: user.user_metadata?.name || user.email,
+        email: user.email,
+        photo_url: user.user_metadata?.avatar_url || null
+      });
+      currentProfile = await loadProfile(user.id);
+    }
+  } catch (err) {
+    console.error('Erreur chargement profil:', err);
   }
 
-  const photo = currentProfile?.photo_url || "https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/1000x999/";
+  /*──────────────────────────────────────────────
+    6. AFFICHAGE PHOTO + NOM
+  ──────────────────────────────────────────────*/
+  const photo = currentProfile?.photo_url
+    || "https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/1000x999/";
   const name = currentProfile?.name || user.email;
 
   if (qs('homeProfilePhoto')) qs('homeProfilePhoto').src = photo;
   if (qs('feedmeProfilePhoto')) qs('feedmeProfilePhoto').src = photo;
   if (qs('authStatus')) qs('authStatus').textContent = name;
   if (qs('accountStatus')) qs('accountStatus').textContent = '• ' + name;
-  if (qs('accountStatusFeed')) qs('accountStatusFeed').textContent = qs('accountStatus').textContent;
+  if (qs('accountStatusFeed')) qs('accountStatusFeed').textContent = '• ' + name;
 
-  const { data: v } = await supabase.from('verifications').select('*').eq('user_id', user.id).maybeSingle();
+  /*──────────────────────────────────────────────
+    7. CERTIFICATION (avec support timestamp OU ISO)
+  ──────────────────────────────────────────────*/
+  let certificationValid = false;
+  let certificationExpiry = null;
+
+  try {
+    const { data: v } = await supabase
+      .from('verifications')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (v?.status === true && v?.expires_at) {
+      // Supporte : number (ms), ISO string, ou objet Date
+      const expMs = typeof v.expires_at === 'number'
+        ? v.expires_at
+        : new Date(v.expires_at).getTime();
+
+      certificationValid = !isNaN(expMs) && expMs > Date.now();
+      certificationExpiry = expMs;
+    }
+  } catch (err) {
+    console.warn('Vérification échouée:', err);
+  }
+
   const btn = document.getElementById('certify-btn');
   const iconP = document.getElementById('icon');
-  const isValid = v?.status === true && v?.expires_at && v.expires_at > Date.now();
-  if (btn) btn.style.display = isValid ? 'none' : 'block';
-  if (iconP) iconP.style.display = isValid ? 'block' : 'none';
+  if (btn) btn.style.display = certificationValid ? 'none' : 'block';
+  if (iconP) iconP.style.display = certificationValid ? 'block' : 'none';
 
-  await loadUserCountry();
-  await loadFollowing();
-  await loadWallet();
-  await loadLikedPosts();
-  await checkSuggestReset();
-  await loadMyBio(); 
-await checkFirstDeposit();
+  // Alerte expiration ≤ 3 jours
+  if (certificationValid && certificationExpiry) {
+    const daysLeft = Math.ceil((certificationExpiry - Date.now()) / 86400000);
+    if (daysLeft <= 3 && daysLeft > 0) {
+      setTimeout(() => {
+        showCustomAlert(
+          `⏳ Ta certification expire dans ${daysLeft} jour(s).\nPense à la renouveler.`,
+          "Certification"
+        );
+      }, 3000);
+    }
+  }
 
+  /*──────────────────────────────────────────────
+    8. CHARGEMENTS ASYNCHRONES (ordre critique)
+  ──────────────────────────────────────────────*/
+  try {
+    await loadUserCountry();
+    await loadFollowing();       // ⚠️ AVANT loadStories
+    await loadWallet();
+    await loadLikedPosts();
+    await checkSuggestReset();
+    await loadMyBio();
+    await checkFirstDeposit();
+
+    // ✅ APRÈS followingIds → stories correctement triées
+    await loadStories();
+  } catch (err) {
+    console.error('Erreur chargements initiaux:', err);
+  }
+
+  /*──────────────────────────────────────────────
+    9. RENDU DES FEEDS
+  ──────────────────────────────────────────────*/
   renderFeed();
   renderMyFeed();
   renderVideoFeed();
   renderBoostFeed();
+
+  /*──────────────────────────────────────────────
+    10. NOTIFICATIONS + MÉTA
+  ──────────────────────────────────────────────*/
   loadNotifications();
   showProfileLink(user.id);
   loadTotalViewsAndBalance();
   loadSuggestions();
+
+  /*──────────────────────────────────────────────
+    11. BANNIÈRE MONÉTISATION
+  ──────────────────────────────────────────────*/
+  const banner = document.getElementById('monetizationBanner');
+  if (banner) {
+    banner.style.display = hasDeposited ? 'none' : 'block';
+  }
 });
 
 /*──────────────────────────────────────────────────────────
@@ -3800,6 +3904,7 @@ window.searchUser = async () => {
 /*──────────────────────────────────────────────────────────
   25. CERTIFICATION
 ──────────────────────────────────────────────────────────*/
+
 window.certifyUser = async () => {
   if (!currentUser) return alert("Connectez-vous");
   const ok = await prompt("Pour être certifié gratuitement, réponds aux critères (info@...). Sinon paye 18000 XAF. Valider ?", "oui");
@@ -3808,11 +3913,12 @@ window.certifyUser = async () => {
   if ((w?.balance || 0) < 18000) return alert("Solde insuffisant (18000 XAF requis)");
   await supabase.rpc('debit_wallet', { p_user_id: currentUser.id, p_amount: 18000 });
   await supabase.from('verifications').upsert({
-    user_id: currentUser.id, status: true,
-    expires_at: Date.now() + 365 * 24 * 3600 * 1000
+    user_id: currentUser.id,
+    status: true,
+    expires_at: Date.now() + 30 * 24 * 3600 * 1000   // ✅ 30 jours
   });
   await loadWallet();
-  alert("✅ Compte certifié pour 1 an");
+  alert("✅ Compte certifié pour 30 jours");
 };
 
 /*──────────────────────────────────────────────────────────
@@ -4647,4 +4753,4 @@ if (postTextarea && suggestionsBox) {
 }
 </script>
 </body>
-</html>
+</html> 
