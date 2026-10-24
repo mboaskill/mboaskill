@@ -3973,7 +3973,40 @@ document.getElementById('notchpayBtn')?.addEventListener('click', async () => {
 /*──────────────────────────────────────────────────────────
   STORIES — Chargement de la barre horizontale
 ──────────────────────────────────────────────────────────*/
-let allStoriesGrouped = [];     // [{ user_id, user:{name,photo_url}, stories:[...] }]
+
+/*──────────────────────────────────────────────────────────
+  STORIES — Chargement de la barre horizontale (v2)
+──────────────────────────────────────────────────────────*/
+
+let allStoriesGrouped = [];   // [{ user_id, user, stories:[...] }]
+
+// Clé localStorage pour mémoriser les stories déjà vues
+const SEEN_STORIES_KEY = 'skill_seen_stories';
+
+function getSeenStories() {
+  try {
+    const raw = localStorage.getItem(SEEN_STORIES_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch { return new Set(); }
+}
+
+function markStoryAsSeen(storyId) {
+  const seen = getSeenStories();
+  seen.add(storyId);
+  // On garde max 500 IDs pour ne pas saturer le localStorage
+  const arr = [...seen].slice(-500);
+  localStorage.setItem(SEEN_STORIES_KEY, JSON.stringify(arr));
+}
+
+// Mélange un tableau (Fisher–Yates)
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 async function loadStories() {
   const bar = document.getElementById('storyBar');
@@ -3987,7 +4020,7 @@ async function loadStories() {
 
   if (error) { console.error('loadStories:', error); return; }
 
-  // Grouper par user
+  // ── 1. Grouper par user ─────────────────────────────
   const grouped = new Map();
   (data || []).forEach(s => {
     if (!grouped.has(s.user_id)) {
@@ -4000,11 +4033,40 @@ async function loadStories() {
     grouped.get(s.user_id).stories.push(s);
   });
 
-  allStoriesGrouped = [...grouped.values()];
+  // ── 2. Réordonner selon la logique sociale ─────────
+  //
+  // Priorité :
+  //   ① Moi (currentUser)
+  //   ② Les comptes que je suis (followingIds), mélangés
+  //   ③ Les autres (boosters / suggestions), mélangés
+  //
+  // On ne garde QUE les users ayant au moins une story
+  //
+  const myGroup      = [];   // moi
+  const followingGrp = [];   // suivis
+  const othersGrp    = [];   // reste (boost/suggestions)
 
+  for (const g of grouped.values()) {
+    if (currentUser && g.user_id === currentUser.id) {
+      myGroup.push(g);
+    } else if (currentUser && followingIds.has(g.user_id)) {
+      followingGrp.push(g);
+    } else {
+      othersGrp.push(g);
+    }
+  }
+
+  allStoriesGrouped = [
+    ...myGroup,
+    ...shuffleArray(followingGrp),
+    ...shuffleArray(othersGrp)
+  ];
+
+  // ── 3. Rendu de la barre ───────────────────────────
   bar.innerHTML = '';
+  const seenSet = getSeenStories();
 
-  // Bouton "Créer"
+  // Bouton "Créer" toujours en premier
   if (currentUser) {
     const create = document.createElement('div');
     create.className = 'story-item';
@@ -4015,16 +4077,29 @@ async function loadStories() {
     bar.appendChild(create);
   }
 
-  // Chaque groupe d'user
+  // Puis les groupes triés
   allStoriesGrouped.forEach((g, idx) => {
     const item = document.createElement('div');
     item.className = 'story-item';
+
+    // Anneau gris si TOUTES les stories du user sont vues
+    const allSeen = g.stories.every(s => seenSet.has(s.id));
+    const ringClass = allSeen ? 'ring seen' : 'ring';
+
+    // Photo la plus récente du user comme vignette
     const photo = g.user.photo_url || 'https://via.placeholder.com/70';
+
+    // Petit label "vous" pour ma propre story
+    const label = (currentUser && g.user_id === currentUser.id)
+      ? 'Ma story'
+      : escapeHtml(g.user.name || 'User');
+
     item.innerHTML = `
-      <div class="ring">
+      <div class="${ringClass}">
         <img src="${photo}" alt="${escapeHtml(g.user.name || '')}">
       </div>
-      <small>${escapeHtml(g.user.name || 'User')}</small>`;
+      <small>${label}</small>`;
+
     item.onclick = () => openStoryViewer(idx, 0);
     bar.appendChild(item);
   });
