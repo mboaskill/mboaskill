@@ -2375,7 +2375,8 @@ let firstRenderDone = false;
 let cachedPosts = [];
 const usersCache = new Map(); 
 const timers = new Map();
-let hasDeposited = false; 
+let hasDeposited = false;
+let boostTargetType = 'post';   // 'post' ou 'story'
 const realtimeChannels = [];
 
 const qs = id => document.getElementById(id);
@@ -3694,31 +3695,71 @@ function observePost(el) { observer.observe(el); }
 ──────────────────────────────────────────────────────────*/
 function selectBoostPost(pid, title) {
   boostId = pid;
+  boostTargetType = 'post';   // 🆕 important
   qs('boostStatus').textContent = `1 sélection : ${title}`;
   qs('boostPanel').style.display = 'block';
-  openTab({ currentTarget: document.querySelector('.tablinks[onclick*="BOOST"]') }, 'BOOST');
+  openTab(
+    { currentTarget: document.querySelector('.tablinks[onclick*="BOOST"]') },
+    'BOOST'
+  );
 }
 
 window.boostPost = async () => {
-  if (!boostId) return alert('Choisissez une publication');
+  if (!boostId) return alert('Choisissez une publication ou une story');
+
   const v = parseInt(qs('boostViews').value);
-  if (isNaN(v) || v < 2) return alert('Min 2 jours');
+  if (isNaN(v) || v < 2) return alert('Minimum 2 jours');
   const cost = v * 1750;
 
-  const { data: ok } = await supabase.rpc('debit_wallet', { p_user_id: currentUser.id, p_amount: cost });
+  // ① Débiter le wallet
+  const { data: ok } = await supabase.rpc('debit_wallet', {
+    p_user_id: currentUser.id,
+    p_amount: cost
+  });
   if (!ok) return alert('Solde insuffisant');
   await loadWallet();
 
   const countryIndex = parseInt(qs('boostCountry').value);
-  const { error } = await supabase.from('posts').update({
-    boosted: v, boost_at: new Date().toISOString(), boost_country: countryIndex
-  }).eq('id', boostId);
-  if (error) { await supabase.rpc('credit_wallet', { p_user_id: currentUser.id, p_amount: cost }); return alert(error.message); }
 
-  qs('boostStatus').textContent = `Boost succès ✔️`;
+  // ② Mettre à jour la bonne table
+  let error;
+  if (boostTargetType === 'story') {
+    ({ error } = await supabase
+      .from('stories')
+      .update({
+        boosted: v,
+        boost_at: new Date().toISOString(),
+        boost_country: countryIndex
+      })
+      .eq('id', boostId));
+  } else {
+    ({ error } = await supabase
+      .from('posts')
+      .update({
+        boosted: v,
+        boost_at: new Date().toISOString(),
+        boost_country: countryIndex
+      })
+      .eq('id', boostId));
+  }
+
+  if (error) {
+    // Rembourser en cas d'échec
+    await supabase.rpc('credit_wallet', {
+      p_user_id: currentUser.id,
+      p_amount: cost
+    });
+    return alert(error.message);
+  }
+
+  qs('boostStatus').textContent = 'Boost succès ✔️';
   qs('boostViews').value = '';
   boostId = '';
-  renderFeed(); renderMyFeed();
+  boostTargetType = 'post';
+
+  renderFeed();
+  renderMyFeed();
+  await loadStories();   // rafraîchir la barre de stories
 };
 
 /*──────────────────────────────────────────────────────────
@@ -4139,36 +4180,41 @@ async function loadStories() {
     grouped.get(s.user_id).stories.push(s);
   });
 
-  // ── 2. Réordonner selon la logique sociale ─────────
-  //
-  // Priorité :
-  //   ① Moi (currentUser)
-  //   ② Les comptes que je suis (followingIds), mélangés
-  //   ③ Les autres (boosters / suggestions), mélangés
-  //
-  // On ne garde QUE les users ayant au moins une story
-  //
-  const myGroup      = [];   // moi
-  const followingGrp = [];   // suivis
-  const othersGrp    = [];   // reste (boost/suggestions)
+  // ── 2. Récupérer la liste des user_id qui ont BOOSTÉ ─
+  // On considère "booster" = a au moins un post avec boosted > 0
+  // et boost_at < 2 jours (même logique que ton feed)
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString();
+  const { data: boosters } = await supabase
+    .from('posts')
+    .select('user_id')
+    .gt('boosted', 0)
+    .gte('boost_at', twoDaysAgo);
+
+  const boosterIds = new Set((boosters || []).map(b => b.user_id));
+
+  // ── 3. Classer chaque groupe ───────────────────────
+  let myGroup = null;        // moi (1 seul)
+  const priorityGrp = [];    // boosters + suivis (mélangés)
 
   for (const g of grouped.values()) {
     if (currentUser && g.user_id === currentUser.id) {
-      myGroup.push(g);
-    } else if (currentUser && followingIds.has(g.user_id)) {
-      followingGrp.push(g);
-    } else {
-      othersGrp.push(g);
+      myGroup = g;                              // ① moi
+    } else if (
+      currentUser &&
+      (boosterIds.has(g.user_id) || followingIds.has(g.user_id))
+    ) {
+      priorityGrp.push(g);                      // ② booster OU suivi
     }
+    // ③ tout le reste → IGNORÉ (on ne l'affiche pas)
   }
 
+  // ── 4. Ordre final : moi → (boosters+suivis mélangés) ─
   allStoriesGrouped = [
-    ...myGroup,
-    ...shuffleArray(followingGrp),
-    ...shuffleArray(othersGrp)
+    ...(myGroup ? [myGroup] : []),
+    ...shuffleArray(priorityGrp)
   ];
 
-  // ── 3. Rendu de la barre ───────────────────────────
+  // ── 5. Rendu de la barre ───────────────────────────
   bar.innerHTML = '';
   const seenSet = getSeenStories();
 
@@ -4188,14 +4234,10 @@ async function loadStories() {
     const item = document.createElement('div');
     item.className = 'story-item';
 
-    // Anneau gris si TOUTES les stories du user sont vues
     const allSeen = g.stories.every(s => seenSet.has(s.id));
     const ringClass = allSeen ? 'ring seen' : 'ring';
-
-    // Photo la plus récente du user comme vignette
     const photo = g.user.photo_url || 'https://via.placeholder.com/70';
 
-    // Petit label "vous" pour ma propre story
     const label = (currentUser && g.user_id === currentUser.id)
       ? 'Ma story'
       : escapeHtml(g.user.name || 'User');
@@ -4209,6 +4251,11 @@ async function loadStories() {
     item.onclick = () => openStoryViewer(idx, 0);
     bar.appendChild(item);
   });
+
+  // Si rien à afficher (ni moi ni boosters/suivis)
+  if (allStoriesGrouped.length === 0 && !currentUser) {
+    bar.innerHTML = '<p style="padding:10px;color:#888;font-size:13px">Aucune story pour le moment.</p>';
+  }
 }
 
 async function publishStory() {
@@ -4354,10 +4401,7 @@ async function renderCurrentStory() {
     video.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
     mediaDiv.appendChild(video);
     video.onended = nextStory;
-    video.onloadedmetadata = () => {
-      // durée réelle de la vidéo
-      startProgress(video.duration * 1000);
-    };
+    video.onloadedmetadata = () => startProgress(video.duration * 1000);
     video.onerror = () => startProgress(STORY_DURATION);
   } else {
     const img = document.createElement('img');
@@ -4370,39 +4414,48 @@ async function renderCurrentStory() {
   }
 
   /* ==== LÉGENDE ==== */
-  const cap = document.getElementById('storyCaption');
-  cap.textContent = story.caption || '';
+  document.getElementById('storyCaption').textContent = story.caption || '';
 
   /* ==== COMPTEUR DE VUES ==== */
   const viewsEl = document.getElementById('storyViewerViews');
   const viewsPlural = document.getElementById('storyViewerViewsPlural');
+  const viewsBox = document.querySelector('.story-footer .views');
   const isOwner = currentUser && currentUser.id === group.user_id;
 
   if (isOwner) {
-    // recharge les vues à jour
-    const { data: fresh } = await supabase.from('stories')
-      .select('views').eq('id', story.id).maybeSingle();
-    viewsEl.textContent = fmt(fresh?.views || 0);
-    viewsPlural.textContent = (fresh?.views || 0) > 1 ? 's' : '';
+    viewsBox.style.display = 'flex';
+    const { data: fresh } = await supabase
+      .from('stories')
+      .select('views')
+      .eq('id', story.id)
+      .maybeSingle();
+    const v = fresh?.views || 0;
+    viewsEl.textContent = fmt(v);
+    viewsPlural.textContent = v > 1 ? 's' : '';
   } else {
     // masqué aux autres
-    document.querySelector('.story-footer .views').style.display = 'none';
-    viewsEl.parentElement.style.display = 'none';
+    viewsBox.style.display = 'none';
   }
 
-  /* ==== BOUTONS CTA (Suivre / Soutenir / Supprimer) ==== */
+  /* ==== BOUTONS CTA (BOOSTER / SUIVRE / SOUTENIR / SUPPRIMER) ==== */
   const cta = document.getElementById('storyCtaGroup');
   cta.innerHTML = '';
 
   if (isOwner) {
-    // C'est MA story : Bouton Booster et Bouton Supprimer
+    /* ─────────────────────────────────────────────
+       CAS 1 : MA STORY
+       → Bouton BOOSTER (propre à la story)
+       → Bouton SUPPRIMER
+    ───────────────────────────────────────────── */
     const boostBtn = document.createElement('button');
     boostBtn.className = 'cta-btn boost-btn';
-    boostBtn.style.background = '#1abc9c'; 
-    boostBtn.innerHTML = 'BOOSTER';
-    boostBtn.onclick = () => {
-        closeStoryViewer();
-        selectBoostPost(story.id, story.caption || 'Story');
+    boostBtn.style.background = '#1abc9c';
+    boostBtn.innerHTML = '<i class="fa-solid fa-trophy"></i> BOOSTER';
+    boostBtn.onclick = (e) => {
+      e.stopPropagation();
+      closeStoryViewer();
+      // ✅ On booste LA STORY, pas un post
+      boostStory(story.id, story.caption || 'Ma story');
     };
     cta.appendChild(boostBtn);
 
@@ -4410,7 +4463,8 @@ async function renderCurrentStory() {
     del.className = 'cta-btn';
     del.style.background = '#e53935';
     del.innerHTML = '<i class="fas fa-trash"></i>';
-    del.onclick = async () => {
+    del.onclick = async (e) => {
+      e.stopPropagation();
       const ok = await prompt("Supprimer cette story ? (oui/non)", "oui");
       if (ok?.toLowerCase() !== 'oui') return;
       await supabase.from('stories').delete().eq('id', story.id);
@@ -4421,16 +4475,24 @@ async function renderCurrentStory() {
         svState.groupIndex = Math.max(0, svState.groupIndex - 1);
         svState.storyIndex = 0;
       } else {
-        svState.storyIndex = Math.min(svState.storyIndex, allStoriesGrouped[svState.groupIndex].stories.length - 1);
+        svState.storyIndex = Math.min(
+          svState.storyIndex,
+          allStoriesGrouped[svState.groupIndex].stories.length - 1
+        );
       }
       loadStories();
       renderCurrentStory();
     };
     cta.appendChild(del);
+
   } else if (currentUser) {
-    // C'est la story de QUELQU'UN D'AUTRE : Bouton Suivre et Bouton Soutenir
-    
-    // Bouton suivre
+    /* ─────────────────────────────────────────────
+       CAS 2 : STORY DE QUELQU'UN D'AUTRE
+       → Bouton SUIVRE
+       → Bouton SOUTENIR (25 XAF)
+    ───────────────────────────────────────────── */
+
+    // 2a. Bouton suivre
     const followBtn = document.createElement('button');
     followBtn.className = 'follow-btn-story';
     const updateFollowLabel = () => {
@@ -4440,7 +4502,8 @@ async function renderCurrentStory() {
       followBtn.disabled = isF;
     };
     updateFollowLabel();
-    followBtn.onclick = async () => {
+    followBtn.onclick = async (e) => {
+      e.stopPropagation();
       await supabase.rpc('toggle_follow', {
         p_follower: currentUser.id,
         p_following: group.user_id
@@ -4451,21 +4514,36 @@ async function renderCurrentStory() {
     };
     cta.appendChild(followBtn);
 
-    // Bouton soutien (si > 100 followers)
-    const { data: targetUser } = await supabase.from('users')
-      .select('followers_count').eq('id', group.user_id).maybeSingle();
+    // 2b. Bouton Soutenir (25 XAF) — visible si auteur ≥ 100 followers
+    const { data: targetUser } = await supabase
+      .from('users')
+      .select('followers_count')
+      .eq('id', group.user_id)
+      .maybeSingle();
+
     if ((targetUser?.followers_count || 0) > 100) {
       const supportBtn = document.createElement('button');
       supportBtn.className = 'cta-btn support-btn';
       supportBtn.innerHTML = '<i class="fas fa-star"></i> SOUTENIR (25 XAF)';
-      supportBtn.onclick = async () => {
-        const ok = await prompt("Envoyer 25 XAF de soutien ? (oui/non)", "oui");
+      supportBtn.onclick = async (e) => {
+        e.stopPropagation();
+
+        const ok = await prompt(
+          `Envoyer 25 XAF à ${group.user.name} ? (oui/non)`,
+          "oui"
+        );
         if (ok?.toLowerCase() !== 'oui') return;
-        const { data: success } = await supabase.rpc('support_user', {
-          p_from: currentUser.id, p_to: group.user_id, p_amount: 25
+
+        const { data: success, error } = await supabase.rpc('support_user', {
+          p_from: currentUser.id,
+          p_to: group.user_id,
+          p_amount: 25
         });
-        if (!success) return alert('Solde insuffisant');
-        alert('✅ Soutien envoyé');
+
+        if (error) return alert('Erreur : ' + error.message);
+        if (!success) return alert('💸 Solde insuffisant');
+
+        alert('✅ 25 XAF envoyés à ' + group.user.name);
         await loadWallet();
       };
       cta.appendChild(supportBtn);
@@ -4477,11 +4555,28 @@ async function renderCurrentStory() {
 
   /* ==== MARQUER COMME VUE (si pas owner) ==== */
   if (!isOwner && currentUser) {
-    await supabase.from('story_views').insert({
-      story_id: story.id, user_id: currentUser.id
-    }).then(() => {}); // ignore conflit (déjà vu)
+    try {
+      await supabase.from('story_views').insert({
+        story_id: story.id,
+        user_id: currentUser.id
+      });
+    } catch (_) {
+      /* ignore conflit (déjà vu) */
+    }
   }
 }
+
+window.boostStory = function(storyId, storyCaption) {
+  boostId = storyId;
+  boostTargetType = 'story';
+
+  qs('boostStatus').textContent = `1 story sélectionnée : ${storyCaption}`;
+  qs('boostPanel').style.display = 'block';
+  openTab(
+    { currentTarget: document.querySelector('.tablinks[onclick*="BOOST"]') },
+    'BOOST'
+  );
+};
 
 /*──────────────────────────────────────────────────────────
   Barres de progression
