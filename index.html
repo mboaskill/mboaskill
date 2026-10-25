@@ -1432,7 +1432,7 @@ font-size:14px;
     <!-- Rempli dynamiquement -->
   </div>
  <!-- 👇 TON NOUVEAU DIV ICI 👇 -->
-<div id="monetizationBanner" class="monetization-banner" onclick="openTab(event, 'vibo')">
+<div id="monetizationBanner" class="monetization-banner" onclick="openTab(event, 'meno')">
   <i class="material-icons-outlined" style="font-size: 28px; vertical-align: middle; margin-right: 8px;">monetization_on</i>
   Activer la monétisation du contenu <br>
   <span style="font-size: 14px; font-weight: normal; opacity: 0.9;">(avec 200 XAF)</span>
@@ -1442,7 +1442,91 @@ font-size:14px;
   </div>
   <div id="feed"></div>
 </section>
+<!-- ============ MENO (explication des 200 XAF) ============ -->
+<section id="meno" class="tabcontent">
+  <br><br/>
+  <div class="priix" onclick="openTab(event,'home')">
+    <i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i>
+  </div>
 
+  <div id="emailLoginBox">
+    <h2 style="text-align:center;color:gold;">
+      <i class="fas fa-lightbulb"></i> À quoi servent les 200 XAF ?
+    </h2>
+
+    <p style="color:#333;font-size:15px;line-height:1.6;">
+      Les <strong>200 XAF</strong> demandés ne sont <strong style="color:#1877f2;">PAS</strong> des frais,
+      ni un abonnement. Cet argent <strong>reste à vous</strong>, dans votre portefeuille Skill.
+      Vous pouvez l'utiliser <strong>comme vous voulez</strong>, quand vous voulez.
+    </p>
+
+    <hr style="background:#eee;height:1px;border:none;">
+
+    <h3 style="color:#111;">
+      <i class="fas fa-bullseye" style="color:gold;"></i> Vous pouvez utiliser votre solde pour :
+    </h3>
+
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">
+      <i class="fas fa-star" style="color:#ffd700;font-size:22px;margin-top:3px;"></i>
+      <div>
+        <strong>Soutenir les stories de vos amis</strong><br>
+        <small style="color:#666;">Un soutien = 25 XAF reversés directement au créateur. Montrez votre soutien à ceux que vous aimez !</small>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">
+      <i class="fas fa-rocket" style="color:#1abc9c;font-size:22px;margin-top:3px;"></i>
+      <div>
+        <strong>Booster vos publications</strong><br>
+        <small style="color:#666;">Plus de visibilité = plus de vues = plus de revenus pour vous.</small>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">
+      <i class="fas fa-hand-holding-heart" style="color:#e91e63;font-size:22px;margin-top:3px;"></i>
+      <div>
+        <strong>Soutenir d'autres créateurs</strong><br>
+        <small style="color:#666;">Aidez les créateurs que vous admirez à grandir sur la plateforme.</small>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">
+      <i class="fas fa-wallet" style="color:#4caf50;font-size:22px;margin-top:3px;"></i>
+      <div>
+        <strong>Retirer votre argent à tout moment</strong><br>
+        <small style="color:#666;">Votre solde reste votre propriété. Vous pouvez le retirer sans condition de gains préalables.</small>
+      </div>
+    </div>
+
+    <hr style="background:#eee;height:1px;border:none;">
+
+    <p style="color:#333;font-size:14px;line-height:1.6;">
+      <i class="fas fa-lock" style="color:#4caf50;"></i>
+      <strong>Votre argent est en sécurité.</strong> Le dépôt minimum est de
+      <u style="color:#1877f2;">200 XAF</u>, <strong>facultatif</strong> et
+      <strong>remboursable à tout moment</strong>.
+    </p>
+
+    <!-- ✅ Checkbox déjà cochée -->
+    <label style="display:flex;align-items:flex-start;gap:10px;margin:20px 0 15px;cursor:pointer;">
+      <input type="checkbox" id="menoCheckbox" checked style="margin-top:4px;width:20px;height:20px;accent-color:gold;flex-shrink:0;">
+      <span style="font-size:14px;color:#333;line-height:1.5;">
+        J'ai compris que les <strong>200 XAF restent ma propriété</strong>
+        et je pourrai les utiliser pour soutenir, booster ou retirer quand je veux.
+      </span>
+    </label>
+
+    <!-- ✅ Bouton Procéder → ouvre vibo -->
+    <button 
+      onclick="procederDepot(event)" 
+      style="background:linear-gradient(135deg,#ffd700,#ffb700);color:#000;font-weight:bold;padding:14px;border:none;border-radius:10px;cursor:pointer;font-size:16px;width:100%;box-shadow:0 4px 12px rgba(255,183,0,0.4);display:flex;align-items:center;justify-content:center;gap:8px;"
+    >
+      <i class="fas fa-check-circle"></i>
+      Procéder au dépôt
+    </button>
+
+  </div>
+</section>
 <!-- ============ POST ============ -->
 <section id="post" class="tabcontent">
      <br><br/>
@@ -4897,6 +4981,35 @@ if (postTextarea && suggestionsBox) {
     }
   });
 }
+
+/*──────────────────────────────────────────────────────────
+  MENO — Explication des 200 XAF
+──────────────────────────────────────────────────────────*/
+
+window.procederDepot = (evt) => {
+  // 1️⃣ Vérifier la checkbox
+  const cb = document.getElementById('menoCheckbox');
+  if (cb && !cb.checked) {
+    return alert("Merci de cocher la case pour continuer.");
+  }
+
+  // 2️⃣ Trouver un .tablinks qui pointe vers vibo
+  //    (le bouton add_card du header)
+  let tablink = document.querySelector('.tablinks[onclick*="vibo"]');
+
+  // 3️⃣ Si introuvable, on en crée un "virtuel" pour openTab
+  //    (au pire des cas, la navigation fonctionnera quand même)
+  if (!tablink) {
+    // On fabrique un élément factice pour que openTab ne plante pas
+    tablink = document.createElement('i');
+    tablink.className = 'tablinks';
+    tablink.style.display = 'none';
+    document.body.appendChild(tablink);
+  }
+
+  // 4️⃣ Ouvrir la tab vibo
+  openTab({ currentTarget: tablink }, 'vibo');
+};
 </script>
 </body>
 </html> 
