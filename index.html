@@ -3400,21 +3400,16 @@ function card(id, d, isMine) {
     img.src = u?.photo_url || 'https://via.placeholder.com/40';
 
     const { data: v } = await supabase
-      .from('verifications')
-      .select('status')
-      .eq('user_id', d.user_id)
-      .maybeSingle();
+  .from('verifications')
+  .select('status')
+  .eq('user_id', d.user_id)
+  .maybeSingle();
 
-    if (v?.status === true) {
-      name.innerHTML = `${escapeHtml(u?.name || 'Utilisateur')} 
-        <span class="verified-badge">
-          <i class="fas fa-certificate"></i>
-          <i class="fas fa-check checkmark"></i>
-        </span>`;
-    } else {
-      name.textContent = u?.name || 'Utilisateur';
-    }
-  })();
+const verified = v?.status === true;
+name.innerHTML = `${escapeHtml(u?.name || 'Utilisateur')} ${
+  verified ? '<i class="fas fa-check-circle" style="color:#1877f2"></i>' : ''
+}`;
+      })();
 
   const fbtn = renderFollowBtn(d.user_id);
   if (fbtn) head.appendChild(fbtn);
