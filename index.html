@@ -1699,7 +1699,7 @@ font-size:14px;
     <button onclick="boostPost()">Booster</button>
 </div> </div> 
     <br>
-  <p><i class="fas fa-info-circle" style="color:#fff"></i> minimum 2 jours (min: 2j pour 3500 XAF)</p>
+  <p><i class="fas fa-info-circle" style="color:#fff"></i> minimum 3 jours (min: 3j pour 3500 XAF)</p>
 
   </section>
 <section id="paypalWithdraw" class="tabcontent">
@@ -1898,40 +1898,81 @@ font-size:14px;
       Déposer (Mobile Money)<i class="fas fa-mobile-alt"></i>
     </button>
   </div>
-
-
  </div>
-
  <hr>
+     <hr style="background:#eee;height:1px;border:none;">
+ <div id="emailLoginBox">
+    <h3 style="color:#111;">
+      <i class="fas fa-bullseye" style="color:gold;"></i> Vous pouvez utiliser votre solde pour :
+    </h3>
+
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">
+      <i class="fas fa-star" style="color:#ffd700;font-size:22px;margin-top:3px;"></i>
+      <div>
+        <strong>Soutenir les stories de vos amis</strong><br>
+        <small style="color:#666;">Un soutien = 25 XAF reversés directement au créateur. Montrez votre soutien à ceux que vous aimez !</small>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">
+      <i class="fas fa-rocket" style="color:#1abc9c;font-size:22px;margin-top:3px;"></i>
+      <div>
+        <strong>Booster vos publications</strong><br>
+        <small style="color:#666;">Plus de visibilité = plus de vues = plus de revenus pour vous.</small>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">
+      <i class="fas fa-hand-holding-heart" style="color:#e91e63;font-size:22px;margin-top:3px;"></i>
+      <div>
+        <strong>Soutenir d'autres créateurs</strong><br>
+        <small style="color:#666;">Aidez les créateurs que vous admirez à grandir sur la plateforme.</small>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;">
+      <i class="fas fa-wallet" style="color:#4caf50;font-size:22px;margin-top:3px;"></i>
+      <div>
+        <strong>Retirer votre argent à tout moment</strong><br>
+        <small style="color:#666;">Votre solde reste votre propriété. Vous pouvez le retirer sans condition de gains préalables.</small>
+      </div>
+    </div>
+
+    <hr style="background:#eee;height:1px;border:none;">
+
+    <p style="color:#333;font-size:14px;line-height:1.6;">
+      <i class="fas fa-lock" style="color:#4caf50;"></i>
+      <strong>Votre argent est en sécurité.</strong> Le dépôt minimum est de
+      <u style="color:#1877f2;">200 XAF</u>, <strong>facultatif</strong> et
+      <strong>remboursable à tout moment</strong>.
+    </p>
+ </div>
+  </div>
+
 </section>
 <!-- ============ LOGIN FORM ============ -->
 <section id="conect" class="tabcontent">
   <br><br/>
   <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
 
-  <h3>Connectez-vous</h3>
-  <div id="emailLoginBox">
+   <div id="emailLoginBox">
+        <h3>Connectez-vous</h3>
+
     <input type="email"    id="loginEmail"    placeholder="Email" />
     <input type="password" id="loginPassword" placeholder="Mot de passe" />
    <p>
   <a href="#" onclick="openTab(event,'oublie')">Mot de passe oublié ?</a>
 </p> 
     <button onclick="loginWithEmail()">Se connecter</button>
-  </div>
-  
-  <!-- ✅ BOUTON GOOGLE RESTAURÉ -->
+    <hr>
+     
   <div id="emailLoginBox">
-    <div class="boutons">
-      <p>Continuer avec Google </p> 
-      <img class="circle" src="https://ucarecdn.com/25f768b6-513b-4b08-b2fb-387768728b52/-/preview/225x225/" onclick="signInWithGoogle()" style="cursor:pointer"></img>
-    </div>
-  </div>
-
-  <div id="emailLoginBox">
-      <p>vous n'avez pas encore de compte ?</p> 
+      <p>OÙ REJOIGNER NOUS ?</p> 
     <button onclick="openTab(event,'inscrip')">Inscription</button>
   </div>
-</section>
+
+  </div>
+ </section>
 <section id="oublie" class="tabcontent">
 <br><br/> 
   <div id="emailLoginBox">
@@ -2045,12 +2086,19 @@ font-size:14px;
       <option value="55">Canada 🇨🇦</option>
       <option value="56">États-Unis 🇺🇸</option>
     </select>
-
-    <button style="background-color:transparent;margin-top:10px">
+  <label style="display:flex;align-items:flex-start;gap:10px;margin:20px 0 15px;cursor:pointer;">
+      <input type="checkbox"  checked style="margin-top:4px;width:20px;height:20px;accent-color:gold;flex-shrink:0;">
+      <span style="font-size:14px;color:#333;line-height:1.5;">
+        <button style="background-color:transparent;margin-top:10px">
       <u onclick="openTab(event,'condir')" style="color:blue">
         J'ai accepté les conditions générales d'utilisation
       </u>
     </button>
+    
+     
+    </span>
+    </label>
+
 
     <button onclick="signupWithEmail()" style="margin-top:12px">
       S'inscrire
@@ -2167,75 +2215,7 @@ font-size:14px;
     <p id="storyStatus" style="color:limegreen;text-align:center"></p>
   </div>
 </section>
-<section id="music-rules" class="tabcontent">
-    <br><br/>
-    <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
 
-    <h1>Règles de publication des musiques</h1>
-
-<p>
-En publiant une musique sur <strong>mboaskill.cm</strong>, vous acceptez les conditions suivantes.
-</p>
-
-<h2>1. Propriété intellectuelle</h2>
-
-<p>
-L'artiste déclare être le seul titulaire des droits d'auteur, des droits voisins et des droits d'enregistrement sur la musique téléversée.
-</p>
-
-<p>
-L'artiste accorde à <strong>mboaskill.cm</strong> une licence non exclusive, mondiale et gratuite permettant d'héberger, de reproduire et de diffuser la musique sur la plateforme.
-</p>
-
-<h2>2. Formats acceptés</h2>
-
-<ul>
-    <li>Seuls les fichiers <strong>.WAV</strong> et <strong>.FLAC</strong> sont acceptés.</li>
-    <li>Les fichiers <strong>.MP3</strong> sont refusés afin de limiter les risques de piratage et de préserver la qualité audio.</li>
-</ul>
-
-<h2>3. Vérification des contenus</h2>
-
-<p>
-mboaskill.cm utilise un système de reconnaissance audio pour détecter les contenus protégés.
-</p>
-
-<p>
-Toute musique identifiée comme appartenant à un tiers ou faisant l'objet d'une violation de droits d'auteur pourra être refusée ou supprimée sans préavis.
-</p>
-
-<h2>4. Demande de retrait (DMCA)</h2>
-
-<p>
-Si vous êtes titulaire de droits et estimez qu'un contenu porte atteinte à vos droits, veuillez envoyer un e-mail à :
-</p>
-
-<p>
-<strong>contact@mboaskill.cm</strong>
-</p>
-
-<p>Votre demande doit contenir :</p>
-
-<ul>
-    <li>Vos coordonnées complètes ;</li>
-    <li>Le lien de la musique concernée ;</li>
-    <li>Une preuve que vous détenez les droits sur cette œuvre.</li>
-</ul>
-
-<p>
-Après vérification, le contenu sera retiré dans un délai maximal de <strong>48 heures</strong> si la demande est fondée.
-</p>
-
-<h2>5. Sanctions</h2>
-
-<p>
-Tout abus du système de signalement est interdit.
-</p>
-
-<p>
-Après <strong>3 signalements abusifs</strong> ou en cas de violation répétée des présentes règles, le compte Artiste pourra être suspendu ou supprimé définitivement.
-</p>
-</section>
 <section id="condis" class="tabcontent">
   <div class="priix" onclick="openTab(event,'home')">
     <i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i>
