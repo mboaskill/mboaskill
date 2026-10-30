@@ -1895,10 +1895,12 @@ font-size:14px;
     <!-- 🔹 NOTCHPAY -->
     <button id="notchpayBtn"
       style="padding:6px 12px;background:#1877f2;color:white;border:none;border-radius:4px;cursor:pointer;">
-      Déposer (Mobile Money)<i class="fas fa-mobile-alt"></i>
+      Déposer🇨🇲 (Mobile Money)<i class="fas fa-mobile-alt"></i>
     </button>
   </div>
  </div>
+ <hr>
+ <button  onclick="openTab(event,'nova')">🌍autres</button>
  <hr>
      <hr style="background:#eee;height:1px;border:none;">
  <div id="emailLoginBox">
@@ -2397,6 +2399,36 @@ Ces transferts sont encadrés par des mécanismes contractuels et techniques des
 Dernière mise à jour : 25 juin 2026.
 
 </h2>
+</section>
+<!-- ============ NOVA (AllPays.co) ============ -->
+<section id="nova" class="tabcontent">
+  <br><br/>
+  <div class="priix" onclick="openTab(event,'home')">
+    <i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i>
+  </div>
+
+  <div id="emailLoginBox">
+    <h2 style="text-align:center;color:gold;">
+      <i class="fas fa-bolt"></i> Nova
+    </h2>
+
+    <p style="color:#333;font-size:15px;line-height:1.6;">
+      Rechargez via <strong>AllPays.co</strong> (cartes, PayPal, Apple Pay, etc.).
+      Le paiement est redirigé vers une page sécurisée.
+    </p>
+
+    <label>Montant (XAF) :</label>
+    <input type="number" id="novaAmount" placeholder="Montant à recharger" min="200" />
+
+    <button onclick="redirectToAllPays()" style="background:#ffa500;color:#fff;font-weight:bold;margin-top:10px;">
+      <i class="fas fa-external-link-alt"></i> Payer avec AllPays
+    </button>
+
+    <p style="font-size:12px;color:#888;margin-top:10px;">
+      <i class="fas fa-info-circle"></i>
+      Vous serez redirigé vers AllPays.co pour finaliser le paiement.
+    </p>
+  </div>
 </section>
 <center>
     <!-- Modal Alert -->
@@ -4984,6 +5016,37 @@ window.procederDepot = (evt) => {
 
   // 4️⃣ Ouvrir la tab vibo
   openTab({ currentTarget: tablink }, 'vibo');
+};
+/*──────────────────────────────────────────────────────────
+  REDIRECTION ALLPAYS.CO (NOVA)
+──────────────────────────────────────────────────────────*/
+window.redirectToAllPays = function() {
+  const amountInput = document.getElementById('novaAmount');
+  const amount = parseInt(amountInput?.value);
+
+  // Validation
+  if (!amount || amount < 200) {
+    return alert("Montant minimum : 200 XAF");
+  }
+
+  if (!currentUser) {
+    return alert("Connectez-vous d'abord");
+  }
+
+  // ⚠️ IMPORTANT : Remplace cette URL par TON lien de paiement AllPays.co
+  // Tu dois d'abord créer un lien de paiement dans ton dashboard AllPays.co
+  // Exemple : https://allpays.co/pay/TON_ID
+  const ALLPAYS_PAYMENT_LINK = 'https://allpays.co/pay/TON_ID_ICI';
+
+  // Construit l'URL avec le montant en paramètre (si supporté)
+  // Vérifie la doc AllPays pour les paramètres exacts (amount, currency...)
+  const url = new URL(ALLPAYS_PAYMENT_LINK);
+  url.searchParams.set('amount', amount);
+  url.searchParams.set('currency', 'XAF');
+  url.searchParams.set('user_id', currentUser.id); // pour traçabilité
+
+  // Redirection
+  window.location.href = url.toString();
 };
 </script>
 </body>
