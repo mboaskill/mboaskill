@@ -2413,20 +2413,23 @@ Dernière mise à jour : 25 juin 2026.
     </h2>
 
     <p style="color:#333;font-size:15px;line-height:1.6;">
-      Rechargez via <strong>AllPays.co</strong> (cartes, PayPal, Apple Pay, etc.).
+      Rechargez votre compte via <strong>AllPays.co</strong> (cartes bancaires, PayPal, Apple Pay, etc.).
       Le paiement est redirigé vers une page sécurisée.
     </p>
 
-    <label>Montant (XAF) :</label>
-    <input type="number" id="novaAmount" placeholder="Montant à recharger" min="200" />
+    <!-- Bloc montant fixe -->
+    <div style="background:#f9f9f9;border:1px solid #ddd;border-radius:8px;padding:15px;margin:20px 0;text-align:center;">
+      <p style="margin:0;color:#888;font-size:13px;text-transform:uppercase;letter-spacing:1px;">Montant à payer</p>
+      <p style="margin:8px 0 0;color:#ffa500;font-size:28px;font-weight:bold;">5 000 XAF</p>
+    </div>
 
-    <button onclick="redirectToAllPays()" style="background:#ffa500;color:#fff;font-weight:bold;margin-top:10px;">
+    <button onclick="redirectToAllPays()" style="background:#ffa500;color:#fff;font-weight:bold;margin-top:10px;padding:15px;font-size:16px;">
       <i class="fas fa-external-link-alt"></i> Payer avec AllPays
     </button>
 
-    <p style="font-size:12px;color:#888;margin-top:10px;">
-      <i class="fas fa-info-circle"></i>
-      Vous serez redirigé vers AllPays.co pour finaliser le paiement.
+    <p style="font-size:12px;color:#888;margin-top:15px;text-align:center;">
+      <i class="fas fa-lock"></i>
+      Vous serez redirigé vers AllPays.co pour finaliser le paiement en toute sécurité.
     </p>
   </div>
 </section>
@@ -5017,35 +5020,25 @@ window.procederDepot = (evt) => {
   // 4️⃣ Ouvrir la tab vibo
   openTab({ currentTarget: tablink }, 'vibo');
 };
+
 /*──────────────────────────────────────────────────────────
   REDIRECTION ALLPAYS.CO (NOVA)
 ──────────────────────────────────────────────────────────*/
 window.redirectToAllPays = function() {
-  const amountInput = document.getElementById('novaAmount');
-  const amount = parseInt(amountInput?.value);
-
-  // Validation
-  if (!amount || amount < 200) {
-    return alert("Montant minimum : 200 XAF");
-  }
-
+  // 1. Vérifier connexion
   if (!currentUser) {
-    return alert("Connectez-vous d'abord");
+    return alert("Connectez-vous d'abord pour recharger votre compte.");
   }
 
-  // ⚠️ IMPORTANT : Remplace cette URL par TON lien de paiement AllPays.co
-  // Tu dois d'abord créer un lien de paiement dans ton dashboard AllPays.co
-  // Exemple : https://allpays.co/pay/TON_ID
-  const ALLPAYS_PAYMENT_LINK = 'https://allpays.co/pay/TON_ID_ICI';
+  // 2. Lien de paiement AllPays (TON lien réel)
+  const ALLPAYS_PAYMENT_LINK = 'https://allpays.co/pay?payment_id=pay_qYs4Jg8xBS0X7GQ7RmdjbpC0KyeMzZLl';
 
-  // Construit l'URL avec le montant en paramètre (si supporté)
-  // Vérifie la doc AllPays pour les paramètres exacts (amount, currency...)
+  // 3. Construire l'URL avec l'ID utilisateur pour traçabilité
   const url = new URL(ALLPAYS_PAYMENT_LINK);
-  url.searchParams.set('amount', amount);
-  url.searchParams.set('currency', 'XAF');
-  url.searchParams.set('user_id', currentUser.id); // pour traçabilité
+  url.searchParams.set('user_id', currentUser.id);
+  url.searchParams.set('user_email', currentUser.email || '');
 
-  // Redirection
+  // 4. Redirection
   window.location.href = url.toString();
 };
 </script>
