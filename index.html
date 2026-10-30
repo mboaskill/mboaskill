@@ -5021,24 +5021,17 @@ window.procederDepot = (evt) => {
   openTab({ currentTarget: tablink }, 'vibo');
 };
 
-/*──────────────────────────────────────────────────────────
-  REDIRECTION ALLPAYS.CO (NOVA)
-──────────────────────────────────────────────────────────*/
 window.redirectToAllPays = function() {
-  // 1. Vérifier connexion
   if (!currentUser) {
     return alert("Connectez-vous d'abord pour recharger votre compte.");
   }
 
-  // 2. Lien de paiement AllPays (TON lien réel)
-  const ALLPAYS_PAYMENT_LINK = 'https://allpays.co/pay?payment_id=pay_qYs4Jg8xBS0X7GQ7RmdjbpC0KyeMzZLl';
-
-  // 3. Construire l'URL avec l'ID utilisateur pour traçabilité
+  const ALLPAYS_PAYMENT_LINK = 'https://allpays.co/pay?payment_id=pay_JvarKz9U32tEL6CneN2eQhUfeWdnDQJo';
+  
   const url = new URL(ALLPAYS_PAYMENT_LINK);
   url.searchParams.set('user_id', currentUser.id);
   url.searchParams.set('user_email', currentUser.email || '');
 
-  // 4. Redirection
   window.location.href = url.toString();
 };
 </script>
