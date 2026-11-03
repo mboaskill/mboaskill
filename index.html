@@ -3940,14 +3940,38 @@ window.openUserFeed = async (uid) => {
   const photo = user?.photo_url || 'https://via.placeholder.com/100';
   const verified = v?.status === true;
 
+  // 🖼️ PHOTO DE COUVERTURE — Modifiez cette liste selon vos besoins
+  const COVER_IMAGES = [
+    'https://ucarecdn.com/6feb4363-11a1-476d-ab2a-b577ec622144/-/preview/1000x1000/',
+    'https://ucarecdn.com/8213fd5f-4a33-4603-8bc3-98bb69e55ac0/-/preview/258x195/'
+  ];
+  const coverUrl = COVER_IMAGES[Math.floor(Math.random() * COVER_IMAGES.length)];
+
   title.innerHTML = '';
   title.style.cssText = 'display:flex;flex-direction:column;gap:10px;align-items:flex-start;';
 
-  const topRow = document.createElement('div');
-  topRow.style.cssText = 'display:flex;align-items:flex-start;gap:10px;';
+  // ── Bloc couverture + photo de profil superposée ──
+  const coverWrap = document.createElement('div');
+  coverWrap.style.cssText = 'position:relative;width:100%;height:300px;border-radius:10px;overflow:hidden;background:#ddd;';
+
+  const coverImg = document.createElement('img');
+  coverImg.src = coverUrl;
+  coverImg.alt = 'Couverture';
+  coverImg.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+  coverWrap.appendChild(coverImg);
+
+  // Photo de profil qui chevauche la couverture
   const img = document.createElement('img');
   img.src = photo;
-  img.style.cssText = 'width:100px;height:100px;border-radius:50%;object-fit:cover;';
+  img.style.cssText = 'position:absolute;left:16px;bottom:-40px;width:100px;height:100px;border-radius:50%;object-fit:cover;border:4px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2);background:#fff;';
+  coverWrap.appendChild(img);
+
+  title.appendChild(coverWrap);
+
+  // ── Infos utilisateur (sous la couverture) ──
+  const topRow = document.createElement('div');
+  topRow.style.cssText = 'display:flex;align-items:flex-start;gap:10px;margin-top:50px;';
+
   const info = document.createElement('div');
   info.style.cssText = 'display:flex;flex-direction:column;gap:5px;';
   info.innerHTML = `<strong style="font-size:18px">${escapeHtml(name)} ${verified ? '<i class="fas fa-check-circle" style="color:#1877f2"></i>' : ''}</strong>
@@ -3958,7 +3982,6 @@ window.openUserFeed = async (uid) => {
     b.innerHTML = 'Modifier ma bio <i class="fas fa-pen"></i>';
     b.style.cssText = 'margin-top:6px;background:#1877f2;color:#fff;padding:4px 8px;border:none;border-radius:4px;cursor:pointer;';
     b.onclick = () => {
-      // CORRECTION : Utilisation de openTab pour afficher la page mabio
       openTab({ currentTarget: b }, 'mabio');
       loadMyBio();
     };
@@ -3983,7 +4006,7 @@ window.openUserFeed = async (uid) => {
     info.appendChild(sBtn);
   }
 
-  topRow.append(img, info);
+  topRow.appendChild(info);
   title.appendChild(topRow);
 
   if (user?.bio) {
@@ -4003,7 +4026,6 @@ window.openUserFeed = async (uid) => {
   }
   posts.forEach(p => cont.appendChild(card(p.id, p, currentUser?.id === uid)));
 };
-
 async function openUserFeedByName(name) {
   const clean = name.trim();
   if (!clean) return;
