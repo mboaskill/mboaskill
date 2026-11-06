@@ -4583,8 +4583,21 @@ document.getElementById('notchpayBtn')?.addEventListener('click', async () => {
   }
 });
 
+/* ═══════════════════════════════════════════════════════════
+   32. STORIES — Barre + Visionneuse (VERSION CORRIGÉE)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────
+   CONSTANTES & UTILITAIRES
+───────────────────────────────────────────── */
+const SEEN_STORIES_KEY = 'skill_seen_stories';
+
 async function renderCurrentStory() {
   if (!svState.isOpen) return;
+
+  // ✅ Reset du mode pause à chaque changement de story
+  svState.isPaused = false;
+
   const group = allStoriesGrouped[svState.groupIndex];
   if (!group) return closeStoryViewer();
 
@@ -4600,54 +4613,72 @@ async function renderCurrentStory() {
 
   /* ==== HEADER ==== */
   const avatar = document.getElementById('storyViewerAvatar');
-  avatar.src = group.user.photo_url || 'https://via.placeholder.com/42';
-  avatar.onclick = () => {
-    closeStoryViewer();
-    openUserFeed(group.user.id || group.user_id);
-  };
+  if (avatar) {
+    avatar.src = group.user.photo_url || 'https://via.placeholder.com/42';
+    avatar.onclick = () => {
+      closeStoryViewer();
+      openUserFeed(group.user.id || group.user_id);
+    };
+  }
 
-  document.getElementById('storyViewerName').textContent = group.user.name || 'Utilisateur';
-  const created = new Date(story.created_at);
-  document.getElementById('storyViewerTime').textContent = `il y a ${timeSince(created)}`;
+  const nameEl = document.getElementById('storyViewerName');
+  if (nameEl) nameEl.textContent = group.user.name || 'Utilisateur';
 
-  /* ==== BOUTON ⋮ ==== */
+  const timeEl = document.getElementById('storyViewerTime');
+  if (timeEl) {
+    const created = new Date(story.created_at);
+    timeEl.textContent = `il y a ${timeSince(created)}`;
+  }
+
+  /* ==== BOUTON ⋮ (avec protection anti-crash) ==== */
   const headerActions = document.getElementById('storyHeaderActions');
-  headerActions.innerHTML = '';
-  const moreBtn = document.createElement('button');
-  moreBtn.className = 'more-btn';
-  moreBtn.innerHTML = '⋮';
-  moreBtn.onclick = () => openStoryMenu(story, group);
-  headerActions.appendChild(moreBtn);
+  if (headerActions) {
+    headerActions.innerHTML = '';
+    const moreBtn = document.createElement('button');
+    moreBtn.className = 'more-btn';
+    moreBtn.innerHTML = '⋮';
+    moreBtn.onclick = () => {
+      if (typeof window.openStoryMenu === 'function') {
+        window.openStoryMenu(story, group);
+      } else {
+        showCustomAlert('Menu indisponible.');
+      }
+    };
+    headerActions.appendChild(moreBtn);
+  }
 
   /* ==== MÉDIA ==== */
   const mediaDiv = document.getElementById('storyMedia');
-  mediaDiv.innerHTML = '';
+  if (mediaDiv) {
+    mediaDiv.innerHTML = '';
 
-  if (story.media_type === 'video') {
-    const video = document.createElement('video');
-    video.src = story.media_url;
-    video.autoplay = true;
-    video.playsInline = true;
-    video.muted = false;
-    video.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
-    mediaDiv.appendChild(video);
-    video.onended = nextStory;
-    video.onloadedmetadata = () => startProgress(video.duration * 1000);
-    video.onerror = () => startProgress(STORY_DURATION);
-  } else {
-    const img = document.createElement('img');
-    img.src = story.media_url;
-    img.alt = 'story';
-    img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
-    mediaDiv.appendChild(img);
-    img.onload = () => startProgress(STORY_DURATION);
-    img.onerror = () => startProgress(STORY_DURATION);
+    if (story.media_type === 'video') {
+      const video = document.createElement('video');
+      video.src = story.media_url;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.muted = false;
+      video.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
+      mediaDiv.appendChild(video);
+      video.onended = nextStory;
+      video.onloadedmetadata = () => startProgress(video.duration * 1000);
+      video.onerror = () => startProgress(STORY_DURATION);
+    } else {
+      const img = document.createElement('img');
+      img.src = story.media_url;
+      img.alt = 'story';
+      img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
+      mediaDiv.appendChild(img);
+      img.onload = () => startProgress(STORY_DURATION);
+      img.onerror = () => startProgress(STORY_DURATION);
+    }
   }
 
   /* ==== LÉGENDE ==== */
-  document.getElementById('storyCaption').textContent = story.caption || '';
+  const captionEl = document.getElementById('storyCaption');
+  if (captionEl) captionEl.textContent = story.caption || '';
 
-  /* ==== ✅ DÉCLARATION isOwner EN PREMIER ==== */
+  /* ==== DÉCLARATION isOwner ==== */
   const isOwner = currentUser && currentUser.id === group.user_id;
 
   /* ==== COMPTEUR DE VUES ==== */
@@ -4655,151 +4686,158 @@ async function renderCurrentStory() {
   const viewsPlural = document.getElementById('storyViewerViewsPlural');
   const viewsBox = document.querySelector('.story-footer .views');
 
-  if (isOwner) {
-    viewsBox.style.display = 'flex';
-    const { data: fresh } = await supabase
-      .from('stories')
-      .select('views')
-      .eq('id', story.id)
-      .maybeSingle();
-    const v = fresh?.views || 0;
-    viewsEl.textContent = fmt(v);
-    viewsPlural.textContent = v > 1 ? 's' : '';
-  } else {
-    viewsBox.style.display = 'none';
+  if (viewsBox) {
+    if (isOwner) {
+      viewsBox.style.display = 'flex';
+      const { data: fresh } = await supabase
+        .from('stories')
+        .select('views')
+        .eq('id', story.id)
+        .maybeSingle();
+      const v = fresh?.views || 0;
+      if (viewsEl) viewsEl.textContent = fmt(v);
+      if (viewsPlural) viewsPlural.textContent = v > 1 ? 's' : '';
+    } else {
+      viewsBox.style.display = 'none';
+    }
   }
 
   /* ==== CTA (BOOSTER / SUPPRIMER / SUIVRE / SOUTENIR) ==== */
   const cta = document.getElementById('storyCtaGroup');
-  cta.innerHTML = '';
+  if (cta) {
+    cta.innerHTML = '';
 
-  if (isOwner) {
-    /* ─────────────────────────────────────────────
-       CAS 1 : MA STORY
-    ───────────────────────────────────────────── */
-    let isStoryBoosted = false;
-    if ((story.boosted || 0) > 0 && story.boost_at) {
-      const boostAtMs = new Date(story.boost_at).getTime();
-      const diffDays = (Date.now() - boostAtMs) / 86400000;
-      isStoryBoosted = diffDays <= 2;
-    }
-
-    if (!isStoryBoosted) {
-      // ✅ Bouton BOOSTER visible
-      const boostBtn = document.createElement('button');
-      boostBtn.className = 'cta-btn boost-btn';
-      boostBtn.style.background = '#1abc9c';
-      boostBtn.innerHTML = '<i class="fa-solid fa-trophy"></i> BOOSTER';
-      boostBtn.onclick = (e) => {
-        e.stopPropagation();
-        closeStoryViewer();
-        window.boostStory(story.id, story.caption || 'Ma story');
-      };
-      cta.appendChild(boostBtn);
-    } else {
-      // ✅ Badge "Boostée"
-      const boostedBadge = document.createElement('span');
-      boostedBadge.innerHTML = '<i class="fa-solid fa-trophy"></i> Boostée';
-      boostedBadge.style.cssText = `
-        background: rgba(255, 215, 0, 0.9);
-        color: #000;
-        padding: 8px 14px;
-        border-radius: 6px;
-        font-size: 13px;
-        font-weight: bold;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      `;
-      cta.appendChild(boostedBadge);
-    }
-
-    // ✅ Bouton SUPPRIMER (toujours visible)
-    const del = document.createElement('button');
-    del.className = 'cta-btn';
-    del.style.background = '#e53935';
-    del.innerHTML = '<i class="fas fa-trash"></i>';
-    del.onclick = async (e) => {
-      e.stopPropagation();
-      const ok = await prompt("Supprimer cette story ? (oui/non)", "oui");
-      if (ok?.toLowerCase() !== 'oui') return;
-      await supabase.from('stories').delete().eq('id', story.id);
-      allStoriesGrouped[svState.groupIndex].stories.splice(svState.storyIndex, 1);
-      if (allStoriesGrouped[svState.groupIndex].stories.length === 0) {
-        allStoriesGrouped.splice(svState.groupIndex, 1);
-        if (!allStoriesGrouped.length) return closeStoryViewer();
-        svState.groupIndex = Math.max(0, svState.groupIndex - 1);
-        svState.storyIndex = 0;
-      } else {
-        svState.storyIndex = Math.min(
-          svState.storyIndex,
-          allStoriesGrouped[svState.groupIndex].stories.length - 1
-        );
+    if (isOwner) {
+      /* ─────────── CAS 1 : MA STORY ─────────── */
+      let isStoryBoosted = false;
+      if ((story.boosted || 0) > 0 && story.boost_at) {
+        const boostAtMs = new Date(story.boost_at).getTime();
+        const diffDays = (Date.now() - boostAtMs) / 86400000;
+        isStoryBoosted = diffDays <= 2;
       }
-      loadStories();
-      renderCurrentStory();
-    };
-    cta.appendChild(del);
 
-  } else if (currentUser) {
-    /* ─────────────────────────────────────────────
-       CAS 2 : STORY D'UN AUTRE
-    ───────────────────────────────────────────── */
+      if (!isStoryBoosted) {
+        const boostBtn = document.createElement('button');
+        boostBtn.className = 'cta-btn boost-btn';
+        boostBtn.style.background = '#1abc9c';
+        boostBtn.innerHTML = '<i class="fa-solid fa-trophy"></i> BOOSTER';
+        boostBtn.onclick = (e) => {
+          e.stopPropagation();
+          closeStoryViewer();
+          if (typeof window.boostStory === 'function') {
+            window.boostStory(story.id, story.caption || 'Ma story');
+          }
+        };
+        cta.appendChild(boostBtn);
+      } else {
+        const boostedBadge = document.createElement('span');
+        boostedBadge.innerHTML = '<i class="fa-solid fa-trophy"></i> Boostée';
+        boostedBadge.style.cssText = `
+          background: rgba(255, 215, 0, 0.9);
+          color: #000;
+          padding: 8px 14px;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: bold;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        `;
+        cta.appendChild(boostedBadge);
+      }
 
-    // Bouton SUIVRE
-    const followBtn = document.createElement('button');
-    followBtn.className = 'follow-btn-story';
-    const updateFollowLabel = () => {
-      const isF = followingIds.has(group.user_id);
-      followBtn.textContent = isF ? 'Suivi ✓' : 'Suivre';
-      followBtn.classList.toggle('following', isF);
-      followBtn.disabled = isF;
-    };
-    updateFollowLabel();
-    followBtn.onclick = async (e) => {
-      e.stopPropagation();
-      await supabase.rpc('toggle_follow', {
-        p_follower: currentUser.id,
-        p_following: group.user_id
-      });
-      if (followingIds.has(group.user_id)) followingIds.delete(group.user_id);
-      else followingIds.add(group.user_id);
-      updateFollowLabel();
-    };
-    cta.appendChild(followBtn);
-
-    // Bouton SOUTENIR (25 XAF)
-    const { data: targetUser } = await supabase
-      .from('users')
-      .select('followers_count')
-      .eq('id', group.user_id)
-      .maybeSingle();
-
-    if ((targetUser?.followers_count || 0) > 0) {
-      const supportBtn = document.createElement('button');
-      supportBtn.className = 'cta-btn support-btn';
-      supportBtn.innerHTML = '<i class="fas fa-star"></i> SOUTENIR (25 XAF)';
-      supportBtn.onclick = async (e) => {
+      // Bouton SUPPRIMER
+      const del = document.createElement('button');
+      del.className = 'cta-btn';
+      del.style.background = '#e53935';
+      del.innerHTML = '<i class="fas fa-trash"></i>';
+      del.onclick = async (e) => {
         e.stopPropagation();
-        const ok = await prompt(
-          `Envoyer 25 XAF à ${group.user.name} ? (oui/non)`, "oui"
-        );
+        const ok = await prompt("Supprimer cette story ? (oui/non)", "oui");
         if (ok?.toLowerCase() !== 'oui') return;
 
-        const { data: success, error } = await supabase.rpc('support_user', {
-          p_from: currentUser.id,
-          p_to: group.user_id,
-          p_amount: 25
-        });
+        await supabase.from('stories').delete().eq('id', story.id);
 
-        if (error) return alert('Erreur : ' + error.message);
-        if (!success) return alert('💸 Solde insuffisant');
+        allStoriesGrouped[svState.groupIndex].stories.splice(svState.storyIndex, 1);
 
-        alert('✅ 25 XAF envoyés à ' + group.user.name);
-        await loadWallet();
+        if (allStoriesGrouped[svState.groupIndex].stories.length === 0) {
+          allStoriesGrouped.splice(svState.groupIndex, 1);
+          if (!allStoriesGrouped.length) return closeStoryViewer();
+          svState.groupIndex = Math.max(0, svState.groupIndex - 1);
+          svState.storyIndex = 0;
+        } else {
+          svState.storyIndex = Math.min(
+            svState.storyIndex,
+            allStoriesGrouped[svState.groupIndex].stories.length - 1
+          );
+        }
+
+        await loadStories();
+        renderCurrentStory();
       };
-      cta.appendChild(supportBtn);
+      cta.appendChild(del);
+
+    } else if (currentUser) {
+      /* ─────────── CAS 2 : STORY D'UN AUTRE ─────────── */
+
+      // Bouton SUIVRE
+      const followBtn = document.createElement('button');
+      followBtn.className = 'follow-btn-story';
+
+      const updateFollowLabel = () => {
+        const isF = followingIds.has(group.user_id);
+        followBtn.textContent = isF ? 'Suivi ✓' : 'Suivre';
+        followBtn.classList.toggle('following', isF);
+        followBtn.disabled = isF;
+      };
+      updateFollowLabel();
+
+      followBtn.onclick = async (e) => {
+        e.stopPropagation();
+        await supabase.rpc('toggle_follow', {
+          p_follower: currentUser.id,
+          p_following: group.user_id
+        });
+        if (followingIds.has(group.user_id)) followingIds.delete(group.user_id);
+        else followingIds.add(group.user_id);
+        updateFollowLabel();
+      };
+      cta.appendChild(followBtn);
+
+      // Bouton SOUTENIR (25 XAF)
+      const { data: targetUser } = await supabase
+        .from('users')
+        .select('followers_count')
+        .eq('id', group.user_id)
+        .maybeSingle();
+
+      if ((targetUser?.followers_count || 0) > 0) {
+        const supportBtn = document.createElement('button');
+        supportBtn.className = 'cta-btn support-btn';
+        supportBtn.innerHTML = '<i class="fas fa-star"></i> SOUTENIR (25 XAF)';
+        supportBtn.onclick = async (e) => {
+          e.stopPropagation();
+          const ok = await prompt(
+            `Envoyer 25 XAF à ${group.user.name} ? (oui/non)`,
+            "oui"
+          );
+          if (ok?.toLowerCase() !== 'oui') return;
+
+          const { data: success, error } = await supabase.rpc('support_user', {
+            p_from: currentUser.id,
+            p_to: group.user_id,
+            p_amount: 25
+          });
+
+          if (error) return alert('Erreur : ' + error.message);
+          if (!success) return alert('💸 Solde insuffisant');
+
+          alert('✅ 25 XAF envoyés à ' + group.user.name);
+          await loadWallet();
+        };
+        cta.appendChild(supportBtn);
+      }
     }
   }
 
@@ -4817,25 +4855,186 @@ async function renderCurrentStory() {
     } catch (_) {}
   }
 }
+window.renderCurrentStory = renderCurrentStory;
+function getSeenStories() {
+  try {
+    const raw = localStorage.getItem(SEEN_STORIES_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch { return new Set(); }
+}
 
+function markStoryAsSeen(storyId) {
+  const seen = getSeenStories();
+  seen.add(storyId);
+  const arr = [...seen].slice(-500);
+  localStorage.setItem(SEEN_STORIES_KEY, JSON.stringify(arr));
+}
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function isStoryBoosted(story) {
+  if (!story) return false;
+  if (!story.boosted || story.boosted <= 0) return false;
+  if (!story.boost_at) return false;
+  const age = (Date.now() - new Date(story.boost_at).getTime()) / 86400000;
+  return age <= 2;
+}
+
+/* ✅ NOUVEAU : la fonction qui manquait — nettoie TOUS les timers */
+function clearTimers() {
+  if (svState.progressInterval) {
+    clearInterval(svState.progressInterval);
+    svState.progressInterval = null;
+  }
+  if (svState.timer) {
+    clearTimeout(svState.timer);
+    svState.timer = null;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   CHARGEMENT DES STORIES (barre horizontale)
+───────────────────────────────────────────── */
+async function loadStories() {
+  const bar = document.getElementById('storyBar');
+  if (!bar) return;
+
+  const { data, error } = await supabase
+    .from('stories')
+    .select('*, users:user_id(id, name, photo_url)')
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: true });
+
+  if (error) { console.error('loadStories:', error); return; }
+
+  const grouped = new Map();
+  (data || []).forEach(s => {
+    if (!grouped.has(s.user_id)) {
+      grouped.set(s.user_id, {
+        user_id: s.user_id,
+        user: s.users || { name: 'Utilisateur', photo_url: null },
+        stories: []
+      });
+    }
+    grouped.get(s.user_id).stories.push(s);
+  });
+
+  // Boosters prioritaires selon le pays
+  const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString();
+  const { data: me } = await supabase
+    .from('users').select('country_index').eq('id', currentUser?.id).maybeSingle();
+  const myCountry = me?.country_index || 1;
+
+  const { data: boosters } = await supabase
+    .from('posts')
+    .select('user_id, boost_countries')
+    .gt('boosted', 0)
+    .gte('boost_at', twoDaysAgo);
+
+  const boosterIds = new Set(
+    (boosters || [])
+      .filter(b => Array.isArray(b.boost_countries) && b.boost_countries.includes(myCountry))
+      .map(b => b.user_id)
+  );
+
+  let myGroup = null;
+  const priorityGrp = [];
+
+  for (const g of grouped.values()) {
+    if (currentUser && g.user_id === currentUser.id) {
+      myGroup = g;
+    } else if (
+      currentUser &&
+      (boosterIds.has(g.user_id) || followingIds.has(g.user_id))
+    ) {
+      priorityGrp.push(g);
+    }
+  }
+
+  allStoriesGrouped = [
+    ...(myGroup ? [myGroup] : []),
+    ...shuffleArray(priorityGrp)
+  ];
+
+  bar.innerHTML = '';
+  const seenSet = getSeenStories();
+
+  if (currentUser) {
+    const create = document.createElement('div');
+    create.className = 'story-item';
+    create.innerHTML = `
+      <div class="ring create"><div class="plus">+</div></div>
+      <small>Créer</small>`;
+    create.onclick = () => openTab({ currentTarget: null }, 'create-story');
+    bar.appendChild(create);
+  }
+
+  allStoriesGrouped.forEach((g, idx) => {
+    const item = document.createElement('div');
+    item.className = 'story-item';
+
+    const allSeen = g.stories.every(s => seenSet.has(s.id));
+    const ringClass = allSeen ? 'ring seen' : 'ring';
+    const photo = g.user.photo_url || 'https://via.placeholder.com/70';
+
+    const label = (currentUser && g.user_id === currentUser.id)
+      ? 'Ma story'
+      : escapeHtml(g.user.name || 'User');
+
+    item.innerHTML = `
+      <div class="${ringClass}">
+        <img src="${photo}" alt="${escapeHtml(g.user.name || '')}">
+      </div>
+      <small>${label}</small>`;
+
+    item.onclick = () => window.openStoryViewer(idx, 0);
+    bar.appendChild(item);
+  });
+
+  if (allStoriesGrouped.length === 0 && !currentUser) {
+    bar.innerHTML = '<p style="padding:10px;color:#888;font-size:13px">Aucune story pour le moment.</p>';
+  }
+}
+window.loadStories = loadStories;
+
+/* ─────────────────────────────────────────────
+   PUBLICATION D'UNE STORY
+───────────────────────────────────────────── */
 async function publishStory() {
   if (!currentUser) return alert("Connectez-vous");
 
   const imgTab = document.getElementById('tabStoryImage');
   const isImg = imgTab ? imgTab.classList.contains('active') : true;
-  const fileInput = isImg ? document.getElementById('storyImageFile') : document.getElementById('storyVideoFile');
-  const urlInput = isImg ? document.getElementById('storyImageUrl') : document.getElementById('storyVideoUrl');
-  const captionInput = isImg ? document.getElementById('storyImageCaption') : document.getElementById('storyVideoCaption');
+  const fileInput = isImg
+    ? document.getElementById('storyImageFile')
+    : document.getElementById('storyVideoFile');
+  const urlInput = isImg
+    ? document.getElementById('storyImageUrl')
+    : document.getElementById('storyVideoUrl');
+  const captionInput = isImg
+    ? document.getElementById('storyImageCaption')
+    : document.getElementById('storyVideoCaption');
+
   const file = fileInput?.files[0];
   const url = urlInput?.value.trim() || '';
   const caption = captionInput?.value.trim() || '';
 
   let mediaUrl = url;
-  let mediaType = isImg ? 'image' : 'video';
+  const mediaType = isImg ? 'image' : 'video';
 
   if (file) {
     if (mediaType === 'video' && file.size > 20 * 1024 * 1024) {
       return alert("Vidéo trop volumineuse (max 20 MB).");
+    }
+    if (mediaType === 'image' && file.size > 5 * 1024 * 1024) {
+      return alert("Image trop volumineuse (max 5 MB).");
     }
     const path = `${currentUser.id}/story_${Date.now()}_${file.name}`;
     const { error } = await supabase.storage.from('media').upload(path, file);
@@ -4844,11 +5043,26 @@ async function publishStory() {
   }
   if (!mediaUrl) return alert("Image ou URL requise");
 
-  await supabase.from('stories').insert({
-    user_id: currentUser.id, media_url: mediaUrl, media_type: mediaType, caption: caption || null
+  const { error: insertErr } = await supabase.from('stories').insert({
+    user_id: currentUser.id,
+    media_url: mediaUrl,
+    media_type: mediaType,
+    caption: caption || null
   });
+
+  if (insertErr) return alert("Erreur : " + insertErr.message);
+
   document.getElementById('storyStatus').textContent = '✅ Story publiée';
-  loadStories();
+
+  if (fileInput) fileInput.value = '';
+  if (urlInput) urlInput.value = '';
+  if (captionInput) captionInput.value = '';
+
+  await loadStories();
+
+  setTimeout(() => {
+    openTab({ currentTarget: null }, 'home');
+  }, 1000);
 }
 window.publishStory = publishStory;
 
@@ -4863,293 +5077,60 @@ window.switchStoryType = (type) => {
   if (vidForm) vidForm.style.display = !isImg ? 'block' : 'none';
 };
 
-/*──────────────────────────────────────────────────────────
-  STORY VIEWER
-──────────────────────────────────────────────────────────*/
-window.openStoryViewer = (groupIndex, storyIndex = 0) => {
-  if (!allStoriesGrouped.length) return;
+/* ─────────────────────────────────────────────
+   NAVIGATION VIEWER (open / close / next / prev)
+───────────────────────────────────────────── */
+window.openStoryViewer = (groupIdx = 0, storyIdx = 0) => {
+  if (!allStoriesGrouped.length) {
+    return showCustomAlert("Aucune story disponible pour le moment.");
+  }
+  if (!allStoriesGrouped[groupIdx]) groupIdx = 0;
 
-  svState.groupIndex = groupIndex;
-  svState.storyIndex = storyIndex;
+  svState.groupIndex = groupIdx;
+  svState.storyIndex = storyIdx;
   svState.isOpen = true;
   svState.isPaused = false;
 
   const viewer = document.getElementById('storyViewer');
   if (!viewer) return;
-
-  history.pushState({ storyViewer: true }, '', '#story');
   viewer.classList.add('open');
+
+  document.body.style.overflow = 'hidden';
+  history.pushState({ storyViewer: true }, '', '#story');
+
   renderCurrentStory();
 };
 
-function closeStoryViewer(fromBackButton = false) {
+window.closeStoryViewer = (fromPopState = false) => {
+  if (closingStory) return;
+  closingStory = true;
+
+  clearTimers();
+
+  const vid = document.querySelector('#storyMedia video');
+  if (vid) { vid.pause(); vid.src = ''; }
+
   const viewer = document.getElementById('storyViewer');
-  if (!viewer) return;
-
-  viewer.classList.remove('open');
-
-  const media = document.getElementById('storyMedia');
-  if (media) media.innerHTML = '';
-  const caption = document.getElementById('storyCaption');
-  if (caption) caption.textContent = '';
+  if (viewer) viewer.classList.remove('open');
 
   svState.isOpen = false;
-  clearTimers();
+  svState.isPaused = false;
+  svState.groupIndex = 0;
+  svState.storyIndex = 0;
 
-  if (!fromBackButton && history.state?.storyViewer) {
-    closingStory = true;
+  document.body.style.overflow = '';
+
+  if (!fromPopState && history.state?.storyViewer) {
     history.back();
-    setTimeout(() => { closingStory = false; }, 150);
-  }
-}
-
-function clearTimers() {
-  if (svState.timer) clearTimeout(svState.timer);
-  if (svState.progressInterval) clearInterval(svState.progressInterval);
-  svState.timer = null;
-  svState.progressInterval = null;
-}
-
-async function renderCurrentStory() {
-  if (!svState.isOpen) return;
-  const group = allStoriesGrouped[svState.groupIndex];
-  if (!group) return closeStoryViewer();
-
-  const story = group.stories[svState.storyIndex];
-  if (!story) {
-    if (svState.groupIndex < allStoriesGrouped.length - 1) {
-      svState.groupIndex++;
-      svState.storyIndex = 0;
-      return renderCurrentStory();
-    }
-    return closeStoryViewer();
   }
 
-  const avatar = document.getElementById('storyViewerAvatar');
-  avatar.src = group.user.photo_url || 'https://via.placeholder.com/42';
-  avatar.onclick = () => { closeStoryViewer(); openUserFeed(group.user.id || group.user_id); };
-
-  document.getElementById('storyViewerName').textContent = group.user.name || 'Utilisateur';
-  const created = new Date(story.created_at);
-  document.getElementById('storyViewerTime').textContent = `il y a ${timeSince(created)}`;
-
-  const headerActions = document.getElementById('storyHeaderActions');
-  headerActions.innerHTML = '';
-  const moreBtn = document.createElement('button');
-  moreBtn.className = 'more-btn';
-  moreBtn.innerHTML = '⋮';
-  moreBtn.onclick = () => openStoryMenu(story, group);
-  headerActions.appendChild(moreBtn);
-
-  const mediaDiv = document.getElementById('storyMedia');
-  mediaDiv.innerHTML = '';
-
-  if (story.media_type === 'video') {
-    const video = document.createElement('video');
-    video.src = story.media_url;
-    video.autoplay = true;
-    video.playsInline = true;
-    video.muted = false;
-    video.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
-    mediaDiv.appendChild(video);
-    video.onended = nextStory;
-    video.onloadedmetadata = () => startProgress(video.duration * 1000);
-    video.onerror = () => startProgress(STORY_DURATION);
-  } else {
-    const img = document.createElement('img');
-    img.src = story.media_url;
-    img.alt = 'story';
-    img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
-    mediaDiv.appendChild(img);
-    img.onload = () => startProgress(STORY_DURATION);
-    img.onerror = () => startProgress(STORY_DURATION);
-  }
-
-  document.getElementById('storyCaption').textContent = story.caption || '';
-
-  const viewsEl = document.getElementById('storyViewerViews');
-  const viewsPlural = document.getElementById('storyViewerViewsPlural');
-  const viewsBox = document.querySelector('.story-footer .views');
-  const isOwner = currentUser && currentUser.id === group.user_id;
-
-  if (isOwner) {
-    viewsBox.style.display = 'flex';
-    const { data: fresh } = await supabase
-      .from('stories').select('views').eq('id', story.id).maybeSingle();
-    const v = fresh?.views || 0;
-    viewsEl.textContent = fmt(v);
-    viewsPlural.textContent = v > 1 ? 's' : '';
-  } else {
-    viewsBox.style.display = 'none';
-  }
-
-  const cta = document.getElementById('storyCtaGroup');
-  cta.innerHTML = '';
-
-  if (isOwner) {
-    const boostBtn = document.createElement('button');
-    boostBtn.className = 'cta-btn boost-btn';
-    boostBtn.style.background = '#1abc9c';
-    boostBtn.innerHTML = '<i class="fa-solid fa-trophy"></i> BOOSTER';
-    boostBtn.onclick = (e) => {
-      e.stopPropagation();
-      closeStoryViewer();
-      window.boostStory(story.id, story.caption || 'Ma story');
-    };
-    cta.appendChild(boostBtn);
-
-    const del = document.createElement('button');
-    del.className = 'cta-btn';
-    del.style.background = '#e53935';
-    del.innerHTML = '<i class="fas fa-trash"></i>';
-    del.onclick = async (e) => {
-      e.stopPropagation();
-      const ok = await prompt("Supprimer cette story ? (oui/non)", "oui");
-      if (ok?.toLowerCase() !== 'oui') return;
-      await supabase.from('stories').delete().eq('id', story.id);
-      allStoriesGrouped[svState.groupIndex].stories.splice(svState.storyIndex, 1);
-      if (allStoriesGrouped[svState.groupIndex].stories.length === 0) {
-        allStoriesGrouped.splice(svState.groupIndex, 1);
-        if (!allStoriesGrouped.length) return closeStoryViewer();
-        svState.groupIndex = Math.max(0, svState.groupIndex - 1);
-        svState.storyIndex = 0;
-      } else {
-        svState.storyIndex = Math.min(
-          svState.storyIndex,
-          allStoriesGrouped[svState.groupIndex].stories.length - 1
-        );
-      }
-      loadStories();
-      renderCurrentStory();
-    };
-    cta.appendChild(del);
-
-  } else if (currentUser) {
-    const followBtn = document.createElement('button');
-    followBtn.className = 'follow-btn-story';
-    const updateFollowLabel = () => {
-      const isF = followingIds.has(group.user_id);
-      followBtn.textContent = isF ? 'Suivi ✓' : 'Suivre';
-      followBtn.classList.toggle('following', isF);
-      followBtn.disabled = isF;
-    };
-    updateFollowLabel();
-    followBtn.onclick = async (e) => {
-      e.stopPropagation();
-      await supabase.rpc('toggle_follow', {
-        p_follower: currentUser.id,
-        p_following: group.user_id
-      });
-      if (followingIds.has(group.user_id)) followingIds.delete(group.user_id);
-      else followingIds.add(group.user_id);
-      updateFollowLabel();
-    };
-    cta.appendChild(followBtn);
-
-    const { data: targetUser } = await supabase
-      .from('users').select('followers_count').eq('id', group.user_id).maybeSingle();
-
-    if ((targetUser?.followers_count || 0) > 0) {
-      const supportBtn = document.createElement('button');
-      supportBtn.className = 'cta-btn support-btn';
-      supportBtn.innerHTML = '<i class="fas fa-star"></i> SOUTENIR (25 XAF)';
-      supportBtn.onclick = async (e) => {
-        e.stopPropagation();
-        const ok = await prompt(
-          `Envoyer 25 XAF à ${group.user.name} ? (oui/non)`, "oui"
-        );
-        if (ok?.toLowerCase() !== 'oui') return;
-
-        const { data: success, error } = await supabase.rpc('support_user', {
-          p_from: currentUser.id,
-          p_to: group.user_id,
-          p_amount: 25
-        });
-
-        if (error) return alert('Erreur : ' + error.message);
-        if (!success) return alert('💸 Solde insuffisant');
-
-        alert('✅ 25 XAF envoyés à ' + group.user.name);
-        await loadWallet();
-      };
-      cta.appendChild(supportBtn);
-    }
-  }
-
-  renderProgressBars(group.stories.length, svState.storyIndex);
-
-  if (!isOwner && currentUser) {
-    try {
-      await supabase.from('story_views').insert({
-        story_id: story.id,
-        user_id: currentUser.id
-      });
-      markStoryAsSeen(story.id);
-    } catch (_) {}
-  }
-}
-
-window.boostStory = function(storyId, storyCaption) {
-  boostId = storyId;
-  boostTargetType = 'story';
-
-  document.getElementById('boostStatus').textContent =
-    `📸 Story sélectionnée : ${storyCaption || 'Ma story'}`;
-  document.getElementById('boostPanel').style.display = 'block';
-
-  if (typeof prepareBoostPanel === 'function') prepareBoostPanel();
-
-  openTab(
-    { currentTarget: document.querySelector('.tablinks[onclick*="BOOST"]') },
-    'BOOST'
-  );
+  setTimeout(() => { closingStory = false; }, 300);
 };
-
-function renderProgressBars(count, currentIndex) {
-  const container = document.getElementById('storyProgress');
-  container.innerHTML = '';
-  for (let i = 0; i < count; i++) {
-    const bar = document.createElement('div');
-    bar.className = 'bar';
-    const fill = document.createElement('div');
-    fill.className = 'fill';
-    if (i < currentIndex) fill.style.width = '100%';
-    else if (i > currentIndex) fill.style.width = '0%';
-    bar.appendChild(fill);
-    container.appendChild(bar);
-  }
-}
-
-function startProgress(durationMs) {
-  clearTimers();
-  const container = document.getElementById('storyProgress');
-  const bars = container.querySelectorAll('.bar .fill');
-  const currentBar = bars[svState.storyIndex];
-  if (!currentBar) return;
-
-  bars.forEach((b, i) => {
-    if (i < svState.storyIndex) b.style.width = '100%';
-    else if (i > svState.storyIndex) b.style.width = '0%';
-  });
-  currentBar.style.width = '0%';
-
-  svState.progressStart = Date.now();
-
-  svState.progressInterval = setInterval(() => {
-    if (svState.isPaused) return;
-    const elapsed = Date.now() - svState.progressStart;
-    const pct = Math.min(100, (elapsed / durationMs) * 100);
-    currentBar.style.width = pct + '%';
-  }, 50);
-
-  svState.timer = setTimeout(() => {
-    if (!svState.isPaused) nextStory();
-  }, durationMs);
-}
 
 window.nextStory = () => {
   if (!svState.isOpen) return;
   clearTimers();
+
   const group = allStoriesGrouped[svState.groupIndex];
   if (!group) return closeStoryViewer();
 
@@ -5168,6 +5149,7 @@ window.nextStory = () => {
 window.prevStory = () => {
   if (!svState.isOpen) return;
   clearTimers();
+
   if (svState.storyIndex > 0) {
     svState.storyIndex--;
     renderCurrentStory();
@@ -5181,6 +5163,68 @@ window.prevStory = () => {
   }
 };
 
+/* ─────────────────────────────────────────────
+   BARRES DE PROGRESSION
+───────────────────────────────────────────── */
+function renderProgressBars(count, currentIndex) {
+  const container = document.getElementById('storyProgress');
+  if (!container) return;
+  container.innerHTML = '';
+
+  for (let i = 0; i < count; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    const fill = document.createElement('div');
+    fill.className = 'fill';
+    if (i < currentIndex) fill.style.width = '100%';
+    else fill.style.width = '0%';
+    bar.appendChild(fill);
+    container.appendChild(bar);
+  }
+}
+window.renderProgressBars = renderProgressBars;
+
+/* ─────────────────────────────────────────────
+   LANCEMENT DE LA PROGRESSION (auto-avance)
+───────────────────────────────────────────── */
+function startProgress(durationMs = STORY_DURATION) {
+  clearTimers();
+
+  const container = document.getElementById('storyProgress');
+  if (!container) return;
+
+  const bars = container.querySelectorAll('.bar .fill');
+  const currentBar = bars[svState.storyIndex];
+  if (!currentBar) return;
+
+  // Reset visuel
+  bars.forEach((b, i) => {
+    if (i < svState.storyIndex) b.style.width = '100%';
+    else if (i > svState.storyIndex) b.style.width = '0%';
+  });
+  currentBar.style.width = '0%';
+
+  svState.progressStart = Date.now();
+  svState.isPaused = false;
+
+  // Animation fluide de la barre
+  svState.progressInterval = setInterval(() => {
+    if (svState.isPaused) return;
+    const elapsed = Date.now() - svState.progressStart;
+    const pct = Math.min(100, (elapsed / durationMs) * 100);
+    currentBar.style.width = pct + '%';
+  }, 50);
+
+  // Auto-avance à la fin
+  svState.timer = setTimeout(() => {
+    if (!svState.isPaused) nextStory();
+  }, durationMs);
+}
+window.startProgress = startProgress;
+
+/* ─────────────────────────────────────────────
+   PAUSE / REPRISE (appui long)
+───────────────────────────────────────────── */
 let pressTimer = null;
 const storyMedia = document.getElementById('storyMedia');
 const viewerEl = document.getElementById('storyViewer');
@@ -5196,20 +5240,24 @@ function resumeStory() {
   if (!svState.isOpen) return;
   svState.isPaused = false;
   const video = storyMedia?.querySelector('video');
-  if (video) video.play();
+  if (video) video.play().catch(() => {});
 }
 
 viewerEl?.addEventListener('pointerdown', (e) => {
   if (e.target.closest('.story-header, .story-footer, .more-btn')) return;
   pressTimer = setTimeout(() => pauseStory(), 200);
 });
+
 viewerEl?.addEventListener('pointerup', () => {
   if (pressTimer) clearTimeout(pressTimer);
-  resumeStory();
+  pressTimer = null;
+  if (svState.isOpen) resumeStory();
 });
+
 viewerEl?.addEventListener('pointercancel', () => {
   if (pressTimer) clearTimeout(pressTimer);
-  resumeStory();
+  pressTimer = null;
+  if (svState.isOpen) resumeStory();
 });
 
 document.addEventListener('visibilitychange', () => {
@@ -5217,38 +5265,79 @@ document.addEventListener('visibilitychange', () => {
   else if (svState.isOpen) resumeStory();
 });
 
-function openStoryMenu(story, group) {
+/* ─────────────────────────────────────────────
+   MENU ⋮ (bouton en haut à droite)
+───────────────────────────────────────────── */
+async function openStoryMenu(story, group) {
   const isOwner = currentUser && currentUser.id === group.user_id;
-  const choice = isOwner
-    ? prompt("Options : 1) Supprimer  2) Annuler", "1")
-    : prompt("Options : 1) Signaler  2) Annuler", "1");
+  const msg = isOwner
+    ? "Options :\n1) Supprimer la story\n2) Annuler"
+    : "Options :\n1) Voir le profil\n2) Copier le lien\n3) Signaler\n4) Annuler";
 
+  const choice = await prompt(msg, isOwner ? "1" : "1");
   if (!choice) return;
 
   if (isOwner && choice === '1') {
-    supabase.from('stories').delete().eq('id', story.id).then(() => {
-      alert('Story supprimée');
-      allStoriesGrouped[svState.groupIndex].stories.splice(svState.storyIndex, 1);
-      if (!allStoriesGrouped[svState.groupIndex].stories.length) {
-        allStoriesGrouped.splice(svState.groupIndex, 1);
-        if (!allStoriesGrouped.length) return closeStoryViewer();
-        svState.groupIndex = Math.max(0, svState.groupIndex - 1);
-        svState.storyIndex = 0;
-      }
-      loadStories();
-      renderCurrentStory();
-    });
+    await supabase.from('stories').delete().eq('id', story.id);
+
+    allStoriesGrouped[svState.groupIndex].stories.splice(svState.storyIndex, 1);
+
+    if (allStoriesGrouped[svState.groupIndex].stories.length === 0) {
+      allStoriesGrouped.splice(svState.groupIndex, 1);
+      if (!allStoriesGrouped.length) return closeStoryViewer();
+      svState.groupIndex = Math.max(0, svState.groupIndex - 1);
+      svState.storyIndex = 0;
+    } else {
+      svState.storyIndex = Math.min(
+        svState.storyIndex,
+        allStoriesGrouped[svState.groupIndex].stories.length - 1
+      );
+    }
+
+    await loadStories();
+    renderCurrentStory();
   } else if (!isOwner && choice === '1') {
-    supabase.from('notifications').insert({
+    closeStoryViewer();
+    openUserFeed(group.user_id);
+  } else if (!isOwner && choice === '2') {
+    try {
+      await navigator.clipboard.writeText(story.media_url);
+      showCustomAlert('Lien copié ✅');
+    } catch {
+      showCustomAlert('Impossible de copier.');
+    }
+  } else if (!isOwner && choice === '3') {
+    await supabase.from('notifications').insert({
       to_user_id: group.user_id,
       from_user_id: currentUser.id,
       from_user_name: currentProfile?.name || currentUser.email,
       type: 'report_story',
       post_id: null,
       text: 'Signalement de story'
-    }).then(() => alert('✅ Story signalée'));
+    });
+    showCustomAlert('✅ Story signalée');
   }
 }
+window.openStoryMenu = openStoryMenu;
+
+/* ─────────────────────────────────────────────
+   BOOST STORY (depuis la visionneuse)
+───────────────────────────────────────────── */
+window.boostStory = function (storyId, storyCaption) {
+  boostId = storyId;
+  boostTargetType = 'story';
+
+  document.getElementById('boostStatus').textContent =
+    `📸 Story sélectionnée : ${storyCaption || 'Ma story'}`;
+  document.getElementById('boostPanel').style.display = 'block';
+
+  if (typeof prepareBoostPanel === 'function') prepareBoostPanel();
+
+  openTab(
+    { currentTarget: document.querySelector('.tablinks[onclick*="BOOST"]') },
+    'BOOST'
+  );
+};
 
 /*──────────────────────────────────────────────────────────
   33. CHECK PREMIER DÉPÔT (MONÉTISATION)
