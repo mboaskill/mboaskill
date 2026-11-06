@@ -4252,31 +4252,220 @@ window.certifyUser = async () => {
 };
 
 /*──────────────────────────────────────────────────────────
-  26. NOTIFICATIONS
+  26. NOTIFICATIONS — avec marquage comme lu (charte GOLD)
 ──────────────────────────────────────────────────────────*/
 async function loadNotifications() {
   if (!currentUser) return;
-  const { data } = await supabase.from('notifications')
-    .select('*').eq('to_user_id', currentUser.id)
-    .order('created_at', { ascending: false }).limit(50);
+
+  const { data, error } = await supabase.from('notifications')
+    .select('*')
+    .eq('to_user_id', currentUser.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) { console.error('loadNotifications:', error); return; }
 
   const list = document.getElementById('notificationsList');
   if (!list) return;
+
   list.innerHTML = '';
-  (data || []).forEach(n => {
+
+  if (!data || data.length === 0) {
+    list.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Aucune notification.</p>';
+    updateNotifBadge(0);
+    return;
+  }
+
+  // ✅ Bouton "Tout marquer comme lu" — GOLD
+  const unreadCount = data.filter(n => !n.read).length;
+  if (unreadCount > 0) {
+    const markAllBtn = document.createElement('button');
+    markAllBtn.textContent = `✓ Tout marquer comme lu (${unreadCount})`;
+    markAllBtn.style.cssText = `
+      width:100%;
+      margin-bottom:10px;
+      padding:10px;
+      background:gold;
+      color:#000;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:13px;
+      font-weight:bold;
+      box-shadow:0 2px 6px rgba(255,215,0,0.35);
+      transition:transform .15s, box-shadow .15s;
+    `;
+    markAllBtn.onmouseenter = () => {
+      markAllBtn.style.transform = 'scale(1.02)';
+      markAllBtn.style.boxShadow = '0 4px 10px rgba(255,215,0,0.5)';
+    };
+    markAllBtn.onmouseleave = () => {
+      markAllBtn.style.transform = 'scale(1)';
+      markAllBtn.style.boxShadow = '0 2px 6px rgba(255,215,0,0.35)';
+    };
+    markAllBtn.onclick = () => markAllNotificationsAsRead();
+    list.appendChild(markAllBtn);
+  }
+
+  // ✅ Rendu de chaque notification
+  data.forEach(n => {
     const d = document.createElement('div');
-    d.className = 'notif-item';
-    d.innerHTML = `<p>${escapeHtml(n.from_user_name || 'Quelqu\'un')} ${n.type === 'mention' ? 'vous a mentionné' : n.type === 'comment' ? 'a commenté' : n.type === 'reply' ? 'a répondu' : ''}</p>`;
+
+    // 👇 La couleur de fond est gérée par le CSS (.read / .unread)
+    d.className = 'notif-item ' + (n.read ? 'read' : 'unread');
+
+    // 👇 Style purement structurel (pas de background ici !)
+    d.style.cssText = `
+      padding:10px;
+      border-bottom:1px solid #eee;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      cursor:pointer;
+      transition:background .2s;
+      border-radius:6px;
+      margin-bottom:4px;
+    `;
+
+    const text = document.createElement('p');
+    text.style.cssText = 'margin:0;flex:1;font-size:14px;color:#333;line-height:1.4;';
+    text.innerHTML = buildNotifText(n);
+    d.appendChild(text);
+
+    // ✅ Bouton "supprimer"
+    const delBtn = document.createElement('i');
+    delBtn.className = 'fas fa-times';
+    delBtn.style.cssText = `
+      color:#bbb;
+      font-size:14px;
+      cursor:pointer;
+      padding:6px;
+      border-radius:50%;
+      transition:background .15s, color .15s;
+    `;
+    delBtn.onmouseenter = () => {
+      delBtn.style.background = '#ffe0e0';
+      delBtn.style.color = '#e53935';
+    };
+    delBtn.onmouseleave = () => {
+      delBtn.style.background = 'transparent';
+      delBtn.style.color = '#bbb';
+    };
+    delBtn.onclick = (e) => {
+      e.stopPropagation();
+      deleteNotification(n.id);
+    };
+    d.appendChild(delBtn);
+
+    // ✅ Clic → marquer lu + navigation
+    d.onclick = () => handleNotifClick(n);
+
     list.appendChild(d);
   });
 
-  const unread = (data || []).filter(n => !n.read).length;
+  updateNotifBadge(unreadCount);
+}
+
+/*──────────────────────────────────────────────────────────
+  Construction du texte de la notification — GOLD
+──────────────────────────────────────────────────────────*/
+function buildNotifText(n) {
+  const name = `<b style="color:gold;">${escapeHtml(n.from_user_name || 'Quelqu\'un')}</b>`;
+  const map = {
+    mention: `${name} vous a mentionné dans une publication`,
+    comment: `${name} a commenté votre publication`,
+    reply:   `${name} a répondu à votre commentaire`,
+    follow:  `${name} a commencé à vous suivre`,
+    boost:   `${name} a boosté votre publication`,
+    support: `${name} vous a soutenu 💛`,
+    report_story: `${name} a signalé une de vos stories`,
+  };
+  return map[n.type] || `${name} vous a envoyé une notification`;
+}
+
+/*──────────────────────────────────────────────────────────
+  Clic sur une notification → marquer lu + naviguer
+──────────────────────────────────────────────────────────*/
+async function handleNotifClick(n) {
+  // 1. Marquer comme lu (si pas déjà lu)
+  if (!n.read) {
+    await supabase
+      .from('notifications')
+      .update({ read: true })
+      .eq('id', n.id);
+  }
+
+  // 2. Navigation selon le type
+  if (n.post_id) {
+    const { data: post } = await supabase
+      .from('posts')
+      .select('user_id')
+      .eq('id', n.post_id)
+      .maybeSingle();
+
+    if (post?.user_id) {
+      openUserFeed(post.user_id);
+      setTimeout(() => {
+        const el = document.querySelector(`[data-post="${n.post_id}"]`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 800);
+    }
+  } else if (n.from_user_id) {
+    openUserFeed(n.from_user_id);
+  }
+
+  // 3. Rafraîchir pour refléter le statut "lu"
+  await loadNotifications();
+}
+
+/*──────────────────────────────────────────────────────────
+  Marquer TOUTES les notifications comme lues
+──────────────────────────────────────────────────────────*/
+async function markAllNotificationsAsRead() {
+  if (!currentUser) return;
+  const { error } = await supabase
+    .from('notifications')
+    .update({ read: true })
+    .eq('to_user_id', currentUser.id)
+    .eq('read', false);
+
+  if (error) return alert('Erreur : ' + error.message);
+  await loadNotifications();
+}
+
+/*──────────────────────────────────────────────────────────
+  Supprimer une notification
+──────────────────────────────────────────────────────────*/
+async function deleteNotification(id) {
+  const { error } = await supabase
+    .from('notifications')
+    .delete()
+    .eq('id', id);
+
+  if (error) return alert('Erreur : ' + error.message);
+  await loadNotifications();
+}
+
+/*──────────────────────────────────────────────────────────
+  Mise à jour du badge — GOLD
+──────────────────────────────────────────────────────────*/
+function updateNotifBadge(count) {
   const badge = document.getElementById('notifBadge');
-  if (badge) {
-    badge.textContent = unread > 9 ? '9+' : unread;
-    badge.style.display = unread > 0 ? 'flex' : 'none';
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count > 9 ? '9+' : count;
+    badge.style.display = 'flex';
+    // ✅ Badge doré cohérent avec la charte
+    badge.style.background = 'gold';
+    badge.style.color = '#000';
+    badge.style.fontWeight = 'bold';
+    badge.style.border = '1.5px solid #fff';
+    badge.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+  } else {
+    badge.style.display = 'none';
   }
 }
+
 function showNotifications() { loadNotifications(); }
 
 /*──────────────────────────────────────────────────────────
@@ -4394,132 +4583,238 @@ document.getElementById('notchpayBtn')?.addEventListener('click', async () => {
   }
 });
 
-/*──────────────────────────────────────────────────────────
-  32. STORIES — barre + visionneuse
-──────────────────────────────────────────────────────────*/
-const SEEN_STORIES_KEY = 'skill_seen_stories';
+async function renderCurrentStory() {
+  if (!svState.isOpen) return;
+  const group = allStoriesGrouped[svState.groupIndex];
+  if (!group) return closeStoryViewer();
 
-function getSeenStories() {
-  try {
-    const raw = localStorage.getItem(SEEN_STORIES_KEY);
-    return raw ? new Set(JSON.parse(raw)) : new Set();
-  } catch { return new Set(); }
-}
-
-function markStoryAsSeen(storyId) {
-  const seen = getSeenStories();
-  seen.add(storyId);
-  const arr = [...seen].slice(-500);
-  localStorage.setItem(SEEN_STORIES_KEY, JSON.stringify(arr));
-}
-
-function shuffleArray(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+  const story = group.stories[svState.storyIndex];
+  if (!story) {
+    if (svState.groupIndex < allStoriesGrouped.length - 1) {
+      svState.groupIndex++;
+      svState.storyIndex = 0;
+      return renderCurrentStory();
+    }
+    return closeStoryViewer();
   }
-  return a;
-}
 
-async function loadStories() {
-  const bar = document.getElementById('storyBar');
-  if (!bar) return;
+  /* ==== HEADER ==== */
+  const avatar = document.getElementById('storyViewerAvatar');
+  avatar.src = group.user.photo_url || 'https://via.placeholder.com/42';
+  avatar.onclick = () => {
+    closeStoryViewer();
+    openUserFeed(group.user.id || group.user_id);
+  };
 
-  const { data, error } = await supabase
-    .from('stories')
-    .select('*, users:user_id(id, name, photo_url)')
-    .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: true });
+  document.getElementById('storyViewerName').textContent = group.user.name || 'Utilisateur';
+  const created = new Date(story.created_at);
+  document.getElementById('storyViewerTime').textContent = `il y a ${timeSince(created)}`;
 
-  if (error) { console.error('loadStories:', error); return; }
+  /* ==== BOUTON ⋮ ==== */
+  const headerActions = document.getElementById('storyHeaderActions');
+  headerActions.innerHTML = '';
+  const moreBtn = document.createElement('button');
+  moreBtn.className = 'more-btn';
+  moreBtn.innerHTML = '⋮';
+  moreBtn.onclick = () => openStoryMenu(story, group);
+  headerActions.appendChild(moreBtn);
 
-  const grouped = new Map();
-  (data || []).forEach(s => {
-    if (!grouped.has(s.user_id)) {
-      grouped.set(s.user_id, {
-        user_id: s.user_id,
-        user: s.users || { name: 'Utilisateur', photo_url: null },
-        stories: []
+  /* ==== MÉDIA ==== */
+  const mediaDiv = document.getElementById('storyMedia');
+  mediaDiv.innerHTML = '';
+
+  if (story.media_type === 'video') {
+    const video = document.createElement('video');
+    video.src = story.media_url;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.muted = false;
+    video.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
+    mediaDiv.appendChild(video);
+    video.onended = nextStory;
+    video.onloadedmetadata = () => startProgress(video.duration * 1000);
+    video.onerror = () => startProgress(STORY_DURATION);
+  } else {
+    const img = document.createElement('img');
+    img.src = story.media_url;
+    img.alt = 'story';
+    img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
+    mediaDiv.appendChild(img);
+    img.onload = () => startProgress(STORY_DURATION);
+    img.onerror = () => startProgress(STORY_DURATION);
+  }
+
+  /* ==== LÉGENDE ==== */
+  document.getElementById('storyCaption').textContent = story.caption || '';
+
+  /* ==== ✅ DÉCLARATION isOwner EN PREMIER ==== */
+  const isOwner = currentUser && currentUser.id === group.user_id;
+
+  /* ==== COMPTEUR DE VUES ==== */
+  const viewsEl = document.getElementById('storyViewerViews');
+  const viewsPlural = document.getElementById('storyViewerViewsPlural');
+  const viewsBox = document.querySelector('.story-footer .views');
+
+  if (isOwner) {
+    viewsBox.style.display = 'flex';
+    const { data: fresh } = await supabase
+      .from('stories')
+      .select('views')
+      .eq('id', story.id)
+      .maybeSingle();
+    const v = fresh?.views || 0;
+    viewsEl.textContent = fmt(v);
+    viewsPlural.textContent = v > 1 ? 's' : '';
+  } else {
+    viewsBox.style.display = 'none';
+  }
+
+  /* ==== CTA (BOOSTER / SUPPRIMER / SUIVRE / SOUTENIR) ==== */
+  const cta = document.getElementById('storyCtaGroup');
+  cta.innerHTML = '';
+
+  if (isOwner) {
+    /* ─────────────────────────────────────────────
+       CAS 1 : MA STORY
+    ───────────────────────────────────────────── */
+    let isStoryBoosted = false;
+    if ((story.boosted || 0) > 0 && story.boost_at) {
+      const boostAtMs = new Date(story.boost_at).getTime();
+      const diffDays = (Date.now() - boostAtMs) / 86400000;
+      isStoryBoosted = diffDays <= 2;
+    }
+
+    if (!isStoryBoosted) {
+      // ✅ Bouton BOOSTER visible
+      const boostBtn = document.createElement('button');
+      boostBtn.className = 'cta-btn boost-btn';
+      boostBtn.style.background = '#1abc9c';
+      boostBtn.innerHTML = '<i class="fa-solid fa-trophy"></i> BOOSTER';
+      boostBtn.onclick = (e) => {
+        e.stopPropagation();
+        closeStoryViewer();
+        window.boostStory(story.id, story.caption || 'Ma story');
+      };
+      cta.appendChild(boostBtn);
+    } else {
+      // ✅ Badge "Boostée"
+      const boostedBadge = document.createElement('span');
+      boostedBadge.innerHTML = '<i class="fa-solid fa-trophy"></i> Boostée';
+      boostedBadge.style.cssText = `
+        background: rgba(255, 215, 0, 0.9);
+        color: #000;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      `;
+      cta.appendChild(boostedBadge);
+    }
+
+    // ✅ Bouton SUPPRIMER (toujours visible)
+    const del = document.createElement('button');
+    del.className = 'cta-btn';
+    del.style.background = '#e53935';
+    del.innerHTML = '<i class="fas fa-trash"></i>';
+    del.onclick = async (e) => {
+      e.stopPropagation();
+      const ok = await prompt("Supprimer cette story ? (oui/non)", "oui");
+      if (ok?.toLowerCase() !== 'oui') return;
+      await supabase.from('stories').delete().eq('id', story.id);
+      allStoriesGrouped[svState.groupIndex].stories.splice(svState.storyIndex, 1);
+      if (allStoriesGrouped[svState.groupIndex].stories.length === 0) {
+        allStoriesGrouped.splice(svState.groupIndex, 1);
+        if (!allStoriesGrouped.length) return closeStoryViewer();
+        svState.groupIndex = Math.max(0, svState.groupIndex - 1);
+        svState.storyIndex = 0;
+      } else {
+        svState.storyIndex = Math.min(
+          svState.storyIndex,
+          allStoriesGrouped[svState.groupIndex].stories.length - 1
+        );
+      }
+      loadStories();
+      renderCurrentStory();
+    };
+    cta.appendChild(del);
+
+  } else if (currentUser) {
+    /* ─────────────────────────────────────────────
+       CAS 2 : STORY D'UN AUTRE
+    ───────────────────────────────────────────── */
+
+    // Bouton SUIVRE
+    const followBtn = document.createElement('button');
+    followBtn.className = 'follow-btn-story';
+    const updateFollowLabel = () => {
+      const isF = followingIds.has(group.user_id);
+      followBtn.textContent = isF ? 'Suivi ✓' : 'Suivre';
+      followBtn.classList.toggle('following', isF);
+      followBtn.disabled = isF;
+    };
+    updateFollowLabel();
+    followBtn.onclick = async (e) => {
+      e.stopPropagation();
+      await supabase.rpc('toggle_follow', {
+        p_follower: currentUser.id,
+        p_following: group.user_id
       });
-    }
-    grouped.get(s.user_id).stories.push(s);
-  });
+      if (followingIds.has(group.user_id)) followingIds.delete(group.user_id);
+      else followingIds.add(group.user_id);
+      updateFollowLabel();
+    };
+    cta.appendChild(followBtn);
 
-  // ✅ Filtrer les boosters selon le pays de l'utilisateur
-  const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString();
-  const { data: me } = await supabase
-    .from('users').select('country_index').eq('id', currentUser?.id).maybeSingle();
-  const myCountry = me?.country_index || 1;
+    // Bouton SOUTENIR (25 XAF)
+    const { data: targetUser } = await supabase
+      .from('users')
+      .select('followers_count')
+      .eq('id', group.user_id)
+      .maybeSingle();
 
-  const { data: boosters } = await supabase
-    .from('posts')
-    .select('user_id, boost_countries')
-    .gt('boosted', 0)
-    .gte('boost_at', twoDaysAgo);
+    if ((targetUser?.followers_count || 0) > 0) {
+      const supportBtn = document.createElement('button');
+      supportBtn.className = 'cta-btn support-btn';
+      supportBtn.innerHTML = '<i class="fas fa-star"></i> SOUTENIR (25 XAF)';
+      supportBtn.onclick = async (e) => {
+        e.stopPropagation();
+        const ok = await prompt(
+          `Envoyer 25 XAF à ${group.user.name} ? (oui/non)`, "oui"
+        );
+        if (ok?.toLowerCase() !== 'oui') return;
 
-  const boosterIds = new Set(
-    (boosters || [])
-      .filter(b => Array.isArray(b.boost_countries) && b.boost_countries.includes(myCountry))
-      .map(b => b.user_id)
-  );
+        const { data: success, error } = await supabase.rpc('support_user', {
+          p_from: currentUser.id,
+          p_to: group.user_id,
+          p_amount: 25
+        });
 
-  let myGroup = null;
-  const priorityGrp = [];
+        if (error) return alert('Erreur : ' + error.message);
+        if (!success) return alert('💸 Solde insuffisant');
 
-  for (const g of grouped.values()) {
-    if (currentUser && g.user_id === currentUser.id) {
-      myGroup = g;
-    } else if (
-      currentUser &&
-      (boosterIds.has(g.user_id) || followingIds.has(g.user_id))
-    ) {
-      priorityGrp.push(g);
+        alert('✅ 25 XAF envoyés à ' + group.user.name);
+        await loadWallet();
+      };
+      cta.appendChild(supportBtn);
     }
   }
 
-  allStoriesGrouped = [
-    ...(myGroup ? [myGroup] : []),
-    ...shuffleArray(priorityGrp)
-  ];
+  /* ==== BARRES DE PROGRESSION ==== */
+  renderProgressBars(group.stories.length, svState.storyIndex);
 
-  bar.innerHTML = '';
-  const seenSet = getSeenStories();
-
-  if (currentUser) {
-    const create = document.createElement('div');
-    create.className = 'story-item';
-    create.innerHTML = `
-      <div class="ring create"><div class="plus">+</div></div>
-      <small>Créer</small>`;
-    create.onclick = () => openTab({ currentTarget: null }, 'create-story');
-    bar.appendChild(create);
-  }
-
-  allStoriesGrouped.forEach((g, idx) => {
-    const item = document.createElement('div');
-    item.className = 'story-item';
-
-    const allSeen = g.stories.every(s => seenSet.has(s.id));
-    const ringClass = allSeen ? 'ring seen' : 'ring';
-    const photo = g.user.photo_url || 'https://via.placeholder.com/70';
-
-    const label = (currentUser && g.user_id === currentUser.id)
-      ? 'Ma story'
-      : escapeHtml(g.user.name || 'User');
-
-    item.innerHTML = `
-      <div class="${ringClass}">
-        <img src="${photo}" alt="${escapeHtml(g.user.name || '')}">
-      </div>
-      <small>${label}</small>`;
-
-    item.onclick = () => openStoryViewer(idx, 0);
-    bar.appendChild(item);
-  });
-
-  if (allStoriesGrouped.length === 0 && !currentUser) {
-    bar.innerHTML = '<p style="padding:10px;color:#888;font-size:13px">Aucune story pour le moment.</p>';
+  /* ==== MARQUER COMME VUE ==== */
+  if (!isOwner && currentUser) {
+    try {
+      await supabase.from('story_views').insert({
+        story_id: story.id,
+        user_id: currentUser.id
+      });
+      markStoryAsSeen(story.id);
+    } catch (_) {}
   }
 }
 
