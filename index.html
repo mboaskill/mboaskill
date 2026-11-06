@@ -1632,76 +1632,98 @@ font-size:14px;
 </section>
 <section id="BOOST" class="tabcontent">
   <br><br/>
-         <h3>Booster une publication</h3>
+  <h3>Booster un contenu</h3>
+
   <div id="emailLoginBox">
- <div id="boostPanel" style="display:none;margin-bottom:10px">
-  <span id="boostStatus" style="font-weight:bold"></span>
-  <input type="number" id="boostViews" placeholder="Nombres de personnes/jour" min="4000"/>
-  <select id="boostCountry">
-  <option value="1">Cameroun 🇨🇲</option>
-  <option value="2">Côte d’Ivoire 🇨🇮</option>
-  <option value="3">Gabon 🇬🇦</option>
-  <option value="4">Sénégal 🇸🇳</option>
-  <option value="5">Bénin 🇧🇯</option>
-  <option value="6">RDC Congo 🇨🇩</option>
+    <div id="boostPanel" style="display:none;margin-bottom:10px">
 
-  <option value="7">Nigeria 🇳🇬</option>
-  <option value="8">Togo 🇹🇬</option>
-  <option value="9">Burkina Faso 🇧🇫</option>
-  <option value="10">Mali 🇲🇱</option>
-  <option value="11">Niger 🇳🇪</option>
-  <option value="12">Guinée 🇬🇳</option>
-  <option value="13">Guinée-Bissau 🇬🇼</option>
-  <option value="14">Libéria 🇱🇷</option>
-  <option value="15">Sierra Leone 🇸🇱</option>
-  <option value="16">Ghana 🇬🇭</option>
-  <option value="17">Mauritanie 🇲🇷</option>
-  <option value="18">Maroc 🇲🇦</option>
-  <option value="19">Algérie 🇩🇿</option>
-  <option value="20">Tunisie 🇹🇳</option>
-  <option value="21">Libye 🇱🇾</option>
-  <option value="22">Égypte 🇪🇬</option>
-  <option value="23">Tchad 🇹🇩</option>
-  <option value="24">République centrafricaine 🇨🇫</option>
-  <option value="25">Congo 🇨🇬</option>
-  <option value="26">Angola 🇦🇴</option>
-  <option value="27">Zambie 🇿🇲</option>
-  <option value="28">Zimbabwe 🇿🇼</option>
-  <option value="29">Namibie 🇳🇦</option>
-  <option value="30">Botswana 🇧🇼</option>
-  <option value="31">Afrique du Sud 🇿🇦</option>
-  <option value="32">Mozambique 🇲🇿</option>
-  <option value="33">Madagascar 🇲🇬</option>
-  <option value="34">Comores 🇰🇲</option>
-  <option value="35">Maurice 🇲🇺</option>
-  <option value="36">Seychelles 🇸🇨</option>
-  <option value="37">Rwanda 🇷🇼</option>
-  <option value="38">Burundi 🇧🇮</option>
-  <option value="39">Ouganda 🇺🇬</option>
-  <option value="40">Kenya 🇰🇪</option>
-  <option value="41">Tanzanie 🇹🇿</option>
-  <option value="42">Éthiopie 🇪🇹</option>
-  <option value="43">Somalie 🇸🇴</option>
-  <option value="44">Djibouti 🇩🇯</option>
-  <option value="45">Érythrée 🇪🇷</option>
-  <option value="46">Soudan 🇸🇩</option>
-  <option value="47">Soudan du Sud 🇸🇸</option>
-  <option value="48">Guinée équatoriale 🇬🇶</option>
-  <option value="49">Sao Tomé-et-Principe 🇸🇹</option>
-  <option value="50">Eswatini 🇸🇿</option>
-  <option value="51">Lesotho 🇱🇸</option>
-  <option value="52">Cap-Vert 🇨🇻</option>
-  <option value="53">France 🇫🇷</option>
-  <option value="54">Belgique 🇧🇪</option>
-  <option value="55">Canada 🇨🇦</option>
-  <option value="56">États-Unis 🇺🇸</option>
-</select>
-    <button onclick="boostPost()">Booster</button>
-</div> </div> 
-    <br>
-  <p><i class="fas fa-info-circle" style="color:#fff"></i> minimum 3 jours (min: 3j pour 3500 XAF)</p>
+      <!-- Type de boost (affiché dynamiquement) -->
+      <div id="boostTypeBadge" style="
+        display:inline-block;
+        padding:6px 14px;
+        border-radius:20px;
+        font-weight:bold;
+        font-size:14px;
+        margin-bottom:12px;
+        color:#fff;
+      ">—</div>
 
-  </section>
+      <!-- Prix (affiché dynamiquement) -->
+      <div id="boostPriceInfo" style="
+        background:#fff8e1;
+        border:1px solid #ffd700;
+        border-radius:8px;
+        padding:10px 12px;
+        margin-bottom:14px;
+        font-size:14px;
+        color:#333;
+      ">—</div>
+
+      <!-- Statut de la sélection -->
+      <span id="boostStatus" style="font-weight:bold;display:block;margin-bottom:10px;"></span>
+
+      <!-- ✅ Checkbox multi-pays -->
+      <label style="display:block;font-weight:bold;margin-bottom:6px;color:#333;">
+        <i class="fas fa-globe"></i> Pays ciblés (plusieurs possibles) :
+      </label>
+
+      <div id="boostCountriesList" style="
+        max-height:200px;
+        overflow-y:auto;
+        border:1px solid #ddd;
+        border-radius:8px;
+        padding:8px;
+        background:#fafafa;
+        margin-bottom:14px;
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:4px;
+        font-size:13px;
+      ">
+        <!-- Rempli dynamiquement par JS -->
+      </div>
+
+      <button onclick="toggleAllCountries()" style="
+        background:#eee;
+        color:#333;
+        font-weight:normal;
+        margin-bottom:14px;
+        padding:6px;
+        font-size:12px;
+      ">
+        <i class="fas fa-check-double"></i> Tout cocher / décocher
+      </button>
+
+      <!-- Nombre de jours -->
+      <label style="display:block;font-weight:bold;margin-bottom:6px;color:#333;">
+        <i class="fas fa-calendar"></i> Durée (jours) :
+      </label>
+      <input type="number" id="boostViews" placeholder="Ex: 3" min="1" value="3"
+             style="margin-bottom:14px;" />
+
+      <!-- Récapitulatif du coût -->
+      <div id="boostCostSummary" style="
+        background:#e8f5e9;
+        border:1px solid #4caf50;
+        border-radius:8px;
+        padding:12px;
+        margin-bottom:14px;
+        color:#1b5e20;
+        font-size:14px;
+      ">
+        <b>Coût total :</b> <span id="boostTotalCost">0 XAF</span>
+      </div>
+
+      <button onclick="boostPost()">Booster maintenant</button>
+    </div>
+  </div>
+
+  <p style="color:#fff;font-size:13px;text-align:center;margin-top:10px;">
+    <i class="fas fa-info-circle"></i>
+    Boost story : <b>1 000 XAF</b> · Boost publication : <b>3 500 XAF</b><br>
+    Chaque jour choisi multiplie le tarif de base.
+  </p>
+</section>
 <section id="paypalWithdraw" class="tabcontent">
   <br><br/>
   <div id="emailLoginBox">
@@ -2500,8 +2522,26 @@ let cachedPosts = [];
 const usersCache = new Map(); 
 const timers = new Map();
 let hasDeposited = false;
-let boostTargetType = 'post';   // 'post' ou 'story'
+let boostTargetType = 'post';         // 'post' ou 'story'
 const realtimeChannels = [];
+
+// 🆕 VARIABLES CRITIQUES (déplacées en haut pour éviter ReferenceError)
+let closingStory = false;              // anti-boucle popstate
+let allStoriesGrouped = [];            // groupes de stories
+let svState = {                        // état du viewer story
+  groupIndex: 0,
+  storyIndex: 0,
+  timer: null,
+  progressInterval: null,
+  progressStart: 0,
+  isPaused: false,
+  isOpen: false
+};
+const STORY_DURATION = 5000;           // 5s par story
+const BOOST_PRICES = {
+  post:  3500,                         // XAF / jour / pays
+  story: 1000                          // XAF / jour / pays
+};
 
 const qs = id => document.getElementById(id);
 const fmt = n => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'k' : n;
@@ -2513,6 +2553,10 @@ function timeSince(date) {
   if (s < 86400) return Math.floor(s/3600) + 'h';
   if (s < 604800) return Math.floor(s/86400) + 'j';
   return Math.floor(s/604800) + 'sem';
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
 
 /*──────────────────────────────────────────────────────────
@@ -2576,22 +2620,26 @@ window.openTab = (evt, id) => {
     return;
   }
   document.querySelectorAll('.tabcontent').forEach(t => t.classList.toggle('active', t.id === id));
-  document.querySelectorAll('.tablinks').forEach(l => l.classList.toggle('selected', l === evt.currentTarget));
+
+  // ✅ Guard : currentTarget peut être null
+  if (evt?.currentTarget) {
+    document.querySelectorAll('.tablinks').forEach(l =>
+      l.classList.toggle('selected', l === evt.currentTarget)
+    );
+  }
+
   history.pushState({ tab: id }, '', `#${id}`);
 };
 
 window.addEventListener('popstate', (event) => {
-  // 🆕 Garde anti-boucle : on est en train de fermer manuellement la story
   if (closingStory) return;
 
-  // ✅ Priorité 1 : fermer la story si elle est ouverte
   const viewer = document.getElementById('storyViewer');
   if (viewer && viewer.classList.contains('open')) {
-    closeStoryViewer(true);   // true = le bouton retour a déjà dépilé l'historique
+    closeStoryViewer(true);
     return;
   }
 
-  // ✅ Priorité 2 : navigation entre les tabs (ton code existant)
   if (event.state?.tab) {
     document.querySelectorAll('.tabcontent').forEach(t =>
       t.classList.toggle('active', t.id === event.state.tab)
@@ -2609,7 +2657,6 @@ document.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener('load', () => {
-  // 1. Gestion des hashtags classiques (#home, #conect, etc.)
   const hash = location.hash.substring(1);
   if (hash) {
     const tab = document.getElementById(hash);
@@ -2618,22 +2665,15 @@ window.addEventListener('load', () => {
     }
   }
 
-  // 2. Gestion des liens de profil partagés (?profile=ID)
   const urlParams = new URLSearchParams(window.location.search);
   const profileId = urlParams.get('profile');
   
   if (profileId) {
-    // On attend 1.2 seconde que Supabase vérifie la session 
-    // et charge currentUser avant d'ouvrir le profil
     setTimeout(() => {
       if (currentUser) {
-        // Si connecté, on ouvre le profil
         openUserFeed(profileId);
-        
-        // On nettoie l'URL pour enlever le "?profile=..." après ouverture
         window.history.replaceState({}, document.title, window.location.pathname);
       } else {
-        // Si non connecté, on lui demande de se connecter
         alert("Connectez-vous pour voir ce profil.");
         openTab({ currentTarget: document.querySelector('.tablinks[onclick*="account"]') }, 'account');
       }
@@ -2690,70 +2730,41 @@ window.signupWithEmail = async () => {
   const email = qs('signupEmail').value.trim();
   const password = qs('signupPassword').value;
   const age = parseInt(qs('signupAge').value);
-  const countryIndex = parseInt(qs('signupCountry').value) || 1; // ✅ nouveau
+  const countryIndex = parseInt(qs('signupCountry').value) || 1;
 
-  // ----- VALIDATIONS -----
-  if (!name || !email || !password) {
-    return alert("Remplis tous les champs");
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return alert("Email invalide");
-  }
-  if (password.length < 6) {
-    return alert("Mot de passe ≥ 6 caractères");
-  }
-  if (isNaN(age) || age < 18) {
-    return alert("Âge minimum 18 ans");
-  }
-  if (!countryIndex || countryIndex < 1 || countryIndex > 56) {
-    return alert("Choisis un pays valide");
-  }
+  if (!name || !email || !password) return alert("Remplis tous les champs");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Email invalide");
+  if (password.length < 6) return alert("Mot de passe ≥ 6 caractères");
+  if (isNaN(age) || age < 18) return alert("Âge minimum 18 ans");
+  if (!countryIndex || countryIndex < 1 || countryIndex > 56) return alert("Choisis un pays valide");
 
-  // ----- INSCRIPTION SUPABASE AUTH -----
   const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        name,
-        age,
-        country_index: countryIndex // ✅ stocké dans user_metadata
-      }
-    }
+    email, password,
+    options: { data: { name, age, country_index: countryIndex } }
   });
 
   if (error) return alert(error.message);
 
-  // ----- MISE À JOUR DU PROFIL PUBLIC -----
-  // La table `users` est créée via trigger Supabase au signup,
-  // MAIS le champ `country_index` n'est pas forcément rempli.
-  // On fait un upsert pour être sûr.
   if (data?.user?.id) {
     const { error: profileErr } = await supabase
       .from('users')
       .upsert({
         id: data.user.id,
-        name,
-        email,
+        name, email,
         country_index: countryIndex
       }, { onConflict: 'id' });
 
-    if (profileErr) {
-      console.warn("Profil non mis à jour :", profileErr.message);
-      // Non bloquant — l'utilisateur pourra le faire manuellement
-    }
+    if (profileErr) console.warn("Profil non mis à jour :", profileErr.message);
   }
 
   alert("✅ Inscription réussie ! Vérifie tes emails si la confirmation est activée.");
 
-  // ----- RESET DU FORMULAIRE -----
   qs('signupName').value = '';
   qs('signupEmail').value = '';
   qs('signupPassword').value = '';
   qs('signupAge').value = '';
   qs('signupCountry').value = '1';
 
-  // ----- REDIRECTION VERS LA CONNEXION -----
   openTab({ currentTarget: null }, 'conect');
 };
 
@@ -2767,6 +2778,20 @@ window.sendResetLink = async () => {
   alert("✅ Lien envoyé à " + email);
 };
 
+window.updatePassword = async () => {
+  const newPassword = document.getElementById('newPassword').value;
+  if (!newPassword || newPassword.length < 6) {
+    return alert("Le mot de passe doit faire au moins 6 caractères.");
+  }
+  const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) {
+    alert("Erreur : " + error.message);
+  } else {
+    alert("✅ Mot de passe mis à jour avec succès ! Vous pouvez vous connecter.");
+    window.location.href = '/#conect';
+  }
+};
+
 /*──────────────────────────────────────────────────────────
   6. CHARGEMENT DU PROFIL
 ──────────────────────────────────────────────────────────*/
@@ -2776,39 +2801,22 @@ async function loadProfile(userId) {
   return data;
 }
 
-async function ensureUsersCache() {
-  if (usersCache.size > 0) return;
-  const { data } = await supabase.from('users').select('id, name, photo_url, followers_count');
-  data?.forEach(u => usersCache.set(u.id, u));
-}
-
 /*──────────────────────────────────────────────────────────
   7. SESSION
 ──────────────────────────────────────────────────────────*/
-
 supabase.auth.onAuthStateChange(async (event, session) => {
-  /*──────────────────────────────────────────────
-    1. LOADER
-  ──────────────────────────────────────────────*/
   const loader = document.getElementById('global-loader');
   if (loader) loader.style.display = 'none';
 
   const user = session?.user || null;
   currentUser = user;
 
-  /*──────────────────────────────────────────────
-    2. RÉCUPÉRATION DE MOT DE PASSE
-  ──────────────────────────────────────────────*/
   if (event === 'PASSWORD_RECOVERY') {
     document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
-    const pwdTab = document.getElementById('update-password');
-    if (pwdTab) pwdTab.classList.add('active');
+    document.getElementById('update-password')?.classList.add('active');
     return;
   }
 
-  /*──────────────────────────────────────────────
-    3. NAVIGATION PAR DÉFAUT
-  ──────────────────────────────────────────────*/
   document.querySelectorAll('.tabcontent').forEach(t => t.classList.remove('active'));
   if (!user) {
     document.getElementById('conect')?.classList.add('active');
@@ -2816,9 +2824,6 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     document.getElementById('home')?.classList.add('active');
   }
 
-  /*──────────────────────────────────────────────
-    4. UTILISATEUR DÉCONNECTÉ → RESET
-  ──────────────────────────────────────────────*/
   if (!user) {
     currentProfile = null;
     followingIds.clear();
@@ -2829,17 +2834,14 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     qs('accountStatus') && (qs('accountStatus').textContent = '');
     qs('notificationsList') && (qs('notificationsList').innerHTML = '');
 
-    // Reset visuel certification
     const btn = document.getElementById('certify-btn');
     const iconP = document.getElementById('icon');
     if (btn) btn.style.display = 'block';
     if (iconP) iconP.style.display = 'none';
 
-    // Reset banner monétisation
     const banner = document.getElementById('monetizationBanner');
     if (banner) banner.style.display = 'none';
 
-    // Vide la barre de stories
     const bar = document.getElementById('storyBar');
     if (bar) bar.innerHTML = '';
     allStoriesGrouped = [];
@@ -2847,12 +2849,8 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     return;
   }
 
-  /*──────────────────────────────────────────────
-    5. CHARGEMENT DU PROFIL
-  ──────────────────────────────────────────────*/
   try {
     currentProfile = await loadProfile(user.id);
-
     if (!currentProfile) {
       await supabase.from('users').upsert({
         id: user.id,
@@ -2866,9 +2864,6 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     console.error('Erreur chargement profil:', err);
   }
 
-  /*──────────────────────────────────────────────
-    6. AFFICHAGE PHOTO + NOM
-  ──────────────────────────────────────────────*/
   const photo = currentProfile?.photo_url
     || "https://ucarecdn.com/d98b5778-d5ca-4460-bff0-3b1b423117cd/-/preview/1000x999/";
   const name = currentProfile?.name || user.email;
@@ -2879,9 +2874,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   if (qs('accountStatus')) qs('accountStatus').textContent = '• ' + name;
   if (qs('accountStatusFeed')) qs('accountStatusFeed').textContent = '• ' + name;
 
-  /*──────────────────────────────────────────────
-    7. CERTIFICATION (avec support timestamp OU ISO)
-  ──────────────────────────────────────────────*/
+  // ✅ Certification avec auto-reset si expiré
   let certificationValid = false;
   let certificationExpiry = null;
 
@@ -2893,13 +2886,16 @@ supabase.auth.onAuthStateChange(async (event, session) => {
       .maybeSingle();
 
     if (v?.status === true && v?.expires_at) {
-      // Supporte : number (ms), ISO string, ou objet Date
       const expMs = typeof v.expires_at === 'number'
         ? v.expires_at
         : new Date(v.expires_at).getTime();
 
       certificationValid = !isNaN(expMs) && expMs > Date.now();
       certificationExpiry = expMs;
+
+      if (!certificationValid) {
+        await supabase.from('verifications').update({ status: false }).eq('user_id', user.id);
+      }
     }
   } catch (err) {
     console.warn('Vérification échouée:', err);
@@ -2910,7 +2906,6 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   if (btn) btn.style.display = certificationValid ? 'none' : 'block';
   if (iconP) iconP.style.display = certificationValid ? 'block' : 'none';
 
-  // Alerte expiration ≤ 3 jours
   if (certificationValid && certificationExpiry) {
     const daysLeft = Math.ceil((certificationExpiry - Date.now()) / 86400000);
     if (daysLeft <= 3 && daysLeft > 0) {
@@ -2923,46 +2918,37 @@ supabase.auth.onAuthStateChange(async (event, session) => {
     }
   }
 
-  /*──────────────────────────────────────────────
-    8. CHARGEMENTS ASYNCHRONES (ordre critique)
-  ──────────────────────────────────────────────*/
   try {
     await loadUserCountry();
-    await loadFollowing();       // ⚠️ AVANT loadStories
+    await loadFollowing();
     await loadWallet();
     await loadLikedPosts();
     await checkSuggestReset();
     await loadMyBio();
     await checkFirstDeposit();
-
-    // ✅ APRÈS followingIds → stories correctement triées
     await loadStories();
   } catch (err) {
     console.error('Erreur chargements initiaux:', err);
   }
 
-  /*──────────────────────────────────────────────
-    9. RENDU DES FEEDS
-  ──────────────────────────────────────────────*/
   renderFeed();
   renderMyFeed();
   renderVideoFeed();
   renderBoostFeed();
 
-  /*──────────────────────────────────────────────
-    10. NOTIFICATIONS + MÉTA
-  ──────────────────────────────────────────────*/
   loadNotifications();
   showProfileLink(user.id);
   loadTotalViewsAndBalance();
   loadSuggestions();
 
-  /*──────────────────────────────────────────────
-    11. BANNIÈRE MONÉTISATION
-  ──────────────────────────────────────────────*/
   const banner = document.getElementById('monetizationBanner');
-  if (banner) {
-    banner.style.display = hasDeposited ? 'none' : 'block';
+  if (banner) banner.style.display = hasDeposited ? 'none' : 'block';
+
+  // ✅ Polling léger notifications
+  if (!window._notifPoller) {
+    window._notifPoller = setInterval(() => {
+      if (currentUser && document.visibilityState === 'visible') loadNotifications();
+    }, 60000);
   }
 });
 
@@ -3017,15 +3003,13 @@ async function deposit(amount) {
 /*──────────────────────────────────────────────────────────
   10. PUBLIER UN POST
 ──────────────────────────────────────────────────────────*/
-
 window.publishPost = async () => {
-  // ----- 1. AUTH -----
   if (!currentUser) return alert("Connectez-vous");
 
   const textInput = qs('postText');
   const fileInput = qs('imageFile');
   const titleInput = qs('imageTitle');
-  const bgColorInput = qs('bgColor'); // ✅ récupérer la couleur
+  const bgColorInput = qs('bgColor');
   const statusEl = qs('status');
 
   const text = textInput?.value.trim() || '';
@@ -3033,21 +3017,13 @@ window.publishPost = async () => {
   const title = titleInput?.value.trim() || '';
   const bgColor = bgColorInput?.value || '#FFA500';
 
-  if (!text && !file) {
-    return alert("Ajoutez un texte ou une image");
-  }
+  if (!text && !file) return alert("Ajoutez un texte ou une image");
 
-  // ----- 2. VALIDATION FICHIER -----
   if (file) {
-    if (!file.type.startsWith('image/')) {
-      return alert("Le fichier doit être une image.");
-    }
-    if (file.size > 4 * 1024 * 1024) {
-      return alert("Image trop volumineuse (max 4 MB).");
-    }
+    if (!file.type.startsWith('image/')) return alert("Le fichier doit être une image.");
+    if (file.size > 4 * 1024 * 1024) return alert("Image trop volumineuse (max 4 MB).");
   }
 
-  // ----- 3. UPLOAD IMAGE -----
   statusEl.textContent = "⏳ Publication…";
 
   let imageUrl = null;
@@ -3057,26 +3033,21 @@ window.publishPost = async () => {
     const ext = file.name.split('.').pop() || 'jpg';
     uploadedPath = `${currentUser.id}/${Date.now()}.${ext}`;
 
-    const { error: upErr } = await supabase
-      .storage.from('media')
-      .upload(uploadedPath, file);
-
+    const { error: upErr } = await supabase.storage.from('media').upload(uploadedPath, file);
     if (upErr) {
       statusEl.textContent = '';
       return alert("Échec upload : " + upErr.message);
     }
-
     imageUrl = supabase.storage.from('media').getPublicUrl(uploadedPath).data.publicUrl;
   }
 
-  // ----- 4. INSERTION EN BASE -----
   const insertPayload = {
     user_id: currentUser.id,
     text: text || null,
     image_url: imageUrl,
     image_title: title || null,
-    bg_color: bgColor,          // ✅ sauvegarder la couleur
-    text_color: text ? '#fff' : '#000' // ✅ couleur texte lisible sur bg
+    bg_color: bgColor,
+    text_color: text ? '#fff' : '#000'
   };
 
   const { data: post, error: insertErr } = await supabase
@@ -3086,7 +3057,6 @@ window.publishPost = async () => {
     .single();
 
   if (insertErr) {
-    // ✅ Rollback : supprimer l'image uploadée si l'insert échoue
     if (uploadedPath) {
       await supabase.storage.from('media').remove([uploadedPath]).catch(() => {});
     }
@@ -3094,36 +3064,18 @@ window.publishPost = async () => {
     return alert("Erreur publication : " + insertErr.message);
   }
 
-  // ----- 5. DÉTECTION DES MENTIONS @ -----
-  // Regex : capture les noms d'utilisateurs (lettres, chiffres, underscore)
-  // Supporte les accents. NE capture PAS les espaces (pour éviter
-  // d'avaler tout le texte après le @).
   const mentionRe = /@([\wÀ-ÖØ-öø-ÿ0-9]+)/g;
   const matches = text ? [...text.matchAll(mentionRe)] : [];
-
-  // ✅ Déduplication : un même user ne reçoit qu'une seule notification
-  // même s'il est mentionné plusieurs fois dans le texte
-  const uniqueUsernames = new Set(
-    matches.map(m => m[1].toLowerCase()).filter(Boolean)
-  );
+  const uniqueUsernames = new Set(matches.map(m => m[1].toLowerCase()).filter(Boolean));
 
   if (uniqueUsernames.size > 0) {
-    // ✅ Récupérer tous les users en UNE seule requête (plus rapide)
-    const { data: allUsers } = await supabase
-      .from('users')
-      .select('id, name');
-
+    const { data: allUsers } = await supabase.from('users').select('id, name');
     if (allUsers?.length) {
       const notifications = [];
-
       for (const uname of uniqueUsernames) {
-        // ✅ ilike pour insensibilité à la casse
-        const matched = allUsers.filter(
-          u => u.name && u.name.toLowerCase() === uname
-        );
-
+        const matched = allUsers.filter(u => u.name && u.name.toLowerCase() === uname);
         for (const u of matched) {
-          if (u.id === currentUser.id) continue; // ✅ pas d'auto-notif
+          if (u.id === currentUser.id) continue;
           notifications.push({
             to_user_id: u.id,
             from_user_id: currentUser.id,
@@ -3133,23 +3085,16 @@ window.publishPost = async () => {
           });
         }
       }
-
       if (notifications.length > 0) {
-        // ✅ Insertion en batch (plus rapide que boucle await)
         await supabase.from('notifications').insert(notifications);
       }
     }
   }
 
-  // ----- 6. BUMP SCORE SUGGESTION -----
   await supabase
-    .rpc('bump_suggest_score', {
-      p_user_id: currentUser.id,
-      p_amount: 15
-    })
-    .catch(() => {}); // non bloquant
+    .rpc('bump_suggest_score', { p_user_id: currentUser.id, p_amount: 15 })
+    .catch(() => {});
 
-  // ----- 7. RÉINITIALISATION FORMULAIRE -----
   if (textInput) textInput.value = '';
   if (fileInput) fileInput.value = '';
   if (titleInput) titleInput.value = '';
@@ -3158,7 +3103,6 @@ window.publishPost = async () => {
   statusEl.textContent = "✅ Publié !";
   setTimeout(() => { statusEl.textContent = ''; }, 2000);
 
-  // ----- 8. RAFRAÎCHIR LES FEEDS -----
   renderFeed();
   renderMyFeed();
 };
@@ -3195,7 +3139,7 @@ profileInput?.addEventListener('change', async (e) => {
 });
 
 /*──────────────────────────────────────────────────────────
-  12. FEED PRINCIPAL (SANS CLIGNOTEMENT)
+  12. FEED PRINCIPAL — CORRIGÉ (boost_countries array)
 ──────────────────────────────────────────────────────────*/
 async function renderFeed() {
   const c = qs('feed');
@@ -3218,7 +3162,9 @@ async function renderFeed() {
   for (const p of (boosted || [])) {
     const boostAt = p.boost_at ? new Date(p.boost_at).getTime() : 0;
     const diffDays = (now - boostAt) / 86400000;
-    if (diffDays <= 2 && p.boost_country === userCountry) {
+    const countries = Array.isArray(p.boost_countries) ? p.boost_countries : [];
+
+    if (diffDays <= 2 && countries.includes(userCountry)) {
       posts.push(p);
     } else if (diffDays > 2) {
       await supabase.from('posts').update({ boosted: 0 }).eq('id', p.id);
@@ -3308,7 +3254,7 @@ async function injectSuggestions(container, userCountry) {
 }
 
 /*──────────────────────────────────────────────────────────
-  13. MON FEED (SANS CLIGNOTEMENT)
+  13. MON FEED — CORRIGÉ (observePost)
 ──────────────────────────────────────────────────────────*/
 async function renderMyFeed() {
   if (!currentUser) return;
@@ -3336,12 +3282,16 @@ async function renderMyFeed() {
   }
   
   const fragment = document.createDocumentFragment();
-  posts.forEach(p => fragment.appendChild(card(p.id, p, true)));
+  posts.forEach(p => {
+    const el = card(p.id, p, true);
+    fragment.appendChild(el);
+    observePost(el);   // ✅ AJOUT
+  });
   c.appendChild(fragment);
 }
 
 /*──────────────────────────────────────────────────────────
-  14. VIDEO FEED (SANS CLIGNOTEMENT)
+  14. VIDEO FEED — CORRIGÉ (filtre JS sur boost_countries)
 ──────────────────────────────────────────────────────────*/
 async function renderVideoFeed() {
   const c = qs('videoFeedContent');
@@ -3353,9 +3303,15 @@ async function renderVideoFeed() {
 
   const { data } = await supabase.from('posts')
     .select('*').not('image_url', 'is', null)
-    .gt('boosted', 0).eq('boost_country', country);
+    .gt('boosted', 0);
 
-  const arr = [...(data || [])];
+  // ✅ Filtrer en JS car boost_countries est un array
+  const filtered = (data || []).filter(p => {
+    const arr = Array.isArray(p.boost_countries) ? p.boost_countries : [];
+    return arr.includes(country);
+  });
+
+  const arr = [...filtered];
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
@@ -3383,13 +3339,16 @@ async function renderBoostFeed() {
     .order('created_at', { ascending: false });
 
   c.innerHTML = '';
-  (data || []).forEach(p => c.appendChild(card(p.id, p, true)));
+  (data || []).forEach(p => {
+    const el = card(p.id, p, true);
+    c.appendChild(el);
+    observePost(el);   // ✅ AJOUT
+  });
 }
 
 /*──────────────────────────────────────────────────────────
   15. CARTE POST (le cœur)
 ──────────────────────────────────────────────────────────*/
-
 function card(id, d, isMine) {
   const w = document.createElement('div');
   w.className = 'post';
@@ -3398,9 +3357,6 @@ function card(id, d, isMine) {
   const isFullscreen = d.image_url && window.innerWidth <= 768;
   if (isFullscreen) w.classList.add('fullscreen-post');
 
-  /* ============================================================
-     HEADER (avatar + nom + temps + badge vérifié + follow)
-  ============================================================ */
   const head = document.createElement('div');
   head.className = 'post-header';
 
@@ -3420,7 +3376,6 @@ function card(id, d, isMine) {
 
   head.append(img, name, time);
 
-  // Chargement async du profil + badge vérifié
   (async () => {
     const { data: u } = await supabase
       .from('users')
@@ -3430,16 +3385,16 @@ function card(id, d, isMine) {
     img.src = u?.photo_url || 'https://via.placeholder.com/40';
 
     const { data: v } = await supabase
-  .from('verifications')
-  .select('status')
-  .eq('user_id', d.user_id)
-  .maybeSingle();
+      .from('verifications')
+      .select('status')
+      .eq('user_id', d.user_id)
+      .maybeSingle();
 
-const verified = v?.status === true;
-name.innerHTML = `${escapeHtml(u?.name || 'Utilisateur')} ${
-  verified ? '<i class="fas fa-check-circle" style="color:#1877f2"></i>' : ''
-}`;
-      })();
+    const verified = v?.status === true;
+    name.innerHTML = `${escapeHtml(u?.name || 'Utilisateur')} ${
+      verified ? '<i class="fas fa-check-circle" style="color:#1877f2"></i>' : ''
+    }`;
+  })();
 
   const fbtn = renderFollowBtn(d.user_id);
   if (fbtn) head.appendChild(fbtn);
@@ -3451,17 +3406,12 @@ name.innerHTML = `${escapeHtml(u?.name || 'Utilisateur')} ${
     head.appendChild(tag);
   }
 
-  // ⚠️ En fullscreen, on n'ajoute PAS head ici (il sera ajouté DANS le contenu image)
   if (!isFullscreen) w.appendChild(head);
 
-  /* ============================================================
-     CONTENU (image ou texte)
-  ============================================================ */
   const cont = document.createElement('div');
   cont.className = 'post-content';
 
   if (d.image_url) {
-    // ---- Titre de l'image (VISIBLE en fullscreen grâce au z-index) ----
     if (d.image_title) {
       const tw = document.createElement('div');
       tw.className = 'post-title';
@@ -3477,14 +3427,12 @@ name.innerHTML = `${escapeHtml(u?.name || 'Utilisateur')} ${
       cont.appendChild(tw);
     }
 
-    // ---- Image ----
     const imgEl = document.createElement('img');
     imgEl.src = d.image_url;
     imgEl.alt = d.image_title || 'publication';
     imgEl.style.cssText = 'max-width:100%;border-radius:2px;display:block;';
     cont.appendChild(imgEl);
 
-    // ---- En fullscreen : on REMET le header par-dessus l'image ----
     if (isFullscreen) {
       head.style.cssText = 'position:absolute;left:12px;bottom:105px;z-index:30;display:flex;align-items:center;gap:8px;';
       cont.appendChild(head);
@@ -3507,9 +3455,6 @@ name.innerHTML = `${escapeHtml(u?.name || 'Utilisateur')} ${
 
   w.appendChild(cont);
 
-  /* ============================================================
-     ACTIONS (like / vues / commentaires / edit / boost)
-  ============================================================ */
   const act = document.createElement('div');
   act.className = 'post-actions';
 
@@ -3531,15 +3476,8 @@ name.innerHTML = `${escapeHtml(u?.name || 'Utilisateur')} ${
 
   like.onclick = async () => {
     if (!currentUser) return alert('Connectez-vous');
-    await supabase.rpc('toggle_like', {
-      p_post_id: id,
-      p_user_id: currentUser.id
-    });
-    const { data } = await supabase
-      .from('posts')
-      .select('likes')
-      .eq('id', id)
-      .single();
+    await supabase.rpc('toggle_like', { p_post_id: id, p_user_id: currentUser.id });
+    const { data } = await supabase.from('posts').select('likes').eq('id', id).single();
     lCnt.textContent = fmt(data?.likes || 0);
     like.classList.toggle('liked');
     like.classList.toggle('fa-solid');
@@ -3580,9 +3518,6 @@ name.innerHTML = `${escapeHtml(u?.name || 'Utilisateur')} ${
 
   w.appendChild(act);
 
-  /* ============================================================
-     SECTION COMMENTAIRES (drawer)
-  ============================================================ */
   const comSec = document.createElement('div');
   comSec.className = 'comments-section';
 
@@ -3636,9 +3571,6 @@ name.innerHTML = `${escapeHtml(u?.name || 'Utilisateur')} ${
 
   loadComments(id, comList, comCnt).catch(console.error);
 
-  /* ============================================================
-     HR de séparation
-  ============================================================ */
   const hr = document.createElement('hr');
   hr.style.cssText = 'border:none;border-top:1px solid #ddd;margin:16px 0;';
   w.appendChild(hr);
@@ -3713,10 +3645,6 @@ async function loadComments(pid, container, cnt) {
     s.append(av, t);
     container.appendChild(s);
   });
-}
-
-function escapeHtml(s) {
-  return (s || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
 
 async function addComment(pid, text) {
@@ -3833,73 +3761,258 @@ const observer = new IntersectionObserver((entries) => {
 function observePost(el) { observer.observe(el); }
 
 /*──────────────────────────────────────────────────────────
-  20. BOOST
+  20. BOOST — multi-pays + tarif dynamique
 ──────────────────────────────────────────────────────────*/
-function selectBoostPost(pid, title) {
+const BOOST_COUNTRIES = [
+  { id: 1, name: 'Cameroun', flag: '🇨🇲' },
+  { id: 2, name: 'Côte d’Ivoire', flag: '🇨🇮' },
+  { id: 3, name: 'Gabon', flag: '🇬🇦' },
+  { id: 4, name: 'Sénégal', flag: '🇸🇳' },
+  { id: 5, name: 'Bénin', flag: '🇧🇯' },
+  { id: 6, name: 'RDC Congo', flag: '🇨🇩' },
+  { id: 7, name: 'Nigeria', flag: '🇳🇬' },
+  { id: 8, name: 'Togo', flag: '🇹🇬' },
+  { id: 9, name: 'Burkina Faso', flag: '🇧🇫' },
+  { id: 10, name: 'Mali', flag: '🇲🇱' },
+  { id: 11, name: 'Niger', flag: '🇳🇪' },
+  { id: 12, name: 'Guinée', flag: '🇬🇳' },
+  { id: 13, name: 'Guinée-Bissau', flag: '🇬🇼' },
+  { id: 14, name: 'Libéria', flag: '🇱🇷' },
+  { id: 15, name: 'Sierra Leone', flag: '🇸🇱' },
+  { id: 16, name: 'Ghana', flag: '🇬🇭' },
+  { id: 17, name: 'Mauritanie', flag: '🇲🇷' },
+  { id: 18, name: 'Maroc', flag: '🇲🇦' },
+  { id: 19, name: 'Algérie', flag: '🇩🇿' },
+  { id: 20, name: 'Tunisie', flag: '🇹🇳' },
+  { id: 21, name: 'Libye', flag: '🇱🇾' },
+  { id: 22, name: 'Égypte', flag: '🇪🇬' },
+  { id: 23, name: 'Tchad', flag: '🇹🇩' },
+  { id: 24, name: 'République centrafricaine', flag: '🇨🇫' },
+  { id: 25, name: 'Congo', flag: '🇨🇬' },
+  { id: 26, name: 'Angola', flag: '🇦🇴' },
+  { id: 27, name: 'Zambie', flag: '🇿🇲' },
+  { id: 28, name: 'Zimbabwe', flag: '🇿🇼' },
+  { id: 29, name: 'Namibie', flag: '🇳🇦' },
+  { id: 30, name: 'Botswana', flag: '🇧🇼' },
+  { id: 31, name: 'Afrique du Sud', flag: '🇿🇦' },
+  { id: 32, name: 'Mozambique', flag: '🇲🇿' },
+  { id: 33, name: 'Madagascar', flag: '🇲🇬' },
+  { id: 34, name: 'Comores', flag: '🇰🇲' },
+  { id: 35, name: 'Maurice', flag: '🇲🇺' },
+  { id: 36, name: 'Seychelles', flag: '🇸🇨' },
+  { id: 37, name: 'Rwanda', flag: '🇷🇼' },
+  { id: 38, name: 'Burundi', flag: '🇧🇮' },
+  { id: 39, name: 'Ouganda', flag: '🇺🇬' },
+  { id: 40, name: 'Kenya', flag: '🇰🇪' },
+  { id: 41, name: 'Tanzanie', flag: '🇹🇿' },
+  { id: 42, name: 'Éthiopie', flag: '🇪🇹' },
+  { id: 43, name: 'Somalie', flag: '🇸🇴' },
+  { id: 44, name: 'Djibouti', flag: '🇩🇯' },
+  { id: 45, name: 'Érythrée', flag: '🇪🇷' },
+  { id: 46, name: 'Soudan', flag: '🇸🇩' },
+  { id: 47, name: 'Soudan du Sud', flag: '🇸🇸' },
+  { id: 48, name: 'Guinée équatoriale', flag: '🇬🇶' },
+  { id: 49, name: 'Sao Tomé-et-Principe', flag: '🇸🇹' },
+  { id: 50, name: 'Eswatini', flag: '🇸🇿' },
+  { id: 51, name: 'Lesotho', flag: '🇱🇸' },
+  { id: 52, name: 'Cap-Vert', flag: '🇨🇻' },
+  { id: 53, name: 'France', flag: '🇫🇷' },
+  { id: 54, name: 'Belgique', flag: '🇧🇪' },
+  { id: 55, name: 'Canada', flag: '🇨🇦' },
+  { id: 56, name: 'États-Unis', flag: '🇺🇸' }
+];
+
+function renderBoostCountryCheckboxes() {
+  const container = document.getElementById('boostCountriesList');
+  if (!container || container.dataset.rendered === '1') return;
+  container.dataset.rendered = '1';
+
+  container.innerHTML = '';
+  BOOST_COUNTRIES.forEach(c => {
+    const label = document.createElement('label');
+    label.style.cssText = 'display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px;';
+    label.innerHTML = `
+      <input type="checkbox" class="boost-country-checkbox"
+             value="${c.id}" style="accent-color:#ffa500;width:16px;height:16px;flex-shrink:0;">
+      <span>${c.flag} ${c.name}</span>
+    `;
+    container.appendChild(label);
+  });
+
+  container.addEventListener('change', updateBoostCost);
+}
+
+window.toggleAllCountries = () => {
+  const boxes = document.querySelectorAll('.boost-country-checkbox');
+  const allChecked = [...boxes].every(b => b.checked);
+  boxes.forEach(b => b.checked = !allChecked);
+  updateBoostCost();
+};
+
+function updateBoostCost() {
+  const price = BOOST_PRICES[boostTargetType] || BOOST_PRICES.post;
+  const days = parseInt(document.getElementById('boostViews')?.value) || 0;
+  const countries = [...document.querySelectorAll('.boost-country-checkbox:checked')];
+  const nbCountries = countries.length;
+  const total = price * days * nbCountries;
+
+  const totalEl = document.getElementById('boostTotalCost');
+  if (totalEl) {
+    totalEl.textContent = `${total.toLocaleString('fr-FR')} XAF`;
+  }
+}
+
+function prepareBoostPanel() {
+  renderBoostCountryCheckboxes();
+
+  const isStory = boostTargetType === 'story';
+  const price = BOOST_PRICES[boostTargetType] || BOOST_PRICES.post;
+
+  const badge = document.getElementById('boostTypeBadge');
+  if (badge) {
+    badge.textContent = isStory ? '📸 Boost STORY' : '📝 Boost PUBLICATION';
+    badge.style.background = isStory ? '#e91e63' : '#ffa500';
+  }
+
+  const priceInfo = document.getElementById('boostPriceInfo');
+  if (priceInfo) {
+    priceInfo.innerHTML = `
+      <b>Tarif : ${price.toLocaleString('fr-FR')} XAF / jour / pays</b><br>
+      <span style="color:#666;font-size:12px;">
+        ${isStory
+          ? 'Les stories boostées sont vues en priorité dans la barre de stories.'
+          : 'Les publications boostées apparaissent en tête du feed des pays ciblés.'}
+      </span>
+    `;
+  }
+
+  // Pré-sélectionner le pays de l'utilisateur
+  const userCountryId = currentProfile?.country_index
+                       || parseInt(document.getElementById('userCountry')?.value)
+                       || 1;
+  const userBox = document.querySelector(
+    `.boost-country-checkbox[value="${userCountryId}"]`
+  );
+  if (userBox) userBox.checked = true;
+
+  updateBoostCost();
+}
+
+window.selectBoostPost = function(pid, title) {
   boostId = pid;
-  boostTargetType = 'post';   // 🆕 important
-  qs('boostStatus').textContent = `1 sélection : ${title}`;
-  qs('boostPanel').style.display = 'block';
+  boostTargetType = 'post';
+
+  document.getElementById('boostStatus').textContent =
+    `📝 Publication sélectionnée : ${title}`;
+  document.getElementById('boostPanel').style.display = 'block';
+
+  prepareBoostPanel();
+
   openTab(
     { currentTarget: document.querySelector('.tablinks[onclick*="BOOST"]') },
     'BOOST'
   );
-}
+};
+
+window.selectBoostStory = function(sid, preview) {
+  boostId = sid;
+  boostTargetType = 'story';
+
+  document.getElementById('boostStatus').textContent =
+    `📸 Story sélectionnée : ${preview || 'Story'}`;
+  document.getElementById('boostPanel').style.display = 'block';
+
+  prepareBoostPanel();
+
+  openTab(
+    { currentTarget: document.querySelector('.tablinks[onclick*="BOOST"]') },
+    'BOOST'
+  );
+};
 
 window.boostPost = async () => {
   if (!boostId) return alert('Choisissez une publication ou une story');
 
-  const v = parseInt(qs('boostViews').value);
-  if (isNaN(v) || v < 2) return alert('Minimum 2 jours');
-  const cost = v * 1750;
+  const checkedCountries = [...document.querySelectorAll('.boost-country-checkbox:checked')]
+    .map(b => parseInt(b.value));
 
-  // ① Débiter le wallet
-  const { data: ok } = await supabase.rpc('debit_wallet', {
+  if (checkedCountries.length === 0) {
+    return alert('Cochez au moins un pays à cibler.');
+  }
+
+  const days = parseInt(document.getElementById('boostViews').value);
+  if (isNaN(days) || days < 1) {
+    return alert('Durée invalide (minimum 1 jour).');
+  }
+
+  const pricePerDay = BOOST_PRICES[boostTargetType] || BOOST_PRICES.post;
+  const cost = pricePerDay * days * checkedCountries.length;
+
+  if (currentBalance < cost) {
+    return alert(
+      `💸 Solde insuffisant.\n` +
+      `Coût : ${cost.toLocaleString('fr-FR')} XAF\n` +
+      `Solde : ${currentBalance.toLocaleString('fr-FR')} XAF\n\n` +
+      `Rechargez votre portefeuille.`
+    );
+  }
+
+  const confirmMsg =
+    `Booster ${boostTargetType === 'story' ? 'la story' : 'la publication'} ?\n\n` +
+    `Pays : ${checkedCountries.length}\n` +
+    `Durée : ${days} jour(s)\n` +
+    `Coût : ${cost.toLocaleString('fr-FR')} XAF`;
+
+  const ok = await prompt(confirmMsg, 'oui');
+  if (ok?.toLowerCase() !== 'oui') return;
+
+  const { data: debitOk, error: debitErr } = await supabase.rpc('debit_wallet', {
     p_user_id: currentUser.id,
     p_amount: cost
   });
-  if (!ok) return alert('Solde insuffisant');
+  if (debitErr || !debitOk) {
+    return alert('❌ Solde insuffisant ou erreur de débit.');
+  }
   await loadWallet();
 
-  const countryIndex = parseInt(qs('boostCountry').value);
-
-  // ② Mettre à jour la bonne table
   let error;
   if (boostTargetType === 'story') {
-    // ✅ Méthode RPC (contourne le cache PostgREST)
     ({ error } = await supabase.rpc('boost_story', {
       p_story_id: boostId,
-      p_boosted: v,
-      p_boost_country: countryIndex
+      p_boosted: days,
+      p_boost_countries: checkedCountries
     }));
   } else {
     ({ error } = await supabase
       .from('posts')
       .update({
-        boosted: v,
+        boosted: days,
         boost_at: new Date().toISOString(),
-        boost_country: countryIndex
+        boost_countries: checkedCountries
       })
       .eq('id', boostId));
   }
 
   if (error) {
-    // Rembourser en cas d'échec
     await supabase.rpc('credit_wallet', {
       p_user_id: currentUser.id,
       p_amount: cost
     });
-    return alert(error.message);
+    return alert('❌ Erreur : ' + error.message);
   }
 
-  qs('boostStatus').textContent = 'Boost succès ✔️';
-  qs('boostViews').value = '';
+  document.getElementById('boostStatus').textContent = '✅ Boost appliqué avec succès !';
+  document.getElementById('boostViews').value = 3;
+  document.querySelectorAll('.boost-country-checkbox:checked')
+    .forEach(b => b.checked = false);
+
   boostId = '';
   boostTargetType = 'post';
+  document.getElementById('boostPanel').style.display = 'none';
 
   renderFeed();
   renderMyFeed();
-  await loadStories();   // rafraîchir la barre de stories
+  await loadStories();
 };
 
 /*──────────────────────────────────────────────────────────
@@ -3923,7 +4036,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /*──────────────────────────────────────────────────────────
-  22. USER FEED / PROFIL
+  22. USER FEED / PROFIL — CORRIGÉ (observePost)
 ──────────────────────────────────────────────────────────*/
 window.openUserFeed = async (uid) => {
   if (!uid) return;
@@ -3940,10 +4053,9 @@ window.openUserFeed = async (uid) => {
   const photo = user?.photo_url || 'https://via.placeholder.com/100';
   const verified = v?.status === true;
 
-  // 🖼️ PHOTO DE COUVERTURE — Modifiez cette liste selon vos besoins
   const COVER_IMAGES = [
     'https://ucarecdn.com/6feb4363-11a1-476d-ab2a-b577ec622144/-/preview/1000x1000/',
-  'https://ucarecdn.com/8213fd5f-4a33-4603-8bc3-98bb69e55ac0/-/preview/258x195/',
+    'https://ucarecdn.com/8213fd5f-4a33-4603-8bc3-98bb69e55ac0/-/preview/258x195/',
     'https://ucarecdn.com/9e557b3e-8112-4472-9858-129187eb3749/-/preview/300x168/'
   ];
   const coverUrl = COVER_IMAGES[Math.floor(Math.random() * COVER_IMAGES.length)];
@@ -3951,11 +4063,9 @@ window.openUserFeed = async (uid) => {
   title.innerHTML = '';
   title.style.cssText = 'display:flex;flex-direction:column;gap:0;align-items:stretch;';
 
-  // ── Conteneur global couverture + avatar (SANS overflow:hidden) ──
   const headerWrap = document.createElement('div');
   headerWrap.style.cssText = 'position:relative;width:100%;';
 
-  // Couverture (overflow:hidden uniquement ici pour arrondir l'image)
   const coverWrap = document.createElement('div');
   coverWrap.style.cssText = 'width:100%;height:180px;border-radius:10px;overflow:hidden;background:#ddd;';
 
@@ -3964,10 +4074,8 @@ window.openUserFeed = async (uid) => {
   coverImg.alt = 'Couverture';
   coverImg.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
   coverWrap.appendChild(coverImg);
-
   headerWrap.appendChild(coverWrap);
 
-  // ── Photo de profil : sortie du coverWrap, posée sur headerWrap ──
   const img = document.createElement('img');
   img.src = photo;
   img.style.cssText = `
@@ -3984,10 +4092,8 @@ window.openUserFeed = async (uid) => {
     z-index:2;
   `;
   headerWrap.appendChild(img);
-
   title.appendChild(headerWrap);
 
-  // ── Infos utilisateur (sous la couverture, décalées pour l'avatar) ──
   const topRow = document.createElement('div');
   topRow.style.cssText = 'display:flex;align-items:flex-start;gap:10px;margin-top:60px;';
 
@@ -4043,20 +4149,23 @@ window.openUserFeed = async (uid) => {
     cont.innerHTML = '<p>Aucune publication.</p>';
     return;
   }
-  posts.forEach(p => cont.appendChild(card(p.id, p, currentUser?.id === uid)));
+  posts.forEach(p => {
+    const el = card(p.id, p, currentUser?.id === uid);
+    cont.appendChild(el);
+    observePost(el);   // ✅ AJOUT
+  });
 };
+
 async function openUserFeedByName(name) {
   const clean = name.trim();
   if (!clean) return;
 
-  // 1️⃣ D'abord : correspondance EXACTE (insensible à la casse)
   let { data } = await supabase
     .from('users')
     .select('id, name')
     .ilike('name', clean)
     .maybeSingle();
 
-  // 2️⃣ Si rien : recherche partielle, mais un seul résultat
   if (!data) {
     const { data: list } = await supabase
       .from('users')
@@ -4126,7 +4235,6 @@ window.searchUser = async () => {
 /*──────────────────────────────────────────────────────────
   25. CERTIFICATION
 ──────────────────────────────────────────────────────────*/
-
 window.certifyUser = async () => {
   if (!currentUser) return alert("Connectez-vous");
   const ok = await prompt("Pour être certifié gratuitement, réponds aux critères (info@...). Sinon paye 18000 XAF. Valider ?", "oui");
@@ -4137,7 +4245,7 @@ window.certifyUser = async () => {
   await supabase.from('verifications').upsert({
     user_id: currentUser.id,
     status: true,
-    expires_at: Date.now() + 30 * 24 * 3600 * 1000   // ✅ 30 jours
+    expires_at: Date.now() + 30 * 24 * 3600 * 1000
   });
   await loadWallet();
   alert("✅ Compte certifié pour 30 jours");
@@ -4165,7 +4273,7 @@ async function loadNotifications() {
   const unread = (data || []).filter(n => !n.read).length;
   const badge = document.getElementById('notifBadge');
   if (badge) {
-    badge.textContent = unread;
+    badge.textContent = unread > 9 ? '9+' : unread;
     badge.style.display = unread > 0 ? 'flex' : 'none';
   }
 }
@@ -4176,9 +4284,16 @@ function showNotifications() { loadNotifications(); }
 ──────────────────────────────────────────────────────────*/
 async function loadSuggestions() {
   if (!currentUser) return;
+
+  const { data: me } = await supabase.from('users').select('country_index').eq('id', currentUser.id).single();
+  const myCountry = me?.country_index || 1;
+
   const { data } = await supabase.from('users')
     .select('id, name, photo_url, followers_count')
-    .neq('id', currentUser.id).order('followers_count', { ascending: false }).limit(20);
+    .eq('country_index', myCountry)
+    .neq('id', currentUser.id)
+    .order('followers_count', { ascending: false })
+    .limit(20);
 
   const el = document.getElementById('suggestionsList');
   if (!el) return;
@@ -4200,23 +4315,16 @@ async function loadSuggestions() {
 function showProfileLink(uid) {
   const inp = document.getElementById('profile-link');
   if (!inp) return;
-  
-  // Si on est en local (localhost), on utilise l'adresse locale.
-  // Sinon, on force l'URL officielle de production.
   const baseUrl = location.hostname === 'localhost' || location.hostname === '127.0.0.1' 
     ? location.origin 
     : 'https://mboaskill.cm';
-    
   inp.value = `${baseUrl}/?profile=${uid}`;
 }
 
 document.getElementById('copy-link-btn')?.addEventListener('click', async () => {
   const inp = document.getElementById('profile-link');
   if (!inp) return;
-  
   const link = inp.value;
-  
-  // Si le navigateur supporte le partage natif (mobile)
   if (navigator.share) {
     try {
       await navigator.share({
@@ -4224,17 +4332,14 @@ document.getElementById('copy-link-btn')?.addEventListener('click', async () => 
         text: 'Rejoins-moi sur Mboa Skill !',
         url: link,
       });
-      return; // On s'arrête là si le partage a réussi
-    } catch (err) {
-      console.log('Partage annulé ou erreur');
-    }
+      return;
+    } catch (err) { console.log('Partage annulé'); }
   }
-  
-  // Sinon (PC) on fait le copier-coller classique
   inp.select(); 
   document.execCommand('copy'); 
   alert('✅ Lien de profil copié !');
 });
+
 /*──────────────────────────────────────────────────────────
   29. TOTAL VUES & SOLDE
 ──────────────────────────────────────────────────────────*/
@@ -4265,25 +4370,19 @@ function scheduleMidnightReset() {
 scheduleMidnightReset();
 
 /*──────────────────────────────────────────────────────────
-  31. NOTCHPAY / PAYPAL (exemple : à adapter)
+  31. NOTCHPAY
 ──────────────────────────────────────────────────────────*/
 document.getElementById('notchpayBtn')?.addEventListener('click', async () => {
   if (!currentUser) return alert("Connectez-vous");
-  
   const amount = parseFloat(document.getElementById('montant').value);
   if (!amount || amount < 200) return alert("Min 200 XAF");
 
   try {
     alert("⏳ Redirection vers NotchPay...");
-    
-    // Appeler notre Edge Function Supabase
     const { data, error } = await supabase.functions.invoke('clever-api', {
       body: { amount: amount }
     });
-
     if (error) throw error;
-
-    // Rediriger l'utilisateur vers la page de paiement NotchPay
     if (data?.authorization_url) {
       window.location.href = data.authorization_url;
     } else {
@@ -4296,19 +4395,8 @@ document.getElementById('notchpayBtn')?.addEventListener('click', async () => {
 });
 
 /*──────────────────────────────────────────────────────────
-  32. STORIES (version simplifiée)
+  32. STORIES — barre + visionneuse
 ──────────────────────────────────────────────────────────*/
-/*──────────────────────────────────────────────────────────
-  STORIES — Chargement de la barre horizontale
-──────────────────────────────────────────────────────────*/
-
-/*──────────────────────────────────────────────────────────
-  STORIES — Chargement de la barre horizontale (v2)
-──────────────────────────────────────────────────────────*/
-
-let allStoriesGrouped = [];   // [{ user_id, user, stories:[...] }]
-
-// Clé localStorage pour mémoriser les stories déjà vues
 const SEEN_STORIES_KEY = 'skill_seen_stories';
 
 function getSeenStories() {
@@ -4321,12 +4409,10 @@ function getSeenStories() {
 function markStoryAsSeen(storyId) {
   const seen = getSeenStories();
   seen.add(storyId);
-  // On garde max 500 IDs pour ne pas saturer le localStorage
   const arr = [...seen].slice(-500);
   localStorage.setItem(SEEN_STORIES_KEY, JSON.stringify(arr));
 }
 
-// Mélange un tableau (Fisher–Yates)
 function shuffleArray(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -4348,7 +4434,6 @@ async function loadStories() {
 
   if (error) { console.error('loadStories:', error); return; }
 
-  // ── 1. Grouper par user ─────────────────────────────
   const grouped = new Map();
   (data || []).forEach(s => {
     if (!grouped.has(s.user_id)) {
@@ -4361,45 +4446,46 @@ async function loadStories() {
     grouped.get(s.user_id).stories.push(s);
   });
 
-  // ── 2. Récupérer la liste des user_id qui ont BOOSTÉ ─
-  // On considère "booster" = a au moins un post avec boosted > 0
-  // et boost_at < 2 jours (même logique que ton feed)
+  // ✅ Filtrer les boosters selon le pays de l'utilisateur
   const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString();
+  const { data: me } = await supabase
+    .from('users').select('country_index').eq('id', currentUser?.id).maybeSingle();
+  const myCountry = me?.country_index || 1;
+
   const { data: boosters } = await supabase
     .from('posts')
-    .select('user_id')
+    .select('user_id, boost_countries')
     .gt('boosted', 0)
     .gte('boost_at', twoDaysAgo);
 
-  const boosterIds = new Set((boosters || []).map(b => b.user_id));
+  const boosterIds = new Set(
+    (boosters || [])
+      .filter(b => Array.isArray(b.boost_countries) && b.boost_countries.includes(myCountry))
+      .map(b => b.user_id)
+  );
 
-  // ── 3. Classer chaque groupe ───────────────────────
-  let myGroup = null;        // moi (1 seul)
-  const priorityGrp = [];    // boosters + suivis (mélangés)
+  let myGroup = null;
+  const priorityGrp = [];
 
   for (const g of grouped.values()) {
     if (currentUser && g.user_id === currentUser.id) {
-      myGroup = g;                              // ① moi
+      myGroup = g;
     } else if (
       currentUser &&
       (boosterIds.has(g.user_id) || followingIds.has(g.user_id))
     ) {
-      priorityGrp.push(g);                      // ② booster OU suivi
+      priorityGrp.push(g);
     }
-    // ③ tout le reste → IGNORÉ (on ne l'affiche pas)
   }
 
-  // ── 4. Ordre final : moi → (boosters+suivis mélangés) ─
   allStoriesGrouped = [
     ...(myGroup ? [myGroup] : []),
     ...shuffleArray(priorityGrp)
   ];
 
-  // ── 5. Rendu de la barre ───────────────────────────
   bar.innerHTML = '';
   const seenSet = getSeenStories();
 
-  // Bouton "Créer" toujours en premier
   if (currentUser) {
     const create = document.createElement('div');
     create.className = 'story-item';
@@ -4410,7 +4496,6 @@ async function loadStories() {
     bar.appendChild(create);
   }
 
-  // Puis les groupes triés
   allStoriesGrouped.forEach((g, idx) => {
     const item = document.createElement('div');
     item.className = 'story-item';
@@ -4433,7 +4518,6 @@ async function loadStories() {
     bar.appendChild(item);
   });
 
-  // Si rien à afficher (ni moi ni boosters/suivis)
   if (allStoriesGrouped.length === 0 && !currentUser) {
     bar.innerHTML = '<p style="padding:10px;color:#888;font-size:13px">Aucune story pour le moment.</p>';
   }
@@ -4441,18 +4525,23 @@ async function loadStories() {
 
 async function publishStory() {
   if (!currentUser) return alert("Connectez-vous");
-  const isImg = document.getElementById('tabStoryImage').classList.contains('active');
+
+  const imgTab = document.getElementById('tabStoryImage');
+  const isImg = imgTab ? imgTab.classList.contains('active') : true;
   const fileInput = isImg ? document.getElementById('storyImageFile') : document.getElementById('storyVideoFile');
   const urlInput = isImg ? document.getElementById('storyImageUrl') : document.getElementById('storyVideoUrl');
   const captionInput = isImg ? document.getElementById('storyImageCaption') : document.getElementById('storyVideoCaption');
-  const file = fileInput.files[0];
-  const url = urlInput.value.trim();
-  const caption = captionInput.value.trim();
+  const file = fileInput?.files[0];
+  const url = urlInput?.value.trim() || '';
+  const caption = captionInput?.value.trim() || '';
 
   let mediaUrl = url;
   let mediaType = isImg ? 'image' : 'video';
 
   if (file) {
+    if (mediaType === 'video' && file.size > 20 * 1024 * 1024) {
+      return alert("Vidéo trop volumineuse (max 20 MB).");
+    }
     const path = `${currentUser.id}/story_${Date.now()}_${file.name}`;
     const { error } = await supabase.storage.from('media').upload(path, file);
     if (error) return alert(error.message);
@@ -4467,40 +4556,20 @@ async function publishStory() {
   loadStories();
 }
 window.publishStory = publishStory;
+
 window.switchStoryType = (type) => {
   const isImg = type === 'image';
-  document.getElementById('tabStoryImage').classList.toggle('active', isImg);
-  document.getElementById('tabStoryVideo').classList.toggle('active', !isImg);
-  document.getElementById('storyImageForm').style.display = isImg ? 'block' : 'none';
-  document.getElementById('storyVideoForm').style.display = !isImg ? 'block' : 'none';
+  document.getElementById('tabStoryImage')?.classList.toggle('active', isImg);
+  document.getElementById('tabStoryVideo')?.classList.toggle('active', !isImg);
+
+  const imgForm = document.getElementById('storyImageForm');
+  const vidForm = document.getElementById('storyVideoForm');
+  if (imgForm) imgForm.style.display = isImg ? 'block' : 'none';
+  if (vidForm) vidForm.style.display = !isImg ? 'block' : 'none';
 };
 
 /*──────────────────────────────────────────────────────────
-  33. INIT
-──────────────────────────────────────────────────────────*/
-document.addEventListener('DOMContentLoaded', () => {
-  loadStories();
-});
-
-// Exposition globale
-window.shuffleFeed = shuffleFeed;
-
-/*──────────────────────────────────────────────────────────
-  STORY VIEWER — état global
-──────────────────────────────────────────────────────────*/
-let svState = {
-  groupIndex: 0,
-  storyIndex: 0,
-  timer: null,
-  progressInterval: null,
-  progressStart: 0,
-  isPaused: false,
-  isOpen: false
-};
-const STORY_DURATION = 5000; // 5 secondes par story
-
-/*──────────────────────────────────────────────────────────
-  Ouvrir la visionneuse
+  STORY VIEWER
 ──────────────────────────────────────────────────────────*/
 window.openStoryViewer = (groupIndex, storyIndex = 0) => {
   if (!allStoriesGrouped.length) return;
@@ -4513,37 +4582,32 @@ window.openStoryViewer = (groupIndex, storyIndex = 0) => {
   const viewer = document.getElementById('storyViewer');
   if (!viewer) return;
 
-  // ✅ Empiler un état dans l'historique pour que le bouton retour ferme la story
   history.pushState({ storyViewer: true }, '', '#story');
-
   viewer.classList.add('open');
-
   renderCurrentStory();
 };
-
-let closingStory = false;  // 🆕 variable globale anti-boucle
 
 function closeStoryViewer(fromBackButton = false) {
   const viewer = document.getElementById('storyViewer');
   if (!viewer) return;
 
-  // ✅ Fermer visuellement
   viewer.classList.remove('open');
 
-  // ✅ Nettoyer les médias (couper la vidéo en cours, etc.)
   const media = document.getElementById('storyMedia');
   if (media) media.innerHTML = '';
   const caption = document.getElementById('storyCaption');
   if (caption) caption.textContent = '';
 
-  // ✅ Si la story a été ouverte et qu'on ferme manuellement (croix, clic)
-  // il faut consommer l'entrée d'historique qu'on avait poussée
+  svState.isOpen = false;
+  clearTimers();
+
   if (!fromBackButton && history.state?.storyViewer) {
     closingStory = true;
-    history.back();   // déclenche popstate → mais la garde closingStory évite la double-fermeture
+    history.back();
     setTimeout(() => { closingStory = false; }, 150);
   }
 }
+
 function clearTimers() {
   if (svState.timer) clearTimeout(svState.timer);
   if (svState.progressInterval) clearInterval(svState.progressInterval);
@@ -4551,9 +4615,6 @@ function clearTimers() {
   svState.progressInterval = null;
 }
 
-/*──────────────────────────────────────────────────────────
-  Afficher la story courante
-──────────────────────────────────────────────────────────*/
 async function renderCurrentStory() {
   if (!svState.isOpen) return;
   const group = allStoriesGrouped[svState.groupIndex];
@@ -4561,7 +4622,6 @@ async function renderCurrentStory() {
 
   const story = group.stories[svState.storyIndex];
   if (!story) {
-    // fin du groupe → groupe suivant
     if (svState.groupIndex < allStoriesGrouped.length - 1) {
       svState.groupIndex++;
       svState.storyIndex = 0;
@@ -4570,17 +4630,14 @@ async function renderCurrentStory() {
     return closeStoryViewer();
   }
 
-  /* ==== HEADER ==== */
   const avatar = document.getElementById('storyViewerAvatar');
   avatar.src = group.user.photo_url || 'https://via.placeholder.com/42';
   avatar.onclick = () => { closeStoryViewer(); openUserFeed(group.user.id || group.user_id); };
 
   document.getElementById('storyViewerName').textContent = group.user.name || 'Utilisateur';
-
   const created = new Date(story.created_at);
   document.getElementById('storyViewerTime').textContent = `il y a ${timeSince(created)}`;
 
-  /* ==== BOUTONS DANS LE HEADER ==== */
   const headerActions = document.getElementById('storyHeaderActions');
   headerActions.innerHTML = '';
   const moreBtn = document.createElement('button');
@@ -4589,7 +4646,6 @@ async function renderCurrentStory() {
   moreBtn.onclick = () => openStoryMenu(story, group);
   headerActions.appendChild(moreBtn);
 
-  /* ==== MÉDIA ==== */
   const mediaDiv = document.getElementById('storyMedia');
   mediaDiv.innerHTML = '';
 
@@ -4614,10 +4670,8 @@ async function renderCurrentStory() {
     img.onerror = () => startProgress(STORY_DURATION);
   }
 
-  /* ==== LÉGENDE ==== */
   document.getElementById('storyCaption').textContent = story.caption || '';
 
-  /* ==== COMPTEUR DE VUES ==== */
   const viewsEl = document.getElementById('storyViewerViews');
   const viewsPlural = document.getElementById('storyViewerViewsPlural');
   const viewsBox = document.querySelector('.story-footer .views');
@@ -4626,28 +4680,18 @@ async function renderCurrentStory() {
   if (isOwner) {
     viewsBox.style.display = 'flex';
     const { data: fresh } = await supabase
-      .from('stories')
-      .select('views')
-      .eq('id', story.id)
-      .maybeSingle();
+      .from('stories').select('views').eq('id', story.id).maybeSingle();
     const v = fresh?.views || 0;
     viewsEl.textContent = fmt(v);
     viewsPlural.textContent = v > 1 ? 's' : '';
   } else {
-    // masqué aux autres
     viewsBox.style.display = 'none';
   }
 
-  /* ==== BOUTONS CTA (BOOSTER / SUIVRE / SOUTENIR / SUPPRIMER) ==== */
   const cta = document.getElementById('storyCtaGroup');
   cta.innerHTML = '';
 
   if (isOwner) {
-    /* ─────────────────────────────────────────────
-       CAS 1 : MA STORY
-       → Bouton BOOSTER (propre à la story)
-       → Bouton SUPPRIMER
-    ───────────────────────────────────────────── */
     const boostBtn = document.createElement('button');
     boostBtn.className = 'cta-btn boost-btn';
     boostBtn.style.background = '#1abc9c';
@@ -4655,8 +4699,7 @@ async function renderCurrentStory() {
     boostBtn.onclick = (e) => {
       e.stopPropagation();
       closeStoryViewer();
-      // ✅ On booste LA STORY, pas un post
-      boostStory(story.id, story.caption || 'Ma story');
+      window.boostStory(story.id, story.caption || 'Ma story');
     };
     cta.appendChild(boostBtn);
 
@@ -4687,13 +4730,6 @@ async function renderCurrentStory() {
     cta.appendChild(del);
 
   } else if (currentUser) {
-    /* ─────────────────────────────────────────────
-       CAS 2 : STORY DE QUELQU'UN D'AUTRE
-       → Bouton SUIVRE
-       → Bouton SOUTENIR (25 XAF)
-    ───────────────────────────────────────────── */
-
-    // 2a. Bouton suivre
     const followBtn = document.createElement('button');
     followBtn.className = 'follow-btn-story';
     const updateFollowLabel = () => {
@@ -4715,12 +4751,8 @@ async function renderCurrentStory() {
     };
     cta.appendChild(followBtn);
 
-    // 2b. Bouton Soutenir (25 XAF) — visible si auteur ≥ 1 followers
     const { data: targetUser } = await supabase
-      .from('users')
-      .select('followers_count')
-      .eq('id', group.user_id)
-      .maybeSingle();
+      .from('users').select('followers_count').eq('id', group.user_id).maybeSingle();
 
     if ((targetUser?.followers_count || 0) > 0) {
       const supportBtn = document.createElement('button');
@@ -4728,10 +4760,8 @@ async function renderCurrentStory() {
       supportBtn.innerHTML = '<i class="fas fa-star"></i> SOUTENIR (25 XAF)';
       supportBtn.onclick = async (e) => {
         e.stopPropagation();
-
         const ok = await prompt(
-          `Envoyer 25 XAF à ${group.user.name} ? (oui/non)`,
-          "oui"
+          `Envoyer 25 XAF à ${group.user.name} ? (oui/non)`, "oui"
         );
         if (ok?.toLowerCase() !== 'oui') return;
 
@@ -4751,19 +4781,16 @@ async function renderCurrentStory() {
     }
   }
 
-  /* ==== BARRES DE PROGRESSION ==== */
   renderProgressBars(group.stories.length, svState.storyIndex);
 
-  /* ==== MARQUER COMME VUE (si pas owner) ==== */
   if (!isOwner && currentUser) {
     try {
       await supabase.from('story_views').insert({
         story_id: story.id,
         user_id: currentUser.id
       });
-    } catch (_) {
-      /* ignore conflit (déjà vu) */
-    }
+      markStoryAsSeen(story.id);
+    } catch (_) {}
   }
 }
 
@@ -4771,17 +4798,18 @@ window.boostStory = function(storyId, storyCaption) {
   boostId = storyId;
   boostTargetType = 'story';
 
-  qs('boostStatus').textContent = `1 story sélectionnée : ${storyCaption}`;
-  qs('boostPanel').style.display = 'block';
+  document.getElementById('boostStatus').textContent =
+    `📸 Story sélectionnée : ${storyCaption || 'Ma story'}`;
+  document.getElementById('boostPanel').style.display = 'block';
+
+  if (typeof prepareBoostPanel === 'function') prepareBoostPanel();
+
   openTab(
     { currentTarget: document.querySelector('.tablinks[onclick*="BOOST"]') },
     'BOOST'
   );
 };
 
-/*──────────────────────────────────────────────────────────
-  Barres de progression
-──────────────────────────────────────────────────────────*/
 function renderProgressBars(count, currentIndex) {
   const container = document.getElementById('storyProgress');
   container.innerHTML = '';
@@ -4804,7 +4832,6 @@ function startProgress(durationMs) {
   const currentBar = bars[svState.storyIndex];
   if (!currentBar) return;
 
-  // Reset toutes les barres avant index courant
   bars.forEach((b, i) => {
     if (i < svState.storyIndex) b.style.width = '100%';
     else if (i > svState.storyIndex) b.style.width = '0%';
@@ -4825,9 +4852,6 @@ function startProgress(durationMs) {
   }, durationMs);
 }
 
-/*──────────────────────────────────────────────────────────
-  Navigation
-──────────────────────────────────────────────────────────*/
 window.nextStory = () => {
   if (!svState.isOpen) return;
   clearTimers();
@@ -4858,14 +4882,10 @@ window.prevStory = () => {
     svState.storyIndex = Math.max(0, prevGroup.stories.length - 1);
     renderCurrentStory();
   } else {
-    // déjà au début → relance
     renderCurrentStory();
   }
 };
 
-/*──────────────────────────────────────────────────────────
-  Pause / reprise (appui long)
-──────────────────────────────────────────────────────────*/
 let pressTimer = null;
 const storyMedia = document.getElementById('storyMedia');
 const viewerEl = document.getElementById('storyViewer');
@@ -4873,41 +4893,35 @@ const viewerEl = document.getElementById('storyViewer');
 function pauseStory() {
   if (!svState.isOpen) return;
   svState.isPaused = true;
-  const video = storyMedia.querySelector('video');
+  const video = storyMedia?.querySelector('video');
   if (video) video.pause();
 }
 
 function resumeStory() {
   if (!svState.isOpen) return;
   svState.isPaused = false;
-  svState.progressStart = Date.now() - (parseFloat(storyMedia.querySelector('.fill')?.style.width || '0') / 100) * STORY_DURATION;
-  const video = storyMedia.querySelector('video');
+  const video = storyMedia?.querySelector('video');
   if (video) video.play();
 }
 
-// Appui long : pause
-viewerEl.addEventListener('pointerdown', (e) => {
+viewerEl?.addEventListener('pointerdown', (e) => {
   if (e.target.closest('.story-header, .story-footer, .more-btn')) return;
   pressTimer = setTimeout(() => pauseStory(), 200);
 });
-viewerEl.addEventListener('pointerup', () => {
+viewerEl?.addEventListener('pointerup', () => {
   if (pressTimer) clearTimeout(pressTimer);
   resumeStory();
 });
-viewerEl.addEventListener('pointercancel', () => {
+viewerEl?.addEventListener('pointercancel', () => {
   if (pressTimer) clearTimeout(pressTimer);
   resumeStory();
 });
 
-// Pause quand onglet caché
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) pauseStory();
   else if (svState.isOpen) resumeStory();
 });
 
-/*──────────────────────────────────────────────────────────
-  Menu ⋮ (Signaler / Supprimer)
-──────────────────────────────────────────────────────────*/
 function openStoryMenu(story, group) {
   const isOwner = currentUser && currentUser.id === group.user_id;
   const choice = isOwner
@@ -4930,7 +4944,6 @@ function openStoryMenu(story, group) {
       renderCurrentStory();
     });
   } else if (!isOwner && choice === '1') {
-    // Signaler → insère dans notifications ou table dédiée
     supabase.from('notifications').insert({
       to_user_id: group.user_id,
       from_user_id: currentUser.id,
@@ -4942,60 +4955,32 @@ function openStoryMenu(story, group) {
   }
 }
 
-window.updatePassword = async () => {
-  const newPassword = document.getElementById('newPassword').value;
-  
-  if (!newPassword || newPassword.length < 6) {
-    return alert("Le mot de passe doit faire au moins 6 caractères.");
-  }
-
-  // C'est cette fonction qui met à jour le mot de passe
-  const { data, error } = await supabase.auth.updateUser({
-    password: newPassword
-  });
-
-  if (error) {
-    alert("Erreur : " + error.message);
-  } else {
-    alert("✅ Mot de passe mis à jour avec succès ! Vous pouvez vous connecter.");
-    // Rediriger vers la page de connexion
-    window.location.href = '/#conect';
-  }
-};
 /*──────────────────────────────────────────────────────────
-  VÉRIFICATION DU PREMIER DÉPÔT (MONÉTISATION)
+  33. CHECK PREMIER DÉPÔT (MONÉTISATION)
 ──────────────────────────────────────────────────────────*/
 async function checkFirstDeposit() {
   if (!currentUser) return;
-  
   const banner = document.getElementById('monetizationBanner');
   if (!banner) return;
 
   try {
-    // On vérifie si l'utilisateur a déjà fait un dépôt.
-    // On cherche dans la table 'transactions' ou 'deposits' si elle existe.
-    // Si tu n'as pas cette table, on se base sur le solde.
     const { data: wallet } = await supabase
-      .from('wallets')
-      .select('balance')
-      .eq('user_id', currentUser.id)
-      .maybeSingle();
+      .from('wallets').select('balance').eq('user_id', currentUser.id).maybeSingle();
 
-    // RÈGLE : Si le solde est à 0 ou si le wallet n'existe pas, on considère
-    // qu'il n'a pas encore activé la monétisation.
     if (!wallet || (wallet.balance || 0) <= 0) {
       hasDeposited = false;
-      banner.style.display = 'block'; // On affiche le bandeau
+      banner.style.display = 'block';
     } else {
       hasDeposited = true;
-      banner.style.display = 'none'; // On cache le bandeau
+      banner.style.display = 'none';
     }
   } catch (err) {
     console.error("Erreur vérification dépôt:", err);
   }
 }
+
 /*──────────────────────────────────────────────────────────
-  SYSTÈME DE MENTIONS (@) - RECHERCHE PARTIELLE
+  34. MENTIONS (@) - AUTOCOMPLETE
 ──────────────────────────────────────────────────────────*/
 const postTextarea = document.getElementById('postText');
 const suggestionsBox = document.getElementById('mentionSuggestions');
@@ -5006,10 +4991,8 @@ if (postTextarea && suggestionsBox) {
     const cursorPos = postTextarea.selectionStart;
     const textBeforeCursor = value.substring(0, cursorPos);
     const lastAt = textBeforeCursor.lastIndexOf('@');
-
-    // On cherche @ suivi de lettres sans espace
     const afterAt = textBeforeCursor.substring(lastAt + 1);
-    
+
     if (lastAt !== -1 && !afterAt.includes(' ') && afterAt.length > 0) {
       const { data: users } = await supabase
         .from('users')
@@ -5024,7 +5007,7 @@ if (postTextarea && suggestionsBox) {
         suggestionsBox.style.left = rect.left + 'px';
         suggestionsBox.style.top = (rect.top + postTextarea.offsetHeight + 5) + 'px';
         suggestionsBox.style.width = rect.width + 'px';
-        
+
         users.forEach(u => {
           const div = document.createElement('div');
           div.style.cssText = 'padding:8px; cursor:pointer; display:flex; align-items:center; gap:10px; border-bottom:1px solid #eee;';
@@ -5049,51 +5032,37 @@ if (postTextarea && suggestionsBox) {
 }
 
 /*──────────────────────────────────────────────────────────
-  MENO — Explication des 200 XAF
+  35. MENO — Explication des 200 XAF
 ──────────────────────────────────────────────────────────*/
-
 window.procederDepot = (evt) => {
-  // 1️⃣ Vérifier la checkbox
   const cb = document.getElementById('menoCheckbox');
   if (cb && !cb.checked) {
     return alert("Merci de cocher la case pour continuer.");
   }
 
-  // 2️⃣ Trouver un .tablinks qui pointe vers vibo
-  //    (le bouton add_card du header)
   let tablink = document.querySelector('.tablinks[onclick*="vibo"]');
-
-  // 3️⃣ Si introuvable, on en crée un "virtuel" pour openTab
-  //    (au pire des cas, la navigation fonctionnera quand même)
   if (!tablink) {
-    // On fabrique un élément factice pour que openTab ne plante pas
     tablink = document.createElement('i');
     tablink.className = 'tablinks';
     tablink.style.display = 'none';
     document.body.appendChild(tablink);
   }
-
-  // 4️⃣ Ouvrir la tab vibo
   openTab({ currentTarget: tablink }, 'vibo');
 };
 
+/*──────────────────────────────────────────────────────────
+  36. SOLEASPAY
+──────────────────────────────────────────────────────────*/
 window.redirectToSoleasPay = async function () {
-  if (!currentUser) {
-    return alert("Connectez-vous d'abord pour recharger votre compte.");
-  }
+  if (!currentUser) return alert("Connectez-vous d'abord pour recharger votre compte.");
 
   const payerName = document.getElementById('payerName').value.trim();
   const amount = parseFloat(document.getElementById('amountInput').value);
 
-  if (!payerName || payerName.length < 2) {
-    return alert("Veuillez saisir votre nom complet.");
-  }
-  if (!amount || isNaN(amount) || amount < 100) {
-    return alert("Veuillez saisir un montant valide (minimum 100 XAF).");
-  }
+  if (!payerName || payerName.length < 2) return alert("Veuillez saisir votre nom complet.");
+  if (!amount || isNaN(amount) || amount < 100) return alert("Veuillez saisir un montant valide (minimum 100 XAF).");
 
   try {
-    // 1. Appeler la fonction Supabase "dynamic-function"
     const { data, error } = await supabase.functions.invoke('dynamic-function', {
       body: {
         user_id: currentUser.id,
@@ -5106,14 +5075,7 @@ window.redirectToSoleasPay = async function () {
 
     if (error) throw error;
 
-    // 2. Rediriger vers la page de paiement SoleasPay
-    //    On accepte plusieurs structures possibles de réponse
-    const paymentUrl =
-      data?.payment_url ||
-      data?.data?.payment_url ||
-      data?.url ||
-      data?.data?.url;
-
+    const paymentUrl = data?.payment_url || data?.data?.payment_url || data?.url || data?.data?.url;
     if (paymentUrl) {
       window.location.href = paymentUrl;
     } else {
@@ -5125,6 +5087,18 @@ window.redirectToSoleasPay = async function () {
     alert("Erreur lors de la création du paiement : " + (err.message || err));
   }
 };
+
+/*──────────────────────────────────────────────────────────
+  37. INIT
+──────────────────────────────────────────────────────────*/
+document.addEventListener('DOMContentLoaded', () => {
+  loadStories();
+  renderBoostCountryCheckboxes();
+  document.getElementById('boostViews')?.addEventListener('input', updateBoostCost);
+});
+
+window.shuffleFeed = shuffleFeed;
+
 </script>
 </body>
 </html> 
