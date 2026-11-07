@@ -966,202 +966,106 @@ font-size:14px;
 .modal-btn-danger{background:gold}
 @keyframes slideDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
-/* === STORY BAR HORIZONTALE === */
-.story-bar{
-  display:flex;
-  gap:12px;
-  overflow-x:auto;
-  padding:12px 10px;
-  background:#fff;
-  border-bottom:1px solid #eee;
-  scrollbar-width:none;
-}
-.story-bar::-webkit-scrollbar{display:none;}
-
-.story-item{
-  flex:0 0 auto;
-  width:75px;
-  text-align:center;
-  cursor:pointer;
-  position:relative;
-}
-
-.story-item .ring{
-  width:70px;
-  height:70px;
-  border-radius:50%;
-  padding:3px;
-  background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.story-item .ring.seen{
-  background:#ddd;
-}
-
-.story-item .ring.create{
-  background:linear-gradient(45deg,gold,#ffb700);
-}
-
-.story-item .ring img{
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  object-fit:cover;
-  border:2px solid #fff;
-  background:#fff;
-}
-
-.story-item .ring .plus{
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  background:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:28px;
-  color:gold;
-  font-weight:bold;
-}
-
-.story-item small{
-  display:block;
-  font-size:11px;
-  color:#333;
-  margin-top:4px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-  max-width:75px;
-}
-
-/* === VISIONNEUSE STORY PLEIN ÉCRAN === */
-
-/* Header : avatar + nom + date (SANS boutons suivre) */
-.story-header {
+/* =========================================
+   1. BARRE HORIZONTALE FAÇON FACEBOOK (Cartes)
+   ========================================= */
+.story-bar {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 22px 12px 8px;
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  z-index: 9;
-}
-.story-header img {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #fff;
-  cursor: pointer;
-}
-.story-header .info {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.2;
-}
-.story-header .name {
-  font-weight: bold;
-  color: #FFD700;
-  font-size: 15px;
-}
-.story-header .time {
-  font-size: 12px;
-  color: #ddd;
-}
-.story-header .actions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.story-header .more-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 4px 8px;
-}
-
-/* Pied de story : vues + TOUS les boutons */
-.story-footer .views {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(0,0,0,.5);
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 14px;
-  color: #fff;
-}
-.story-footer .views i { font-size: 16px; }
-
-.story-footer .cta-group {
-  display: flex;
-  align-items: center;
   gap: 8px;
+  overflow-x: auto;
+  padding: 10px;
+  background: #fff;
+  scrollbar-width: none; /* Cache la barre de défilement sur Firefox */
 }
-.story-footer .cta-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  font-weight: bold;
-  font-size: 13px;
+.story-bar::-webkit-scrollbar { display: none; } /* Cache sur Chrome/Safari */
+
+.story-item {
+  flex: 0 0 auto;
+  width: 110px; /* Largeur de la carte */
+  height: 180px; /* Hauteur de la carte */
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
   cursor: pointer;
-  color: #fff;
-  letter-spacing: .5px;
-  transition: opacity .2s;
-}
-.story-footer .cta-btn:hover { opacity: .9; }
-.story-footer .cta-btn.boost-btn {
-  background: #1abc9c;
-}
-.story-footer .cta-btn.support-btn {
-  background: #8bc34a;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  background: #f0f2f5; /* Fond gris clair pour la carte "Créer" */
 }
 
-/* ✅ NOUVEAU : Bouton Suivre DANS LE FOOTER (rose) */
-.story-footer .follow-btn-story {
-  background: #ff4081;
-  border: none;
-  color: #fff;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(255, 64, 129, 0.4);
-  transition: transform .15s, background .2s;
-}
-.story-footer .follow-btn-story:hover {
-  transform: scale(1.05);
-  background: #ff5c93;
-}
-.story-footer .follow-btn-story.following {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
-  color: #fff;
-  box-shadow: none;
-  cursor: default;
+/* L'image de fond de la carte */
+.story-item .ring {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  background: none;
+  display: block;
+  position: relative;
 }
 
-/* Navigation tactile */
-.story-nav {
+.story-item .ring img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  border: none;
+}
+
+/* Le texte en bas (ex: "Ma story", "LATINO z8") */
+.story-item small {
   position: absolute;
-  inset: 0;
+  bottom: 10px;
+  left: 10px;
+  right: 10px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+  z-index: 5;
+}
+
+/* --- DESIGN SPÉCIAL POUR LA PREMIÈRE CARTE ("CRÉER") --- */
+.story-item:first-child .ring img {
+  height: 65%; /* Laisse de la place en bas pour le texte */
+  border-radius: 12px 12px 0 0;
+}
+
+/* Le gros bouton bleu + */
+.story-item:first-child .ring .plus {
+  position: absolute;
+  bottom: 35%; /* Pile à la frontière entre l'image et le fond gris */
+  left: 50%;
+  transform: translateX(-50%) translateY(50%);
+  width: 40px;
+  height: 40px;
+  background-color: #1877f2;
+  color: #fff;
+  border-radius: 50%;
   display: flex;
-  z-index: 7;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  border: 4px solid #f0f2f5; /* Bordure assortie au fond gris */
+  z-index: 10;
 }
-.story-nav .prev,
-.story-nav .next {
-  flex: 1;
-  cursor: pointer;
+
+.story-item:first-child small {
+  color: #111; 
+  text-shadow: none;
+  text-align: center;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  font-size: 14px;
+  font-weight: 600;
 }
-/* === VISIONNEUSE STORY PLEIN ÉCRAN (FORCÉ) === */
+
+
+/* =========================================
+   2. VISIONNEUSE STORY PLEIN ÉCRAN (Base)
+   ========================================= */
 #storyViewer {
     position: fixed !important;
     inset: 0 !important;
@@ -1182,6 +1086,7 @@ font-size:14px;
 #storyViewer.open { 
     display: flex !important; 
 }
+
 /* Barres de progression */
 .story-progress {
   display: flex;
@@ -1205,7 +1110,10 @@ font-size:14px;
   transition: width .1s linear;
 }
 
-/* Header : avatar + nom + date + bouton ⋮ */
+
+/* =========================================
+   3. EN-TÊTE DE LA STORY (Avatar, Nom, etc.)
+   ========================================= */
 .story-header {
   display: flex;
   align-items: center;
@@ -1252,7 +1160,10 @@ font-size:14px;
   padding: 4px 8px;
 }
 
-/* Media */
+
+/* =========================================
+   4. MÉDIA (Image ou Vidéo)
+   ========================================= */
 .story-media {
   flex: 1;
   display: flex;
@@ -1269,11 +1180,14 @@ font-size:14px;
   object-fit: contain;
 }
     
-/* Légende */
+
+/* =========================================
+   5. LÉGENDE
+   ========================================= */
 .story-caption {
   position: absolute;
   left: 12px; right: 12px; 
-  bottom: 160px !important; /* Remonté pour laisser la place aux boutons */
+  bottom: 160px !important; 
   font-size: 16px;
   font-weight: bold;
   text-align: center;
@@ -1281,37 +1195,59 @@ font-size:14px;
   z-index: 8;
 }
 
-/* Pied de story : vues + TOUS les boutons */
+
+/* =========================================
+   6. PIED DE LA STORY (Boutons : Suivre, Soutenir, Vues)
+   ========================================= */
 .story-footer {
   position: absolute;
   bottom: 0; left: 0; right: 0;
   padding: 16px;
-  /* 🔼 80px de marge en bas + zone de sécurité du téléphone */
   padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; 
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 10px;
   background: linear-gradient(transparent, rgba(0,0,0,.7), rgba(0,0,0,.95)) !important;
-  z-index: 999 !important; /* S'assure d'être au-dessus de tout */
+  z-index: 999 !important;
 }
 
-/* Bouton Suivre (rose) */
-.story-footer .follow-btn-story {
-  background: #ff4081;
+.story-footer .cta-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.story-footer .cta-btn {
+  padding: 8px 16px;
   border: none;
-  color: #fff;
-  padding: 12px 20px !important;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 6px;
   font-weight: bold;
+  font-size: 13px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  color: #fff;
+  letter-spacing: .5px;
+  transition: opacity .2s;
+}
+.story-footer .cta-btn:hover { opacity: .9; }
+
+/* Bouton Booster (Turquoise) */
+.story-footer .cta-btn.boost-btn {
+  background: #1abc9c;
 }
 
-/* Bouton Soutenir (vert) */
+/* Bouton Soutenir (Vert) */
 .story-footer .cta-btn.support-btn {
   background: #8bc34a;
+  padding: 12px 20px !important;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+}
+
+/* Bouton Suivre (Rose) */
+.story-footer .follow-btn-story {
+  background: #ff4081;
   border: none;
   color: #fff;
   padding: 12px 20px !important;
@@ -1320,29 +1256,6 @@ font-size:14px;
   font-weight: bold;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-}
-
-/* Compteur de vues */
-.story-footer .views {
-  background: rgba(0,0,0,.8);
-  padding: 10px 16px !important;
-  border-radius: 20px;
-  font-size: 14px;
-  color: #fff;
-  border: 1px solid rgba(255,255,255,0.2);
-}
-    
-/* ✅ Bouton Suivre DANS LE FOOTER (rose) */
-.story-footer .follow-btn-story {
-  background: #ff4081;
-  border: none;
-  color: #fff;
-  padding: 10px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(255, 64, 129, 0.4);
   transition: transform .15s, background .2s;
 }
 .story-footer .follow-btn-story:hover {
@@ -1356,8 +1269,27 @@ font-size:14px;
   box-shadow: none;
   cursor: default;
 }
-    
-/* Navigation tactile */
+
+/* Compteur de vues */
+.story-footer .views {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,0,0,.8);
+  padding: 10px 16px !important;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.story-footer .views i { font-size: 16px; }
+/* Masquer le compteur de vues si non-propriétaire */
+.story-footer .views[style*="display: none"] { display: none !important; }
+
+
+/* =========================================
+   7. NAVIGATION TACTILE (Précédent / Suivant)
+   ========================================= */
 .story-nav {
   position: absolute;
   inset: 0;
@@ -1369,8 +1301,7 @@ font-size:14px;
   flex: 1;
   cursor: pointer;
 }
-/* Masquer le compteur de vues si non-propriétaire */
-.story-footer .views[style*="display: none"] { display: none !important; }
+
 /* === BANNIÈRE MONÉTISATION === */
 .monetization-banner {
   display: none; /* Caché par défaut, le JS l'affichera */
@@ -1433,11 +1364,18 @@ font-size:14px;
     <p id="accountStatus"></p>
   </div>
   <hr>
-    <div class="post-header">
-         <div id="storyBar" class="story-bar">
-    <!-- Rempli dynamiquement -->
+  <div class="post-header">
+  <!-- 👇 TA BARRE HORIZONTALE QUI FONCTIONNE (ON LA GARDE) 👇 -->
+  <div id="storyBar" class="story-bar">
+    <!-- Rempli dynamiquement par ton JavaScript -->
   </div>
- <!-- 👇 TON NOUVEAU DIV ICI 👇 -->
+</div>
+
+<hr>
+
+<!-- 👇 TON NOUVEAU DIV ICI 👇 -->
+  <div id="monetizationBanner" class="monetization-banner" onclick="openTab(event, 'meno')">
+  <!-- 👇 TON NOUVEAU DIV ICI 👇 -->
 <div id="monetizationBanner" class="monetization-banner" onclick="openTab(event, 'meno')">
   <i class="material-icons-outlined" style="font-size: 28px; vertical-align: middle; margin-right: 8px;">monetization_on</i>
   Activer la monétisation du contenu <br>
@@ -2416,53 +2354,52 @@ font-size:14px;
   </div>
 </div>
 <!-- ⚠️ FIN DE LA VISIONNEUSE -->
-
 <section id="create-story" class="tabcontent">
   <br><br/>
   <div class="priix" onclick="openTab(event,'home')">
     <i class="fa-solid fa-arrow-left" style="font-size:40px;"></i>
   </div>
 
-  <h3 style="text-align:center">Créer une story</h3>
+  <h3 style="text-align:center; color: #111;">Créer une story</h3>
 
   <div id="emailLoginBox">
-    <div class="story-type-tabs">
-      <button id="tabStoryImage" class="active" onclick="switchStoryType('image')">
+    <div class="story-type-tabs" style="display: flex; gap: 10px; margin-bottom: 15px;">
+      <button id="tabStoryImage" class="active" onclick="switchStoryType('image')" style="flex: 1; background: gold; color: #fff;">
         <i class="fas fa-image"></i> Image
       </button>
-      <button id="tabStoryVideo" onclick="switchStoryType('video')">
+      <button id="tabStoryVideo" onclick="switchStoryType('video')" style="flex: 1; background: #eee; color: #333;">
         <i class="fas fa-video"></i> Vidéo
       </button>
     </div>
 
-    <!-- Image -->
+    <!-- Formulaire Image -->
     <div id="storyImageForm">
-      <label>Upload image :</label>
+      <label style="font-weight: bold; color: #333;">Upload image :</label>
       <input type="file" id="storyImageFile" accept="image/*" />
 
-      <label>OU lien image :</label>
+      <label style="font-weight: bold; color: #333; margin-top: 10px;">OU lien image :</label>
       <input type="url" id="storyImageUrl" placeholder="https://..." />
 
-      <label>Légende (optionnel) :</label>
+      <label style="font-weight: bold; color: #333; margin-top: 10px;">Légende (optionnel) :</label>
       <input type="text" id="storyImageCaption" placeholder="Ma story..." />
     </div>
 
-    <!-- Vidéo -->
+    <!-- Formulaire Vidéo -->
     <div id="storyVideoForm" style="display:none">
-      <label>Upload vidéo (max 30s, 20MB) :</label>
+      <label style="font-weight: bold; color: #333;">Upload vidéo (max 30s, 20MB) :</label>
       <input type="file" id="storyVideoFile" accept="video/*" />
 
-      <label>OU lien vidéo :</label>
+      <label style="font-weight: bold; color: #333; margin-top: 10px;">OU lien vidéo :</label>
       <input type="url" id="storyVideoUrl" placeholder="https://...mp4" />
 
-      <label>Légende (optionnel) :</label>
+      <label style="font-weight: bold; color: #333; margin-top: 10px;">Légende (optionnel) :</label>
       <input type="text" id="storyVideoCaption" placeholder="Ma story..." />
     </div>
 
-    <button onclick="publishStory()" style="margin-top:10px">
+    <button onclick="publishStory()" style="margin-top:15px; background: gold; color: white; padding: 12px; font-weight: bold; border-radius: 8px; border: none; width: 100%;">
       <i class="fas fa-paper-plane"></i> Publier la story
     </button>
-    <p id="storyStatus" style="color:limegreen;text-align:center"></p>
+    <p id="storyStatus" style="color:green; text-align:center; font-weight: bold; margin-top: 10px;"></p>
   </div>
 </section>
 
