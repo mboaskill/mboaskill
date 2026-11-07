@@ -1746,7 +1746,6 @@ font-size:14px;
     </div>
   </div>
 </section>
-
 <section id="BOOST" class="tabcontent">
   <br><br/>
   <h3>Booster un contenu</h3>
@@ -1837,10 +1836,12 @@ font-size:14px;
 
   <p style="color:#fff;font-size:13px;text-align:center;margin-top:10px;">
     <i class="fas fa-info-circle"></i>
-    Boost story : <b>1 000 XAF</b> · Boost publication : <b>3 500 XAF</b><br>
-    Chaque jour choisi multiplie le tarif de base.
+    Boost story : <b>1 000 XAF / jour</b> · Boost publication : <b>1 750 XAF / jour</b><br>
+    Tarif fixe, <b>quel que soit le nombre de pays</b> sélectionnés.<br>
+    Chaque jour choisi multiplie le tarif journalier.
   </p>
 </section>
+
 <section id="paypalWithdraw" class="tabcontent">
   <br><br/>
   <div id="emailLoginBox">
@@ -2782,7 +2783,7 @@ let svState = {                        // état du viewer story
 };
 const STORY_DURATION = 5000;           // 5s par story
 const BOOST_PRICES = {
-  post:  3500,                         // XAF / jour / pays
+  post:  1750,                         // XAF / jour / pays
   story: 1000                          // XAF / jour / pays
 };
 
@@ -3382,7 +3383,7 @@ profileInput?.addEventListener('change', async (e) => {
 });
 
 /*──────────────────────────────────────────────────────────
-  12. FEED PRINCIPAL — CORRIGÉ (boost_countries array)
+  12. FEED PRINCIPAL — CORRIGÉ (boost_countries array + durée dynamique)
 ──────────────────────────────────────────────────────────*/
 async function renderFeed() {
   const c = qs('feed');
@@ -3404,12 +3405,13 @@ async function renderFeed() {
 
   for (const p of (boosted || [])) {
     const boostAt = p.boost_at ? new Date(p.boost_at).getTime() : 0;
-    const diffDays = (now - boostAt) / 86400000;
+    const boostDays = p.boosted || 0;
+    const expiresAt = boostAt + boostDays * 86400000;
     const countries = Array.isArray(p.boost_countries) ? p.boost_countries : [];
 
-    if (diffDays <= 2 && countries.includes(userCountry)) {
+    if (now < expiresAt && countries.includes(userCountry)) {
       posts.push(p);
-    } else if (diffDays > 2) {
+    } else if (now >= expiresAt) {
       await supabase.from('posts').update({ boosted: 0 }).eq('id', p.id);
     }
   }
@@ -3436,7 +3438,7 @@ async function renderFeed() {
 
   const fragment = document.createDocumentFragment();
   const insertIndex = Math.floor(Math.random() * (posts.length + 1));
-  
+
   for (let i = 0; i < posts.length; i++) {
     if (i === insertIndex) {
       const box = document.createElement('div');
@@ -4186,7 +4188,7 @@ const observer = new IntersectionObserver((entries) => {
 function observePost(el) { observer.observe(el); }
 
 /*──────────────────────────────────────────────────────────
-  20. BOOST — multi-pays + tarif dynamique
+  20. BOOST — multi-pays + tarif fixe par jour
 ──────────────────────────────────────────────────────────*/
 const BOOST_COUNTRIES = [
   { id: 1, name: 'Cameroun', flag: '🇨🇲' },
@@ -4274,18 +4276,30 @@ window.toggleAllCountries = () => {
   updateBoostCost();
 };
 
+/* ✅ Tarif FIXE par jour — indépendant du nombre de pays */
 function updateBoostCost() {
   const price = BOOST_PRICES[boostTargetType] || BOOST_PRICES.post;
-  const days = parseInt(document.getElementById('boostViews')?.value) || 0;
-  const countries = [...document.querySelectorAll('.boost-country-checkbox:checked')];
-  const nbCountries = countries.length;
-  const total = price * days * nbCountries;
+  const days = Math.max(1, parseInt(document.getElementById('boostViews')?.value) || 1);
+
+  // ⚠️ Plus de multiplication par le nombre de pays
+  const total = price * days;
 
   const totalEl = document.getElementById('boostTotalCost');
   if (totalEl) {
-    totalEl.textContent = `${total.toLocaleString('fr-FR')} XAF`;
+    totalEl.innerHTML = `
+      <b>${total.toLocaleString('fr-FR')} XAF</b>
+      <br><small style="color:#555;font-size:12px;">
+        (${price.toLocaleString('fr-FR')} XAF / jour × ${days} jour${days > 1 ? 's' : ''},
+        tous pays confondus)
+      </small>
+    `;
   }
 }
+
+/* Recalcul en direct quand l'utilisateur tape la durée */
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'boostViews') updateBoostCost();
+});
 
 function prepareBoostPanel() {
   renderBoostCountryCheckboxes();
@@ -4302,8 +4316,9 @@ function prepareBoostPanel() {
   const priceInfo = document.getElementById('boostPriceInfo');
   if (priceInfo) {
     priceInfo.innerHTML = `
-      <b>Tarif : ${price.toLocaleString('fr-FR')} XAF / jour / pays</b><br>
+      <b>Tarif : ${price.toLocaleString('fr-FR')} XAF / jour</b><br>
       <span style="color:#666;font-size:12px;">
+        Tarif fixe, <b>quel que soit le nombre de pays</b> sélectionnés.<br>
         ${isStory
           ? 'Les stories boostées sont vues en priorité dans la barre de stories.'
           : 'Les publications boostées apparaissent en tête du feed des pays ciblés.'}
@@ -4371,7 +4386,8 @@ window.boostPost = async () => {
   }
 
   const pricePerDay = BOOST_PRICES[boostTargetType] || BOOST_PRICES.post;
-  const cost = pricePerDay * days * checkedCountries.length;
+  // ✅ Tarif fixe par jour, PAS de multiplication par le nombre de pays
+  const cost = pricePerDay * days;
 
   if (currentBalance < cost) {
     return alert(
@@ -4384,9 +4400,11 @@ window.boostPost = async () => {
 
   const confirmMsg =
     `Booster ${boostTargetType === 'story' ? 'la story' : 'la publication'} ?\n\n` +
-    `Pays : ${checkedCountries.length}\n` +
+    `Pays ciblés : ${checkedCountries.length}\n` +
     `Durée : ${days} jour(s)\n` +
-    `Coût : ${cost.toLocaleString('fr-FR')} XAF`;
+    `Coût total : ${cost.toLocaleString('fr-FR')} XAF\n` +
+    `(tarif fixe : ${pricePerDay.toLocaleString('fr-FR')} XAF / jour, tous pays confondus)\n\n` +
+    `Tape "oui" pour confirmer.`;
 
   const ok = await prompt(confirmMsg, 'oui');
   if (ok?.toLowerCase() !== 'oui') return;
