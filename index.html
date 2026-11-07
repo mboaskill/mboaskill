@@ -767,15 +767,21 @@ hr {
     }
    /* PAGE */
 #replyPage{
-    position:fixed;
-    inset:0;
-    display:none;
-    flex-direction:column;
-    background:#000;
-    color:#fff;
-    z-index:99999;
+  position:fixed;
+  inset:0;
+  display:none;                 /* 'none' par défaut */
+  flex-direction:column;
+  background:#000;
+  color:#fff;
+  z-index:99999;
+  overflow-y:auto;
+  padding:0;                    /* ← 0, pas 20px */
 }
 
+#replyPage[style*="flex"],      /* quand JS met display:flex */
+#replyPage.open {
+  display:flex !important;
+}
 /* HEADER */
 .replyHeader{
     display:flex;
@@ -1569,67 +1575,243 @@ font-size:14px;
           <br><br/>
   <div id="videoFeedContent"></div>
 </section>
-
-<!-- ============ TOTAL VIEWS ============ -->
 <section id="totalViewsSection" class="tabcontent">
-  <h3>Total des vues</h3>
-  <label for="periodSelect">Période :</label>
-<select id="periodSelect">
-  <option value="all">Tout</option>
-  <option value="week">7 derniers jours</option>
-  <option value="month">Dernier mois</option>
-  <option value="year">Dernière année</option>
-</select>
-    <div id="emailLoginBox">
-<div class="row-info">
-  <span class="label">Vues:</span>
-  <span class="value">
-    <p id="totalViewsCount" style="background-color:orange">Chargement...</p>
-  </span>
-</div>
-<div class="row-info">
-  <span class="label">Disponible à retirer:</span>
-  <span class="value">
-    <p id="currentBalance">XAF</p>
-  </span>
-</div>
+  <br><br/>
 
-  <button onclick="openTab(event,'choises')">retirer</button>
-
-</div>
-<div id="emailLoginBox">
-    <h3>Outils de monetisation <i class="fas fa-coins"></i></h3>
-<div class="row-info">
-  <span class="label">texte+image:</span>
-  <span class="value"><i class="fas fa-check-circle" style="color:#1877f2;"></i></span>
-</div>
-<div class="row-info">
-    <span class="label">musique:</span>
-    <span><i class="fas fa-check-circle" style="color:#1877f2;"></i></span>
-</div>
-<div class="row-info">
-    <span class="label">soutient:</span>
-    <span><p id="gagne" style="font-size:18px;display:inline-block;margin-left:6px;"></p>
-</span>
-</div>
-<div class="row-info">
-    <span class="label">Bonus:</span>
-    <span><i class="fas fa-check-circle" style="color:#1877f2;"></i></span>
-</div>
+  <!-- Bouton retour -->
+  <div class="priix" onclick="openTab(event,'home')">
+    <i class="fa-solid fa-arrow-left" style="font-size:40px;"></i>
   </div>
-</section>
 
+  <!-- ========== HERO : SOLDE ========== -->
+  <div id="emailLoginBox" style="
+    background:linear-gradient(135deg,#1a1a1a,#2b2b2b);
+    color:#fff;padding:22px;text-align:center;
+    border-radius:16px;position:relative;overflow:hidden;
+  ">
+    <!-- Déco -->
+    <i class="fas fa-coins" style="
+      position:absolute;top:-10px;right:-10px;
+      font-size:90px;color:rgba(255,215,0,.08);transform:rotate(-15deg);
+    "></i>
+
+    <p style="margin:0;font-size:13px;color:#bbb;letter-spacing:1px;text-transform:uppercase;">
+      Solde disponible
+    </p>
+
+    <h1 style="margin:8px 0 4px;color:#ffd700;font-size:36px;font-weight:800;">
+      <span id="currentBalance">0</span>
+      <span style="font-size:18px;color:#ffd700;opacity:.8;">XAF</span>
+    </h1>
+
+    <p style="margin:0 0 16px;font-size:12px;color:#888;">
+      Retirable à tout moment
+    </p>
+
+    <button 
+      onclick="openTab(event,'choises')"
+      style="
+        background:linear-gradient(135deg,#ffd700,#ffb700);
+        color:#000;font-weight:800;padding:12px 24px;
+        border:none;border-radius:30px;cursor:pointer;
+        font-size:15px;display:inline-flex;align-items:center;gap:8px;
+        box-shadow:0 6px 20px rgba(255,183,0,.4);
+      "
+    >
+      <i class="fas fa-wallet"></i> Retirer mes gains
+    </button>
+  </div>
+
+  <!-- ========== CARTE : VUES ========== -->
+  <div id="emailLoginBox" style="padding:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 style="margin:0;color:#111;font-size:16px;display:flex;align-items:center;gap:8px;">
+        <i class="fas fa-eye" style="color:gold;"></i> Total des vues
+      </h3>
+
+      <select 
+        id="periodSelect" 
+        onchange="loadTotalViewsAndBalance()"
+        style="
+          padding:6px 10px;border-radius:20px;border:1.5px solid #eee;
+          background:#f9f9f9;font-size:12px;font-weight:600;
+          color:#333;cursor:pointer;outline:none;
+        "
+      >
+        <option value="all">Tout</option>
+        <option value="week">7 jours</option>
+        <option value="month">1 mois</option>
+        <option value="year">1 an</option>
+      </select>
+    </div>
+
+    <div style="
+      background:linear-gradient(135deg,#f9f9f9,#f0f0f0);
+      border-radius:14px;padding:20px;text-align:center;
+    ">
+      <p style="
+        margin:0;font-size:42px;font-weight:800;color:#111;
+        line-height:1;
+      ">
+        <span id="totalViewsCount">—</span>
+      </p>
+      <p style="margin:6px 0 0;font-size:13px;color:#888;">
+        vues sur la période
+      </p>
+    </div>
+
+    <p style="margin:14px 0 0;font-size:12px;color:#888;text-align:center;">
+      <i class="fas fa-info-circle"></i>
+      350 XAF par 1000 vues
+    </p>
+  </div>
+
+  <!-- ========== CARTE : MONÉTISATION ========== -->
+  <div id="emailLoginBox" style="padding:18px;">
+    <h3 style="margin:0 0 14px;color:#111;font-size:16px;display:flex;align-items:center;gap:8px;">
+      <i class="fas fa-coins" style="color:gold;"></i> Outils de monétisation
+    </h3>
+
+    <!-- Texte + image -->
+    <div style="
+      display:flex;justify-content:space-between;align-items:center;
+      padding:12px 14px;background:#f9f9f9;
+      border-radius:12px;margin-bottom:8px;
+    ">
+      <span style="display:flex;align-items:center;gap:10px;font-weight:600;color:#111;font-size:14px;">
+        <i class="fas fa-file-alt" style="color:#1877f2;width:20px;"></i>
+        Texte + image
+      </span>
+      <span style="
+        background:#4caf50;color:#fff;font-size:11px;font-weight:700;
+        padding:4px 10px;border-radius:20px;
+      ">
+        <i class="fas fa-check"></i> Actif
+      </span>
+    </div>
+
+    <!-- story -->
+    <div style="
+      display:flex;justify-content:space-between;align-items:center;
+      padding:12px 14px;background:#f9f9f9;
+      border-radius:12px;margin-bottom:8px;
+    ">
+      <span style="display:flex;align-items:center;gap:10px;font-weight:600;color:#111;font-size:14px;">
+       <i class="fas fa-plus-circle"></i>
+        story
+      </span>
+      <span style="
+        background:#4caf50;color:#fff;font-size:11px;font-weight:700;
+        padding:4px 10px;border-radius:20px;
+      ">
+        <i class="fas fa-check"></i> Actif
+      </span>
+    </div>
+
+    <!-- Soutien -->
+    <div style="
+      display:flex;justify-content:space-between;align-items:center;
+      padding:12px 14px;background:#f9f9f9;
+      border-radius:12px;margin-bottom:8px;
+    ">
+      <span style="display:flex;align-items:center;gap:10px;font-weight:600;color:#111;font-size:14px;">
+        <i class="fas fa-hand-holding-heart" style="color:#e91e63;width:20px;"></i>
+        Soutien
+      </span>
+      <span style="font-weight:800;color:#111;font-size:15px;">
+        <span id="gagne">0</span>
+        <span style="font-size:12px;color:#888;">XAF</span>
+      </span>
+    </div>
+
+    <!-- Bonus -->
+    <div style="
+      display:flex;justify-content:space-between;align-items:center;
+      padding:12px 14px;background:#f9f9f9;
+      border-radius:12px;
+    ">
+      <span style="display:flex;align-items:center;gap:10px;font-weight:600;color:#111;font-size:14px;">
+        <i class="fas fa-gift" style="color:#ff9800;width:20px;"></i>
+        Bonus
+      </span>
+      <span style="
+        background:#4caf50;color:#fff;font-size:11px;font-weight:700;
+        padding:4px 10px;border-radius:20px;
+      ">
+        <i class="fas fa-check"></i> Actif
+      </span>
+    </div>
+  </div>
+
+</section>
 <!-- ============ SEARCH ============ -->
 <section id="search" class="tabcontent">
   <br><br/>
-  <div id="emailLoginBox">
-  <input type="text" id="searchUserInput" placeholder="Nom ou e-mail de l'utilisateur" />
-  <button onclick="searchUser()">Rechercher</button>
-    <div id="emailLoginBox">
-  <div id="searchResults"></div>
+
+  <!-- Bouton retour -->
+  <div class="priix" onclick="openTab(event,'home')">
+    <i class="fa-solid fa-arrow-left" style="font-size:40px;"></i>
   </div>
+
+  <!-- Carte recherche -->
+  <div id="emailLoginBox" style="padding:16px;">
+
+    <h3 style="margin:0 0 14px;color:#111;font-size:16px;display:flex;align-items:center;gap:8px;">
+      <i class="fas fa-search" style="color:gold;"></i>
+      Rechercher un utilisateur
+    </h3>
+
+    <!-- Input avec icône -->
+    <div style="position:relative;margin-bottom:10px;">
+      <i class="fas fa-user" style="
+        position:absolute;left:14px;top:50%;transform:translateY(-50%);
+        color:#999;font-size:15px;pointer-events:none;
+      "></i>
+      <input 
+        type="text" 
+        id="searchUserInput" 
+        placeholder="Nom ou e-mail…"
+        autocomplete="off"
+        style="
+          width:100%;padding:12px 12px 12px 40px;
+          border:1.5px solid #e0e0e0;border-radius:10px;
+          font-size:15px;outline:none;transition:border-color .2s;
+        "
+        onfocus="this.style.borderColor='gold'"
+        onblur="this.style.borderColor='#e0e0e0'"
+      />
+    </div>
+
+    <button 
+      onclick="searchUser()"
+      style="
+        width:100%;background:linear-gradient(135deg,#ffd700,#ffb700);
+        color:#000;font-weight:700;padding:12px;border-radius:10px;
+        border:none;cursor:pointer;font-size:15px;
+        display:flex;align-items:center;justify-content:center;gap:8px;
+        box-shadow:0 4px 12px rgba(255,183,0,.3);
+      "
+    >
+      <i class="fas fa-search"></i> Rechercher
+    </button>
+
+    <p style="font-size:12px;color:#999;text-align:center;margin:12px 0 0;">
+      <i class="fas fa-info-circle"></i>
+      Tape un nom ou un email puis appuie sur Entrée
+    </p>
+  </div>
+
+  <!-- Carte résultats -->
+  <div id="emailLoginBox" style="padding:16px;">
+    <div id="searchResults">
+      <p style="color:#999;text-align:center;padding:20px;font-size:14px;">
+        <i class="fas fa-users" style="font-size:32px;display:block;margin-bottom:8px;color:#ddd;"></i>
+        Les résultats apparaîtront ici
+      </p>
+    </div>
   </div>
 </section>
+
 <section id="BOOST" class="tabcontent">
   <br><br/>
   <h3>Booster un contenu</h3>
@@ -1759,31 +1941,75 @@ font-size:14px;
 </section>
 <!-- ============ ACCOUNT ============ -->
 <section id="account" class="tabcontent">
-   <br><br/>
-    <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
+  <br><br/>
 
-   <div id="emailLoginBox">
-  <div class="post-header">
-<button onclick="openTab(event,'profilimg')">mon pays <i class="fas fa-flag"></i></button></div>
-      <div class="boutons">
-    <button onclick="openTab(event,'conect')">Connexion</button>
-    <button onclick="openTab(event,'inscrip')">Inscription</button>
-    
+  <!-- Bouton retour -->
+  <div class="priix" onclick="openTab(event,'home')">
+    <i class="fa-solid fa-arrow-left" style="font-size:40px;"></i>
   </div>
+
+  <!-- Carte 1 : Profil -->
+  <div id="emailLoginBox" style="padding:20px;text-align:center;">
+    <div style="margin-top:14px;">
+      <button 
+        onclick="openTab(event,'profilimg')"
+        style="background:#fff;border:1.5px solid gold;color:#111;font-weight:600;padding:10px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;width:100%;"
+      >
+        <i class="fas fa-flag" style="color:gold;"></i>
+        Mon pays
+      </button>
+    </div>
   </div>
+
+  <!-- Carte 2 : Authentification -->
+  <div id="emailLoginBox" style="padding:16px;">
+    <h4 style="margin:0 0 12px;color:#111;font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#888;">
+     Profil Cover Publicite (PCP)
+    </h4>
+    <div class="boutons" style="display:flex;gap:10px;">
+      <button 
+        onclick="openTab(event,'')"
+        style="flex:1;background:#1877f2;color:#fff;font-weight:600;padding:12px;border-radius:10px;border:none;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;"
+      >
+      <i class="fas fa-bullhorn"></i> Postuler
+      </button>
+    </div>
   </div>
-  <hr/>
-  <button onclick="signOutUser()" style="background-color:red">Se déconnecter</button>
-  <br/><br/>
-  <div class="boutons">
-<button style="color:blue" onclick="openTab(event,'condir')" style="background-color:black">conditions generales d'utulisations
-  </button>
-<button style="background-color:transparent">
-    <u onclick="openTab(event,'condis')" style="background-color:black">Critères a connaître</u>
+
+  <!-- Carte 3 : Mentions légales -->
+  <div id="emailLoginBox" style="padding:16px;">
+    <h4 style="margin:0 0 12px;font-size:14px;text-transform:uppercase;letter-spacing:1px;color:#888;">
+      Informations
+    </h4>
+    <button 
+      onclick="openTab(event,'condir')"
+      style="width:100%;background:#f5f5f5;color:#111;font-weight:500;padding:12px;border-radius:10px;border:1px solid #eee;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:8px;"
+    >
+      <span><i class="fas fa-file-contract" style="color:#1877f2;margin-right:8px;"></i> Conditions générales d'utilisation</span>
+      <i class="fas fa-chevron-right" style="color:#999;font-size:12px;"></i>
+    </button>
+
+    <button 
+      onclick="openTab(event,'condis')"
+      style="width:100%;background:#f5f5f5;color:#111;font-weight:500;padding:12px;border-radius:10px;border:1px solid #eee;display:flex;align-items:center;justify-content:space-between;cursor:pointer;"
+    >
+      <span><i class="fas fa-coins" style="color:gold;margin-right:8px;"></i> Critères à connaître</span>
+      <i class="fas fa-chevron-right" style="color:#999;font-size:12px;"></i>
     </button>
   </div>
-</section>
 
+  <!-- Carte 4 : Déconnexion -->
+  <div id="emailLoginBox" style="padding:16px;">
+    <button 
+      onclick="signOutUser()"
+      style="width:100%;background:#fff;color:#e53935;font-weight:600;padding:12px;border-radius:10px;border:1.5px solid #e53935;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;"
+    >
+      <i class="fas fa-sign-out-alt"></i> Se déconnecter
+    </button>
+  </div>
+
+  <br/><br/>
+</section>
 <!-- ============ FEEDME (MY FEED) ============ -->
 <section id="feedme" class="tabcontent">
  <div class="priix" onclick="openTab(event,'home')"><i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i></div> 
@@ -2275,17 +2501,78 @@ font-size:14px;
   </div>
 </section>
 <!-- CORRECTION : suppression du style="display:none;" -->
-<section id="mabio" class="tabcontent" style="padding:15px">
- <br><br/>
-  <h2>Modifier ma bio</h2>
-  <textarea id="bioInput" placeholder="Écris quelque chose sur toi..." 
-    style="width:100%;height:120px;padding:8px;border-radius:8px;border:1px solid #ccc;font-size:15px;"></textarea>
-  <br>
-  <button id="saveBioBtn" 
-    style="margin-top:8px;background:#1877f2;color:white;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;">
-    💾 Enregistrer
-  </button>
-  <p id="bioStatus" style="color:green;margin-top:6px;font-size:14px;"></p>
+<section id="mabio" class="tabcontent">
+  <br><br/>
+
+  <!-- Bouton retour -->
+  <div class="priix" onclick="openTab(event,'home')">
+    <i class="fa-solid fa-arrow-left" style="font-size:40px;"></i>
+  </div>
+
+  <div id="emailLoginBox" style="padding:20px;">
+
+    <h3 style="
+      margin:0 0 6px;color:#111;font-size:18px;
+      display:flex;align-items:center;gap:8px;
+    ">
+      <i class="fas fa-user-edit" style="color:gold;"></i>
+      Modifier ma bio
+    </h3>
+    <p style="margin:0 0 16px;color:#888;font-size:13px;">
+      Présente-toi en quelques mots. Visible sur ton profil public.
+    </p>
+
+    <!-- Textarea avec compteur -->
+    <div style="position:relative;">
+      <textarea 
+        id="bioInput" 
+        placeholder="Ex : Créateur de contenu 📸 | Douala 🇨🇲 | Passionné de tech et de musique…"
+        maxlength="160"
+        rows="4"
+        style="
+          width:100%;padding:14px 14px 30px 14px;
+          border:1.5px solid #e0e0e0;border-radius:12px;
+          font-size:15px;line-height:1.5;resize:none;outline:none;
+          font-family:inherit;transition:border-color .2s;
+          box-sizing:border-box;
+        "
+        onfocus="this.style.borderColor='gold'"
+        onblur="this.style.borderColor='#e0e0e0'"
+        oninput="updateBioCounter()"
+      ></textarea>
+
+      <!-- Compteur caractères -->
+      <span id="bioCounter" style="
+        position:absolute;bottom:10px;right:14px;
+        font-size:12px;color:#aaa;font-weight:600;
+        pointer-events:none;
+      ">0 / 160</span>
+    </div>
+
+    <!-- Bouton enregistrer -->
+    <button 
+      id="saveBioBtn"
+      onclick="saveMyBio()"
+      style="
+        margin-top:14px;width:100%;
+        background:linear-gradient(135deg,#1877f2,#0d5fd9);
+        color:#fff;font-weight:700;padding:13px;
+        border:none;border-radius:12px;cursor:pointer;
+        font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;
+        box-shadow:0 4px 12px rgba(24,119,242,.3);
+        transition:transform .1s;
+      "
+    >
+      <i class="fas fa-save"></i> Enregistrer la bio
+    </button>
+
+    <!-- Statut (caché par défaut) -->
+    <p id="bioStatus" style="
+      display:none;margin-top:10px;font-size:14px;
+      text-align:center;font-weight:600;
+    "></p>
+
+  </div>
 </section>
 <section id="modifie-pro" class="tabcontent">
   <h2>Modifier mon nom</h2>
@@ -2340,7 +2627,29 @@ padding:20px;
 <button onclick="closeReplyPage()">Fermer<i class="fas fa-arrow-left"></i></button>
 
 </section>
+<section id="replyPage">
+  <!-- Header fixe -->
+  <div class="replyHeader">
+    <button onclick="closeReplyPage()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h3 style="margin:0;font-size:17px;">Réponses</h3>
+  </div>
 
+  <!-- Commentaire principal -->
+  <section id="mainComment" class="mainComment"></section>
+
+  <!-- Liste des réponses -->
+  <section id="replyList" class="replyList"></section>
+
+  <!-- Zone de saisie fixe en bas -->
+  <div class="replyInputBox">
+    <input id="replyInputFull" placeholder="Écrire une réponse…" />
+    <button id="sendReplyFull" aria-label="Envoyer">
+      <i class="fas fa-paper-plane"></i>
+    </button>
+  </div>
+</section>
 </section>
 <section id="notifi" class="tabcontent">
    <br><br/>
@@ -3619,37 +3928,118 @@ async function loadLikedPosts() {
 }
 
 /*──────────────────────────────────────────────────────────
-  17. COMMENTAIRES
+  17. COMMENTAIRES — CORRIGÉ
 ──────────────────────────────────────────────────────────*/
+
+// 🆕 Helper : récupère le statut vérifié d'un user (avec cache)
+const _verifiedCache = new Map();
+async function isVerified(userId) {
+  if (!userId) return false;
+  if (_verifiedCache.has(userId)) return _verifiedCache.get(userId);
+  const { data } = await supabase
+    .from('verifications')
+    .select('status')
+    .eq('user_id', userId)
+    .maybeSingle();
+  const v = data?.status === true;
+  _verifiedCache.set(userId, v);
+  return v;
+}
+
+// 🆕 Helper : construit un lien auteur cliquable + badge certifié
+async function buildAuthorLink(userId, name, photoUrl, fontSize = '14px') {
+  const verified = await isVerified(userId);
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex;align-items:center;gap:6px;';
+
+  const img = document.createElement('img');
+  img.src = photoUrl || 'https://via.placeholder.com/40';
+  img.style.cssText = 'width:32px;height:32px;border-radius:50%;object-fit:cover;cursor:pointer;';
+  img.onclick = () => openUserFeed(userId);
+
+  const a = document.createElement('a');
+  a.href = '#';
+  a.style.cssText = `color:gold;font-weight:bold;text-decoration:none;font-size:${fontSize};cursor:pointer;display:flex;align-items:center;gap:4px;`;
+  a.textContent = name || 'Utilisateur';
+  if (verified) {
+    const badge = document.createElement('i');
+    badge.className = 'fas fa-check-circle';
+    badge.style.cssText = 'color:#1877f2;font-size:13px;';
+    a.appendChild(badge);
+  }
+  a.onclick = (e) => { e.preventDefault(); openUserFeed(userId); };
+
+  wrap.append(img, a);
+  return wrap;
+}
+
 async function loadComments(pid, container, cnt) {
   const { data, count } = await supabase.from('comments')
-    .select('*, users:user_id(name, photo_url)', { count: 'exact' })
+    .select('*, users:user_id(id, name, photo_url)', { count: 'exact' })
     .eq('post_id', pid)
     .order('created_at', { ascending: false });
 
   if (cnt) cnt.textContent = count || 0;
   container.innerHTML = '';
-  (data || []).forEach(c => {
+
+  if (!data || data.length === 0) {
+    const empty = document.createElement('p');
+    empty.style.cssText = 'text-align:center;color:#999;padding:24px;font-size:14px;';
+    empty.innerHTML = '<i class="fas fa-comment-slash" style="font-size:28px;display:block;margin-bottom:6px;color:#ddd;"></i>Soyez le premier à commenter';
+    container.appendChild(empty);
+    return;
+  }
+
+  for (const c of data) {
     const s = document.createElement('div');
     s.className = 'comment';
-    s.style.cssText = 'display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;';
-    const av = document.createElement('img');
-    av.src = c.users?.photo_url || 'https://via.placeholder.com/40';
-    av.style.cssText = 'width:40px;height:40px;border-radius:50%;object-fit:cover;';
+    s.style.cssText = 'display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;';
+
+    // Avatar + lien auteur cliquable + badge
+    const authorRow = await buildAuthorLink(
+      c.user_id,
+      c.users?.name,
+      c.users?.photo_url
+    );
+    // On ne garde que l'avatar dans le flex principal
+    const av = authorRow.querySelector('img');
+    authorRow.removeChild(av);
+
     const t = document.createElement('div');
-    t.style.cssText = 'flex:1;';
-    t.innerHTML = `<a href="#" style="color:gold;font-weight:bold;text-decoration:none">${c.users?.name || 'Utilisateur'}</a>
-                   <p style="margin:2px 0;color:#333">${escapeHtml(c.text)}</p>
-                   <button class="reply-btn" style="background:gold;color:#fff;border:none;border-radius:15px;padding:4px 12px;font-weight:bold;cursor:pointer">Répondre</button>`;
-    t.querySelector('.reply-btn').onclick = () => openReplyPage(pid, c.id, c);
+    t.style.cssText = 'flex:1;min-width:0;';
+
+    // Ligne auteur (nom + badge) cliquable
+    const nameLine = document.createElement('div');
+    nameLine.style.cssText = 'display:flex;align-items:center;gap:4px;';
+    nameLine.appendChild(authorRow);
+
+    // Texte
+    const txt = document.createElement('p');
+    txt.style.cssText = 'margin:2px 0 4px;color:#333;word-break:break-word;white-space:pre-wrap;';
+    txt.textContent = c.text || '';
+
+    // Bouton répondre
+    const rBtn = document.createElement('button');
+    rBtn.className = 'reply-btn';
+    rBtn.style.cssText = 'background:gold;color:#fff;border:none;border-radius:15px;padding:4px 12px;font-weight:bold;cursor:pointer;font-size:12px;';
+    rBtn.textContent = 'Répondre';
+    rBtn.onclick = () => openReplyPage(pid, c.id, c);
+
+    t.append(nameLine, txt, rBtn);
     s.append(av, t);
     container.appendChild(s);
-  });
+  }
 }
 
 async function addComment(pid, text) {
-  if (!currentUser) return;
-  await supabase.from('comments').insert({ post_id: pid, user_id: currentUser.id, text });
+  if (!currentUser) return false;
+  const { error } = await supabase.from('comments').insert({
+    post_id: pid, user_id: currentUser.id, text
+  });
+  if (error) { console.error(error); return false; }
+
+  // Notification
   const { data: post } = await supabase.from('posts').select('user_id').eq('id', pid).single();
   if (post && post.user_id !== currentUser.id) {
     await supabase.from('notifications').insert({
@@ -3660,44 +4050,135 @@ async function addComment(pid, text) {
       post_id: pid
     });
   }
+  return true;
 }
+
+/*────────── Page Réponses ──────────*/
 
 window.openReplyPage = async (pid, commentId, commentData) => {
   const page = document.getElementById('replyPage');
   if (!page) return;
-  page.style.display = 'block';
-  document.getElementById('mainComment').innerHTML =
-    `<b>${escapeHtml(commentData.users?.name || 'Utilisateur')}</b><p>${escapeHtml(commentData.text)}</p>`;
-  loadRepliesFull(pid, commentId);
-  document.getElementById('sendReplyFull').onclick = () => sendReply(pid, commentId);
+
+  // 🔧 BUG FIX : flex, pas block
+  page.style.display = 'flex';
+  page.classList.add('open');
+
+  // Charge le commentaire principal
+  const mainEl = document.getElementById('mainComment');
+  mainEl.innerHTML = '';
+
+  const authorWrap = await buildAuthorLink(
+    commentData.user_id,
+    commentData.users?.name,
+    commentData.users?.photo_url,
+    '15px'
+  );
+  mainEl.appendChild(authorWrap);
+
+  const txt = document.createElement('p');
+  txt.style.cssText = 'margin:8px 0 0;color:#fff;word-break:break-word;white-space:pre-wrap;';
+  txt.textContent = commentData.text || '';
+  mainEl.appendChild(txt);
+
+  // Charge les réponses
+  await loadRepliesFull(pid, commentId);
+
+  // Bouton envoyer
+  const sendBtn = document.getElementById('sendReplyFull');
+  sendBtn.onclick = () => sendReply(pid, commentId);
+
+  // Entrée clavier
+  const inp = document.getElementById('replyInputFull');
+  inp.value = '';
+  inp.onkeypress = (e) => { if (e.key === 'Enter') { e.preventDefault(); sendReply(pid, commentId); } };
 };
+
 window.closeReplyPage = () => {
-  document.getElementById('replyPage').style.display = 'none';
+  const page = document.getElementById('replyPage');
+  if (!page) return;
+  page.style.display = 'none';
+  page.classList.remove('open');
 };
 
 async function loadRepliesFull(pid, commentId) {
   const { data } = await supabase.from('comment_replies')
-    .select('*, users:user_id(name, photo_url)')
+    .select('*, users:user_id(id, name, photo_url)')
     .eq('comment_id', commentId)
     .order('created_at', { ascending: true });
+
   const list = document.getElementById('replyList');
   list.innerHTML = '';
-  (data || []).forEach(r => {
-    const s = document.createElement('section');
-    s.style.marginBottom = '10px';
-    s.innerHTML = `<b>${escapeHtml(r.users?.name || 'Utilisateur')}</b><p>${escapeHtml(r.text)}</p>`;
-    list.appendChild(s);
-  });
+
+  if (!data || data.length === 0) {
+    list.innerHTML = '<p style="text-align:center;color:#888;padding:20px;font-size:14px;">Aucune réponse pour le moment.</p>';
+    return;
+  }
+
+  for (const r of data) {
+    const wrap = document.createElement('div');
+    wrap.className = 'replyItem';
+    wrap.style.cssText = 'display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;padding:0 12px;';
+
+    const av = document.createElement('img');
+    av.src = r.users?.photo_url || 'https://via.placeholder.com/40';
+    av.style.cssText = 'width:38px;height:38px;border-radius:50%;object-fit:cover;cursor:pointer;';
+    av.onclick = () => { closeReplyPage(); openUserFeed(r.user_id); };
+
+    const bubble = document.createElement('div');
+    bubble.style.cssText = 'flex:1;background:#1f1f1f;padding:10px 14px;border-radius:16px;min-width:0;';
+
+    // Nom + badge certifié
+    const nameRow = document.createElement('div');
+    nameRow.style.cssText = 'display:flex;align-items:center;gap:4px;margin-bottom:4px;';
+
+    const a = document.createElement('a');
+    a.href = '#';
+    a.style.cssText = 'color:#ffd700;font-weight:bold;font-size:14px;text-decoration:none;';
+    a.textContent = r.users?.name || 'Utilisateur';
+    const verified = await isVerified(r.user_id);
+    if (verified) {
+      const b = document.createElement('i');
+      b.className = 'fas fa-check-circle';
+      b.style.cssText = 'color:#1877f2;font-size:12px;';
+      a.appendChild(b);
+    }
+    a.onclick = (e) => { e.preventDefault(); closeReplyPage(); openUserFeed(r.user_id); };
+
+    nameRow.appendChild(a);
+
+    const txt = document.createElement('p');
+    txt.style.cssText = 'margin:0;color:#fff;word-break:break-word;white-space:pre-wrap;font-size:14px;line-height:1.4;';
+    txt.textContent = r.text || '';
+
+    bubble.append(nameRow, txt);
+    wrap.append(av, bubble);
+    list.appendChild(wrap);
+  }
 }
 
 async function sendReply(pid, commentId) {
   if (!currentUser) return;
+
   const input = document.getElementById('replyInputFull');
   const text = input.value.trim();
   if (!text) return;
-  await supabase.from('comment_replies').insert({
-    comment_id: commentId, user_id: currentUser.id, text
+
+  input.disabled = true;
+
+  const { error } = await supabase.from('comment_replies').insert({
+    comment_id: commentId,
+    user_id: currentUser.id,
+    text
   });
+
+  input.disabled = false;
+
+  if (error) {
+    console.error(error);
+    return alert('Erreur : ' + error.message);
+  }
+
+  // Notification au parent
   const { data: parent } = await supabase.from('comments').select('user_id').eq('id', commentId).single();
   if (parent && parent.user_id !== currentUser.id) {
     await supabase.from('notifications').insert({
@@ -3708,8 +4189,18 @@ async function sendReply(pid, commentId) {
       post_id: pid
     });
   }
+
   input.value = '';
+  await loadRepliesFull(pid, commentId);   // ✅ refresh auto
 }
+
+/*────────── Fermeture auto si on change d'onglet ──────────*/
+document.addEventListener('click', (e) => {
+  const page = document.getElementById('replyPage');
+  if (!page || page.style.display !== 'flex') return;
+  // Si on clique sur un onglet principal, on ferme
+  if (e.target.closest('.tablinks')) closeReplyPage();
+});
 
 /*──────────────────────────────────────────────────────────
   18. ÉDITION POST
@@ -4188,49 +4679,172 @@ async function openUserFeedByName(name) {
 /*──────────────────────────────────────────────────────────
   23. BIO / NOM
 ──────────────────────────────────────────────────────────*/
-async function loadMyBio() {
+/*──────────────────────────────────────────────────────────
+  BIO UTILISATEUR — load + save
+──────────────────────────────────────────────────────────*/
+
+// Compteur temps réel
+window.updateBioCounter = function() {
+  const inp = qs('bioInput');
+  const cnt = qs('bioCounter');
+  if (!inp || !cnt) return;
+  const len = inp.value.length;
+  cnt.textContent = `${len} / 160`;
+  cnt.style.color = len > 140 ? '#e53935' : (len > 120 ? '#ff9800' : '#aaa');
+};
+
+// Charger la bio existante
+window.loadMyBio = async function() {
   if (!currentUser) return;
-  const { data } = await supabase.from('users').select('bio').eq('id', currentUser.id).single();
-  const inp = document.getElementById('bioInput');
-  if (inp) inp.value = data?.bio || '';
-}
+  const inp = qs('bioInput');
+  if (!inp) return;
 
-document.getElementById('saveBioBtn')?.addEventListener('click', async () => {
-  if (!currentUser) return alert("Connectez-vous");
-  const bio = document.getElementById('bioInput').value.trim();
-  await supabase.from('users').update({ bio }).eq('id', currentUser.id);
-  document.getElementById('bioStatus').textContent = '✅ Enregistré';
-});
+  const { data } = await supabase
+    .from('users')
+    .select('bio')
+    .eq('id', currentUser.id)
+    .maybeSingle();
 
-document.getElementById('saveNameBtn')?.addEventListener('click', async () => {
-  if (!currentUser) return alert("Connectez-vous");
-  const name = document.getElementById('newName').value.trim();
-  if (!name) return alert("Nom requis");
-  await supabase.from('users').update({ name }).eq('id', currentUser.id);
-  document.getElementById('nameStatus').textContent = '✅ Nom mis à jour';
-  qs('accountStatus').textContent = '• ' + name;
+  inp.value = data?.bio || '';
+  updateBioCounter();
+};
+
+// Sauvegarder la bio
+window.saveMyBio = async function() {
+  if (!currentUser) return alert('Connecte-toi d\'abord');
+
+  const inp = qs('bioInput');
+  const status = qs('bioStatus');
+  const btn = qs('saveBioBtn');
+  const bio = inp.value.trim();
+
+  // Feedback : loading
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement…';
+  status.style.display = 'none';
+
+  const { error } = await supabase
+    .from('users')
+    .update({ bio: bio || null })
+    .eq('id', currentUser.id);
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-save"></i> Enregistrer la bio';
+
+  if (error) {
+    status.textContent = '❌ ' + error.message;
+    status.style.color = '#e53935';
+    status.style.display = 'block';
+    return;
+  }
+
+  status.textContent = '✅ Bio mise à jour !';
+  status.style.color = '#4caf50';
+  status.style.display = 'block';
+
+  // Met à jour le profil en mémoire
+  if (currentProfile) currentProfile.bio = bio;
+
+  setTimeout(() => { status.style.display = 'none'; }, 3000);
+};
+
+// Charger la bio à l'ouverture de l'onglet
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = qs('bioInput');
+  if (inp) inp.setAttribute('maxlength', '160');
 });
 
 /*──────────────────────────────────────────────────────────
-  24. RECHERCHE UTILISATEUR
+  RECHERCHE UTILISATEUR
 ──────────────────────────────────────────────────────────*/
-window.searchUser = async () => {
-  const q = document.getElementById('searchUserInput').value.trim();
-  if (!q) return;
-  const { data } = await supabase.from('users')
-    .select('id, name, email, photo_url').or(`name.ilike.%${q}%,email.ilike.%${q}%`).limit(20);
-  const res = document.getElementById('searchResults');
-  res.innerHTML = '';
-  if (!data?.length) { res.innerHTML = '<p>Aucun résultat.</p>'; return; }
+let searchTimeout = null;
+
+window.searchUser = async function() {
+  const input = qs('searchUserInput');
+  const cont  = qs('searchResults');
+  if (!input || !cont) return;
+
+  const q = input.value.trim();
+  if (q.length < 2) {
+    cont.innerHTML = '<p style="color:#e53935;text-align:center;padding:16px;font-size:14px;"><i class="fas fa-exclamation-circle"></i> Tape au moins 2 caractères</p>';
+    return;
+  }
+
+  // État chargement
+  cont.innerHTML = '<p style="text-align:center;color:#888;padding:16px;"><i class="fas fa-spinner fa-spin"></i> Recherche…</p>';
+
+  // Recherche sur name OR email (insensible à la casse)
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, name, photo_url, email, followers_count')
+    .or(`name.ilike.%${q}%,email.ilike.%${q}%`)
+    .limit(20);
+
+  if (error) {
+    cont.innerHTML = `<p style="color:#e53935;text-align:center;padding:16px;"><i class="fas fa-times-circle"></i> Erreur : ${escapeHtml(error.message)}</p>`;
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    cont.innerHTML = `
+      <p style="text-align:center;color:#888;padding:24px;font-size:14px;">
+        <i class="fas fa-user-slash" style="font-size:32px;display:block;margin-bottom:8px;color:#ddd;"></i>
+        Aucun utilisateur trouvé pour « <b>${escapeHtml(q)}</b> »
+      </p>`;
+    return;
+  }
+
+  cont.innerHTML = '';
   data.forEach(u => {
-    const d = document.createElement('div');
-    d.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px;cursor:pointer;border-bottom:1px solid #eee;';
-    d.innerHTML = `<img src="${u.photo_url || 'https://via.placeholder.com/40'}" style="width:40px;height:40px;border-radius:50%">
-                   <div><b>${escapeHtml(u.name || '')}</b><br><small>${escapeHtml(u.email || '')}</small></div>`;
-    d.onclick = () => openUserFeed(u.id);
-    res.appendChild(d);
+    const row = document.createElement('div');
+    row.style.cssText = `
+      display:flex;align-items:center;gap:12px;
+      padding:10px;border-bottom:1px solid #f0f0f0;
+      cursor:pointer;border-radius:8px;transition:background .15s;
+    `;
+    row.onmouseenter = () => row.style.background = '#f9f9f9';
+    row.onmouseleave = () => row.style.background = 'transparent';
+    row.onclick = () => openUserFeed(u.id);
+
+    const img = document.createElement('img');
+    img.src = u.photo_url || 'https://via.placeholder.com/50';
+    img.style.cssText = 'width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid gold;';
+
+    const info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0;';
+    info.innerHTML = `
+      <div style="font-weight:700;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        ${escapeHtml(u.name || 'Utilisateur')}
+      </div>
+      <div style="font-size:12px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+        ${fmt(u.followers_count || 0)} follower${(u.followers_count||0) > 1 ? 's' : ''}
+      </div>
+    `;
+
+    const chev = document.createElement('i');
+    chev.className = 'fas fa-chevron-right';
+    chev.style.cssText = 'color:#ccc;font-size:14px;';
+
+    row.append(img, info, chev);
+    cont.appendChild(row);
   });
 };
+
+// Recherche automatique avec debounce (optionnel mais recommandé)
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = qs('searchUserInput');
+  if (!inp) return;
+
+  inp.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); searchUser(); }
+  });
+
+  inp.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    if (inp.value.trim().length < 2) return;
+    searchTimeout = setTimeout(searchUser, 600);  // debounce 600ms
+  });
+});
 
 /*──────────────────────────────────────────────────────────
   25. CERTIFICATION
@@ -5482,6 +6096,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.shuffleFeed = shuffleFeed;
+
 
 </script>
 </body>
