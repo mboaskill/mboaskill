@@ -2790,53 +2790,70 @@ Dernière mise à jour : 25 juin 2026.
 
 </h2>
 </section>
-<!-- ============ NOVA (AllPays.co) ============ -->
+<!-- ============ NOVA (Dépôt via lien SebPay) ============ -->
 <section id="nova" class="tabcontent">
   <br><br/>
+
+  <!-- Bouton retour -->
   <div class="priix" onclick="openTab(event,'home')">
-    <i class="fa-solid fa-arrow-left" style="font-size: 40px;"></i>
+    <i class="fa-solid fa-arrow-left" style="font-size:40px;"></i>
   </div>
 
   <div id="emailLoginBox">
-    <h2 style="text-align:center;color:gold;">
-      <i class="fas fa-bolt"></i> socco pay 
+    <h2 style="text-align:center;color:gold;margin-bottom:6px;">
+      <i class="fas fa-bolt"></i> Recharger mon compte
     </h2>
 
-    <p style="color:#333;font-size:15px;line-height:1.6;">
-      Rechargez votre compte via <strong>Socco Pay</strong> (cartes bancaires, Mobile Money, etc.).
-      Le paiement est redirigé vers une page sécurisée.
+    <p style="color:#555;font-size:14px;line-height:1.6;text-align:center;margin-bottom:20px;">
+      Rechargez votre compte via <strong>SebPay</strong>.<br>
+      Vous serez redirigé vers la page de paiement sécurisée.
     </p>
 
-    <!-- Nom du payeur -->
-    <div style="margin:20px 0;">
-      <label for="payerName" style="display:block;color:#333;font-weight:600;margin-bottom:6px;">
-        Nom complet
-      </label>
-      <input type="text" id="payerName" placeholder="Ex: Jean Dupont"
-        style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;" />
-    </div>
-
-    <!-- Montant saisi -->
-    <div style="margin:20px 0;">
+    <!-- Montant -->
+    <div style="margin:16px 0;">
       <label for="amountInput" style="display:block;color:#333;font-weight:600;margin-bottom:6px;">
-        Montant à payer (XAF)
+        <i class="fas fa-coins" style="color:#999;margin-right:6px;"></i>
+        Montant à déposer (XAF)
       </label>
-      <input type="number" id="amountInput" min="100" step="50" placeholder="Ex: 5000"
-        style="width:100%;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:15px;" />
+      <input 
+        type="number" 
+        id="amountInput" 
+        min="100" 
+        step="50" 
+        placeholder="Ex : 5000"
+        inputmode="numeric"
+        style="width:100%;padding:12px;border:1.5px solid #ddd;border-radius:8px;font-size:15px;outline:none;box-sizing:border-box;"
+        onfocus="this.style.borderColor='gold'"
+        onblur="this.style.borderColor='#ddd'"
+      />
       <p style="font-size:12px;color:#888;margin-top:6px;">
-        Montant minimum : 100 XAF
+        <i class="fas fa-info-circle"></i> Montant minimum : 100 XAF
       </p>
     </div>
 
-    <button onclick="redirectToSoleasPay()" style="background:#ffa500;color:#fff;font-weight:bold;margin-top:10px;padding:15px;font-size:16px;width:100%;border:none;border-radius:8px;cursor:pointer;">
-      <i class="fas fa-external-link-alt"></i> Payer avec SoleasPay
+    <!-- ✅ Bouton payer avec window.open -->
+    <button 
+      onclick="window.open('https://new.sebpay.bj/pay/skill-depot-fRNHCE', '_blank')" 
+      style="
+        background:linear-gradient(135deg,#ffa500,#ff8c00);
+        color:#fff;font-weight:bold;
+        margin-top:10px;padding:15px;
+        font-size:16px;width:100%;
+        border:none;border-radius:8px;cursor:pointer;
+        display:flex;align-items:center;justify-content:center;gap:8px;
+        box-shadow:0 4px 12px rgba(255,140,0,0.35);
+        transition:transform .1s;
+      "
+      onmouseover="this.style.transform='scale(1.02)'"
+      onmouseout="this.style.transform='scale(1)'"
+    >
+      <i class="fas fa-external-link-alt"></i> Déposer via SebPay
     </button>
 
     <p style="font-size:12px;color:#888;margin-top:15px;text-align:center;">
-      <i class="fas fa-lock"></i>
-      Vous serez redirigé vers SoleasPay pour finaliser le paiement en toute sécurité.
+      <i class="fas fa-lock"></i> Paiement sécurisé. Vous serez redirigé vers SebPay.
     </p>
-  </div>
+  </div> <!-- ✅ Balise fermante du div emailLoginBox -->
 </section>
 <center>
     <!-- Modal Alert -->
@@ -6247,43 +6264,72 @@ window.procederDepot = (evt) => {
 };
 
 /*──────────────────────────────────────────────────────────
-  36. SOLEASPAY
+  SEBPAY — Opérateurs disponibles par pays
 ──────────────────────────────────────────────────────────*/
-window.redirectToSoleasPay = async function () {
-  if (!currentUser) return alert("Connectez-vous d'abord pour recharger votre compte.");
-
-  const payerName = document.getElementById('payerName').value.trim();
-  const amount = parseFloat(document.getElementById('amountInput').value);
-
-  if (!payerName || payerName.length < 2) return alert("Veuillez saisir votre nom complet.");
-  if (!amount || isNaN(amount) || amount < 100) return alert("Veuillez saisir un montant valide (minimum 100 XAF).");
-
-  try {
-    const { data, error } = await supabase.functions.invoke('dynamic-function', {
-      body: {
-        user_id: currentUser.id,
-        user_email: currentUser.email || '',
-        payer_name: payerName,
-        amount: amount,
-        currency: 'XAF'
-      }
-    });
-
-    if (error) throw error;
-
-    const paymentUrl = data?.payment_url || data?.data?.payment_url || data?.url || data?.data?.url;
-    if (paymentUrl) {
-      window.location.href = paymentUrl;
-    } else {
-      console.error("Réponse inattendue :", data);
-      alert("Erreur : lien de paiement indisponible.");
-    }
-  } catch (err) {
-    console.error(err);
-    alert("Erreur lors de la création du paiement : " + (err.message || err));
-  }
+const SEBPAY_OPERATORS_BY_COUNTRY = {
+  CM: [ { code: 'mtn',     label: 'MTN Mobile Money' },
+        { code: 'orange',  label: 'Orange Money' } ],
+  CI: [ { code: 'mtn',     label: 'MTN' },
+        { code: 'orange',  label: 'Orange' },
+        { code: 'moov',    label: 'Moov' } ],
+  BJ: [ { code: 'mtn',     label: 'MTN' },
+        { code: 'moov',    label: 'Moov' } ],
+  SN: [ { code: 'orange',  label: 'Orange' },
+        { code: 'free',    label: 'Free' } ],
+  TG: [ { code: 'togocom', label: 'T-Money (Togocom)' },
+        { code: 'moov',    label: 'Moov' } ],
+  BF: [ { code: 'orange',  label: 'Orange' },
+        { code: 'moov',    label: 'Moov' } ],
+  ML: [ { code: 'orange',  label: 'Orange' },
+        { code: 'moov',    label: 'Moov' } ],
+  GA: [ { code: 'airtel',  label: 'Airtel' },
+        { code: 'moov',    label: 'Moov' } ],
+  CG: [ { code: 'mtn',     label: 'MTN' },
+        { code: 'airtel',  label: 'Airtel' } ],
+  CD: [ { code: 'vodacom', label: 'Vodacom' },
+        { code: 'airtel',  label: 'Airtel' },
+        { code: 'orange',  label: 'Orange' } ],
 };
 
+/*──────────────────────────────────────────────────────────
+  SEBPAY — Met à jour la liste des opérateurs selon le pays
+──────────────────────────────────────────────────────────*/
+window.updateOperators = function () {
+  const countrySel = document.getElementById('countrySelect');
+  const opSel      = document.getElementById('operatorSelect');
+  const curLabel   = document.getElementById('currencyLabel');
+
+  if (!countrySel || !opSel) return;
+
+  const country  = countrySel.value;
+  const currency = countrySel.selectedOptions[0]?.dataset?.currency || 'XAF';
+
+  if (curLabel) curLabel.textContent = currency;
+
+  opSel.innerHTML = '';
+
+  if (!country) {
+    opSel.innerHTML = '<option value="">-- Choisir d\'abord un pays --</option>';
+    return;
+  }
+
+  const ops = SEBPAY_OPERATORS_BY_COUNTRY[country] || [];
+  if (ops.length === 0) {
+    opSel.innerHTML = '<option value="">Aucun opérateur disponible</option>';
+    return;
+  }
+
+  opSel.innerHTML = '<option value="">-- Choisir --</option>';
+  ops.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.code;
+    opt.textContent = o.label;
+    opSel.appendChild(opt);
+  });
+};
+
+
+/*──────────────────────────────────────────────────────────
 /*──────────────────────────────────────────────────────────
   37. INIT
 ──────────────────────────────────────────────────────────*/
@@ -6294,8 +6340,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.shuffleFeed = shuffleFeed;
-
-
 </script>
 </body>
 </html> 
