@@ -5628,6 +5628,92 @@ async function loadStories() {
 
 window.loadStories = loadStories;
 
+/* ═══════════════════════════════════════════════════════════
+   MUSIQUE ALÉATOIRE POUR LES STORIES
+   ═══════════════════════════════════════════════════════════ */
+
+// 🎵 Pool de musiques libres de droits (Unminus via SoundCloud)
+const MUSIC_POOL = [
+  // "Don't Care" de Kit Wheston — Trap énergique, vibe confiante et estivale [citation:1]
+  'https://feeds.soundcloud.com/stream/2372644364-unminus-dont-care.mp3'
+];
+
+let currentStoryAudio = null;
+let storyAudioObserver = null;
+
+/* ─── Joue une musique aléatoire ─── */
+function playRandomStoryMusic() {
+  // Coupe l'audio précédent
+  stopStoryMusic();
+
+  if (!MUSIC_POOL.length) return;
+
+  const randomIndex = Math.floor(Math.random() * MUSIC_POOL.length);
+  const url = MUSIC_POOL[randomIndex];
+
+  currentStoryAudio = new Audio(url);
+  currentStoryAudio.volume = 0.25;   // volume doux
+  currentStoryAudio.loop = true;     // boucle pendant la story
+
+  // Effet de fondu d'entrée (fade-in sur 800ms)
+  currentStoryAudio.volume = 0;
+  currentStoryAudio.play().then(() => {
+    let v = 0;
+    const fadeIn = setInterval(() => {
+      v = Math.min(0.25, v + 0.02);
+      if (currentStoryAudio) currentStoryAudio.volume = v;
+      if (v >= 0.25) clearInterval(fadeIn);
+    }, 40);
+  }).catch(err => {
+    console.warn('🎵 Lecture audio bloquée (interaction requise) :', err);
+  });
+}
+
+/* ─── Coupe la musique ─── */
+function stopStoryMusic() {
+  if (currentStoryAudio) {
+    currentStoryAudio.pause();
+    currentStoryAudio.currentTime = 0;
+    currentStoryAudio.src = '';
+    currentStoryAudio = null;
+  }
+}
+
+/* ─── Observer : lance/coupe la musique selon visibilité ─── */
+function initStoryMusicObserver() {
+  const viewer = document.getElementById('storyViewer');
+  if (!viewer || storyAudioObserver) return; // déjà initialisé
+
+  storyAudioObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && svState.isOpen && !document.hidden) {
+        // La visionneuse est visible à l'écran
+        playRandomStoryMusic();
+      } else {
+        // Visionneuse masquée ou fermée
+        stopStoryMusic();
+      }
+    });
+  }, { threshold: 0.5 });
+
+  storyAudioObserver.observe(viewer);
+
+  // Pause auto si l'utilisateur change d'onglet
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      stopStoryMusic();
+    } else if (svState.isOpen) {
+      playRandomStoryMusic();
+    }
+  });
+}
+
+/* ─── Initialisation au chargement ─── */
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initStoryMusicObserver);
+} else {
+  initStoryMusicObserver();
+}
 
 /* ─── RENDU DE LA VISIONNEUSE ─── */
 async function renderCurrentStory() {
@@ -5689,12 +5775,20 @@ async function renderCurrentStory() {
       mediaDiv.appendChild(video);
       video.onended = window.nextStory;
       video.onloadedmetadata = () => startProgress(video.duration * 1000);
+
+      // 🎵 Pas de musique aléatoire pour les vidéos (audio natif déjà présent)
+      stopStoryMusic();
     } else {
       const img = document.createElement('img');
       img.src = story.media_url;
       img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
       mediaDiv.appendChild(img);
       img.onload = () => startProgress(STORY_DURATION);
+
+      // 🎵 Lance une musique aléatoire pour les stories image
+      if (!document.hidden) {
+        playRandomStoryMusic();
+      }
     }
   }
 
@@ -5730,10 +5824,8 @@ async function renderCurrentStory() {
         const boostAtMs = new Date(fresh.boost_at).getTime();
         const expiresAtMs = boostAtMs + (fresh.boosted * 86400000);
 
-        // ✅ Boost encore actif ?
         isCurrentlyBoosted = Date.now() < expiresAtMs;
 
-        // Met à jour l'objet en mémoire pour cohérence
         story.boosted = fresh.boosted;
         story.boost_at = fresh.boost_at;
       }
@@ -5784,7 +5876,6 @@ async function renderCurrentStory() {
         };
         cta.appendChild(boostBtn);
       } else {
-        // (optionnel) Afficher un badge "déjà boostée" à la place
         const boostedBadge = document.createElement('span');
         boostedBadge.style.cssText = `
           display:inline-flex;align-items:center;gap:6px;
@@ -5860,14 +5951,41 @@ window.openStoryViewer = (groupIdx = 0, storyIdx = 0) => {
 window.closeStoryViewer = (fromPopState = false) => {
   if (closingStory) return;
   closingStory = true;
+
+  // ⏹️ Stoppe les timers de progression
   clearTimers();
+
+  // 🎵 Stoppe la musique aléatoire de story
+  stopStoryMusic();
+
+  // 🎬 Stoppe et libère la vidéo si présente
   const vid = document.querySelector('#storyMedia video');
-  if (vid) { vid.pause(); vid.src = ''; }
+  if (vid) {
+    vid.pause();
+    vid.removeAttribute('src');
+    vid.load(); // force le navigateur à relâcher le fichier
+  }
+
+  // 🖼️ Nettoie le média (image ou vidéo)
+  const mediaDiv = document.getElementById('storyMedia');
+  if (mediaDiv) mediaDiv.innerHTML = '';
+
+  // 📝 Nettoie la légende
+  const captionEl = document.getElementById('storyCaption');
+  if (captionEl) captionEl.textContent = '';
+
+  // 🎯 Cache la visionneuse
   const viewer = document.getElementById('storyViewer');
   if (viewer) viewer.classList.remove('open');
+
+  // 🔓 Restaure le scroll du body
   svState.isOpen = false;
   document.body.style.overflow = '';
+
+  // 🔙 Gère l'historique (retour arrière)
   if (!fromPopState && history.state?.storyViewer) history.back();
+
+  // 🔓 Libère le verrou anti-boucle après 300ms
   setTimeout(() => { closingStory = false; }, 300);
 };
 
