@@ -967,7 +967,7 @@ font-size:14px;
 @keyframes slideDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
 
 /* =========================================
-   1. BARRE HORIZONTALE FAÇON FACEBOOK (Cartes)
+   1. BARRE HORIZONTALE DES STORIES
    ========================================= */
 .story-bar {
   display: flex;
@@ -975,116 +975,136 @@ font-size:14px;
   overflow-x: auto;
   padding: 10px;
   background: #fff;
-  scrollbar-width: none; /* Cache la barre de défilement sur Firefox */
+  scrollbar-width: none; /* Firefox */
 }
-.story-bar::-webkit-scrollbar { display: none; } /* Cache sur Chrome/Safari */
+.story-bar::-webkit-scrollbar { 
+  display: none; /* Chrome/Safari */
+}
 
+/* Carte de story (Design Facebook/WhatsApp) */
 .story-item {
   flex: 0 0 auto;
-  width: 110px; /* Largeur de la carte */
-  height: 180px; /* Hauteur de la carte */
+  width: 110px;
+  height: 180px;
   border-radius: 12px;
   overflow: hidden;
   position: relative;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  background: #f0f2f5; /* Fond gris clair pour la carte "Créer" */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  background: #000;
+  transition: transform 0.2s ease;
+}
+.story-item:active {
+  transform: scale(0.97);
 }
 
-/* L'image de fond de la carte */
-.story-item .ring {
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  background: none;
-  display: block;
-  position: relative;
-}
-
-.story-item .ring img {
+/* Image de fond (la story) */
+.story-item .story-bg {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 0;
-  border: none;
+  position: absolute;
+  top: 0; left: 0;
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+.story-item:hover .story-bg {
+  transform: scale(1.05);
 }
 
-/* Le texte en bas (ex: "Ma story", "LATINO z8") */
-.story-item small {
+/* Le petit cercle de profil en haut à gauche */
+.story-item .avatar-ring {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
-  right: 10px;
+  top: 8px; left: 8px;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 3px solid #1877f2; /* Bleu si non vue */
+  background: #fff;
+  z-index: 2;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.story-item .avatar-ring.seen {
+  border-color: #b0b3b8; /* Gris si déjà vue */
+}
+.story-item .avatar-ring img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+
+/* Le nom en bas avec dégradé noir */
+.story-item .story-name {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 30px 10px 10px;
+  background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  z-index: 2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 0;
-  z-index: 5;
 }
 
-/* --- DESIGN SPÉCIAL POUR LA PREMIÈRE CARTE ("CRÉER") --- */
-.story-item:first-child .ring img {
-  height: 65%; /* Laisse de la place en bas pour le texte */
+/* =========================================
+   CAS SPÉCIAL : LA CARTE "CRÉER"
+   ========================================= */
+.story-item.create-story {
+  background: #f0f2f5;
+}
+.story-item.create-story .story-bg {
+  height: 65%;
+  object-fit: cover;
   border-radius: 12px 12px 0 0;
 }
-
-/* Le gros bouton bleu + */
-.story-item:first-child .ring .plus {
+.story-item.create-story .avatar-ring {
+  display: none; /* Pas de cercle sur la carte créer */
+}
+.story-item.create-story .plus {
   position: absolute;
-  bottom: 35%; /* Pile à la frontière entre l'image et le fond gris */
-  left: 50%;
+  bottom: 32%; left: 50%;
   transform: translateX(-50%) translateY(50%);
-  width: 40px;
-  height: 40px;
-  background-color: #1877f2;
-  color: #fff;
+  width: 38px; height: 38px;
+  background: #1877f2; color: #fff;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  border: 4px solid #f0f2f5; /* Bordure assortie au fond gris */
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: bold;
+  border: 4px solid #f0f2f5;
   z-index: 10;
 }
-
-.story-item:first-child small {
-  color: #111; 
-  text-shadow: none;
+.story-item.create-story .story-name {
+  background: none;
+  color: #111;
   text-align: center;
-  bottom: 12px;
-  left: 0;
-  right: 0;
-  font-size: 14px;
+  bottom: 10px;
+  font-size: 13px;
   font-weight: 600;
+  padding: 0;
 }
 
 
 /* =========================================
-   2. VISIONNEUSE STORY PLEIN ÉCRAN (Base)
+   2. VISIONNEUSE STORY PLEIN ÉCRAN
    ========================================= */
 #storyViewer {
-    position: fixed !important;
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: none !important;
-    max-height: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #000 !important;
-    z-index: 9999999 !important;
-    display: none;
-    flex-direction: column;
-    color: #fff;
-    overflow: hidden;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #000 !important;
+  z-index: 9999999 !important;
+  display: none;
+  flex-direction: column;
+  color: #fff;
+  overflow: hidden;
 }
-
 #storyViewer.open { 
-    display: flex !important; 
+  display: flex !important; 
 }
 
 /* Barres de progression */
@@ -1112,7 +1132,7 @@ font-size:14px;
 
 
 /* =========================================
-   3. EN-TÊTE DE LA STORY (Avatar, Nom, etc.)
+   3. EN-TÊTE DE LA STORY
    ========================================= */
 .story-header {
   display: flex;
@@ -1124,8 +1144,7 @@ font-size:14px;
   z-index: 9;
 }
 .story-header img {
-  width: 42px;
-  height: 42px;
+  width: 42px; height: 42px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #fff;
@@ -1179,7 +1198,7 @@ font-size:14px;
   max-height: 100%;
   object-fit: contain;
 }
-    
+
 
 /* =========================================
    5. LÉGENDE
@@ -1197,7 +1216,7 @@ font-size:14px;
 
 
 /* =========================================
-   6. PIED DE LA STORY (Boutons : Suivre, Soutenir, Vues)
+   6. PIED DE LA STORY (Boutons)
    ========================================= */
 .story-footer {
   position: absolute;
@@ -1231,12 +1250,12 @@ font-size:14px;
 }
 .story-footer .cta-btn:hover { opacity: .9; }
 
-/* Bouton Booster (Turquoise) */
+/* Bouton Booster */
 .story-footer .cta-btn.boost-btn {
   background: #1abc9c;
 }
 
-/* Bouton Soutenir (Vert) */
+/* Bouton Soutenir */
 .story-footer .cta-btn.support-btn {
   background: #8bc34a;
   padding: 12px 20px !important;
@@ -1245,7 +1264,7 @@ font-size:14px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
-/* Bouton Suivre (Rose) */
+/* Bouton Suivre */
 .story-footer .follow-btn-story {
   background: #ff4081;
   border: none;
@@ -1283,8 +1302,9 @@ font-size:14px;
   border: 1px solid rgba(255,255,255,0.2);
 }
 .story-footer .views i { font-size: 16px; }
-/* Masquer le compteur de vues si non-propriétaire */
-.story-footer .views[style*="display: none"] { display: none !important; }
+.story-footer .views[style*="display: none"] { 
+  display: none !important; 
+}
 
 
 /* =========================================
@@ -1301,7 +1321,6 @@ font-size:14px;
   flex: 1;
   cursor: pointer;
 }
-
 /* === BANNIÈRE MONÉTISATION === */
 .monetization-banner {
   display: none; /* Caché par défaut, le JS l'affichera */
@@ -1316,6 +1335,46 @@ font-size:14px;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+/* =========================================
+   SECTION STORY DÉDIÉE
+   ========================================= */
+
+/* Padding pour compenser le header fixe (au lieu des <br>) */
+#story.tabcontent {
+  padding-top: 6rem !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  padding-bottom: 2rem !important;
+  background: #888; /* Fond de l'app */
+}
+
+/* En-tête de la section */
+.story-section-header {
+  text-align: center;
+  padding: 0 20px 15px;
+}
+.story-section-header h3 {
+  color: gold;
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+.story-section-header p {
+  color: #fff;
+  font-size: 13px;
+  margin: 0;
+  opacity: 0.85;
+}
+
+/* Conteneur de la barre de stories */
+.story-bar-wrapper {
+  width: 100%;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 12px;
+  margin: 0 10px;
+  width: calc(100% - 20px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 /* Effet quand on passe la souris ou qu'on clique dessus */
@@ -1364,13 +1423,12 @@ font-size:14px;
     <p id="accountStatus"></p>
   </div>
   <hr>
-  <div class="post-header">
-  <!-- 👇 TA BARRE HORIZONTALE QUI FONCTIONNE (ON LA GARDE) 👇 -->
-  <div id="storyBar" class="story-bar">
-    <!-- Rempli dynamiquement par ton JavaScript -->
+<!-- Barre de stories (onglet Accueil) -->
+<div class="story-bar-wrapper">
+  <div id="storyBarHome" class="story-bar">
+    <!-- Rempli dynamiquement par le JavaScript -->
   </div>
 </div>
-
 <hr>
   <!-- 👇 TON NOUVEAU DIV ICI 👇 -->
 <div id="monetizationBanner" class="monetization-banner" onclick="openTab(event, 'meno')">
@@ -2311,17 +2369,19 @@ font-size:14px;
 </div>
 </section>
 <!-- ============ MUSIC FEED ============ -->
-<!-- Section Story (qui contient juste la barre horizontale) -->
+<!-- Section Story (dédiée) -->
 <section id="story" class="tabcontent">
-  <br><br/>
-  <div id="storyBar" class="story-bar">
-    <!-- Rempli dynamiquement -->
+  <div class="story-section-header">
+    <h3>Stories</h3>
+    <p>Cliquez sur une story pour la visionner</p>
   </div>
-  <p style="text-align:center;color:#fff;margin-top:20px;">
-    Cliquez sur une story pour la visionner
-  </p>
-</section>
 
+  <div class="story-bar-wrapper">
+    <div id="storyBarSection" class="story-bar">
+      <!-- Rempli dynamiquement par le JavaScript -->
+    </div>
+  </div>
+</section>
 <!-- ⚠️ LA VISIONNEUSE DOIT ÊTRE ICI (Hors des sections) -->
 <div id="storyViewer">
   <div class="story-progress" id="storyProgress"></div>
@@ -5150,278 +5210,12 @@ document.getElementById('notchpayBtn')?.addEventListener('click', async () => {
 });
 
 /* ═══════════════════════════════════════════════════════════
-   32. STORIES — Barre + Visionneuse (VERSION CORRIGÉE)
+   32. STORIES — Barre + Visionneuse (VERSION FINALE CORRIGÉE)
    ═══════════════════════════════════════════════════════════ */
 
-/* ─────────────────────────────────────────────
-   CONSTANTES & UTILITAIRES
-───────────────────────────────────────────── */
 const SEEN_STORIES_KEY = 'skill_seen_stories';
 
-async function renderCurrentStory() {
-  if (!svState.isOpen) return;
-
-  // ✅ Reset du mode pause à chaque changement de story
-  svState.isPaused = false;
-
-  const group = allStoriesGrouped[svState.groupIndex];
-  if (!group) return closeStoryViewer();
-
-  const story = group.stories[svState.storyIndex];
-  if (!story) {
-    if (svState.groupIndex < allStoriesGrouped.length - 1) {
-      svState.groupIndex++;
-      svState.storyIndex = 0;
-      return renderCurrentStory();
-    }
-    return closeStoryViewer();
-  }
-
-  /* ==== HEADER ==== */
-  const avatar = document.getElementById('storyViewerAvatar');
-  if (avatar) {
-    avatar.src = group.user.photo_url || 'https://via.placeholder.com/42';
-    avatar.onclick = () => {
-      closeStoryViewer();
-      openUserFeed(group.user.id || group.user_id);
-    };
-  }
-
-  const nameEl = document.getElementById('storyViewerName');
-  if (nameEl) nameEl.textContent = group.user.name || 'Utilisateur';
-
-  const timeEl = document.getElementById('storyViewerTime');
-  if (timeEl) {
-    const created = new Date(story.created_at);
-    timeEl.textContent = `il y a ${timeSince(created)}`;
-  }
-
-  /* ==== BOUTON ⋮ (avec protection anti-crash) ==== */
-  const headerActions = document.getElementById('storyHeaderActions');
-  if (headerActions) {
-    headerActions.innerHTML = '';
-    const moreBtn = document.createElement('button');
-    moreBtn.className = 'more-btn';
-    moreBtn.innerHTML = '⋮';
-    moreBtn.onclick = () => {
-      if (typeof window.openStoryMenu === 'function') {
-        window.openStoryMenu(story, group);
-      } else {
-        showCustomAlert('Menu indisponible.');
-      }
-    };
-    headerActions.appendChild(moreBtn);
-  }
-
-  /* ==== MÉDIA ==== */
-  const mediaDiv = document.getElementById('storyMedia');
-  if (mediaDiv) {
-    mediaDiv.innerHTML = '';
-
-    if (story.media_type === 'video') {
-      const video = document.createElement('video');
-      video.src = story.media_url;
-      video.autoplay = true;
-      video.playsInline = true;
-      video.muted = false;
-      video.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
-      mediaDiv.appendChild(video);
-      video.onended = nextStory;
-      video.onloadedmetadata = () => startProgress(video.duration * 1000);
-      video.onerror = () => startProgress(STORY_DURATION);
-    } else {
-      const img = document.createElement('img');
-      img.src = story.media_url;
-      img.alt = 'story';
-      img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
-      mediaDiv.appendChild(img);
-      img.onload = () => startProgress(STORY_DURATION);
-      img.onerror = () => startProgress(STORY_DURATION);
-    }
-  }
-
-  /* ==== LÉGENDE ==== */
-  const captionEl = document.getElementById('storyCaption');
-  if (captionEl) captionEl.textContent = story.caption || '';
-
-  /* ==== DÉCLARATION isOwner ==== */
-  const isOwner = currentUser && currentUser.id === group.user_id;
-
-  /* ==== COMPTEUR DE VUES ==== */
-  const viewsEl = document.getElementById('storyViewerViews');
-  const viewsPlural = document.getElementById('storyViewerViewsPlural');
-  const viewsBox = document.querySelector('.story-footer .views');
-
-  if (viewsBox) {
-    if (isOwner) {
-      viewsBox.style.display = 'flex';
-      const { data: fresh } = await supabase
-        .from('stories')
-        .select('views')
-        .eq('id', story.id)
-        .maybeSingle();
-      const v = fresh?.views || 0;
-      if (viewsEl) viewsEl.textContent = fmt(v);
-      if (viewsPlural) viewsPlural.textContent = v > 1 ? 's' : '';
-    } else {
-      viewsBox.style.display = 'none';
-    }
-  }
-
-  /* ==== CTA (BOOSTER / SUPPRIMER / SUIVRE / SOUTENIR) ==== */
-  const cta = document.getElementById('storyCtaGroup');
-  if (cta) {
-    cta.innerHTML = '';
-
-    if (isOwner) {
-      /* ─────────── CAS 1 : MA STORY ─────────── */
-      let isStoryBoosted = false;
-      if ((story.boosted || 0) > 0 && story.boost_at) {
-        const boostAtMs = new Date(story.boost_at).getTime();
-        const diffDays = (Date.now() - boostAtMs) / 86400000;
-        isStoryBoosted = diffDays <= 2;
-      }
-
-      if (!isStoryBoosted) {
-        const boostBtn = document.createElement('button');
-        boostBtn.className = 'cta-btn boost-btn';
-        boostBtn.style.background = '#1abc9c';
-        boostBtn.innerHTML = '<i class="fa-solid fa-trophy"></i> BOOSTER';
-        boostBtn.onclick = (e) => {
-          e.stopPropagation();
-          closeStoryViewer();
-          if (typeof window.boostStory === 'function') {
-            window.boostStory(story.id, story.caption || 'Ma story');
-          }
-        };
-        cta.appendChild(boostBtn);
-      } else {
-        const boostedBadge = document.createElement('span');
-        boostedBadge.innerHTML = '<i class="fa-solid fa-trophy"></i> Boostée';
-        boostedBadge.style.cssText = `
-          background: rgba(255, 215, 0, 0.9);
-          color: #000;
-          padding: 8px 14px;
-          border-radius: 6px;
-          font-size: 13px;
-          font-weight: bold;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        `;
-        cta.appendChild(boostedBadge);
-      }
-
-      // Bouton SUPPRIMER
-      const del = document.createElement('button');
-      del.className = 'cta-btn';
-      del.style.background = '#e53935';
-      del.innerHTML = '<i class="fas fa-trash"></i>';
-      del.onclick = async (e) => {
-        e.stopPropagation();
-        const ok = await prompt("Supprimer cette story ? (oui/non)", "oui");
-        if (ok?.toLowerCase() !== 'oui') return;
-
-        await supabase.from('stories').delete().eq('id', story.id);
-
-        allStoriesGrouped[svState.groupIndex].stories.splice(svState.storyIndex, 1);
-
-        if (allStoriesGrouped[svState.groupIndex].stories.length === 0) {
-          allStoriesGrouped.splice(svState.groupIndex, 1);
-          if (!allStoriesGrouped.length) return closeStoryViewer();
-          svState.groupIndex = Math.max(0, svState.groupIndex - 1);
-          svState.storyIndex = 0;
-        } else {
-          svState.storyIndex = Math.min(
-            svState.storyIndex,
-            allStoriesGrouped[svState.groupIndex].stories.length - 1
-          );
-        }
-
-        await loadStories();
-        renderCurrentStory();
-      };
-      cta.appendChild(del);
-
-    } else if (currentUser) {
-      /* ─────────── CAS 2 : STORY D'UN AUTRE ─────────── */
-
-      // Bouton SUIVRE
-      const followBtn = document.createElement('button');
-      followBtn.className = 'follow-btn-story';
-
-      const updateFollowLabel = () => {
-        const isF = followingIds.has(group.user_id);
-        followBtn.textContent = isF ? 'Suivi ✓' : 'Suivre';
-        followBtn.classList.toggle('following', isF);
-        followBtn.disabled = isF;
-      };
-      updateFollowLabel();
-
-      followBtn.onclick = async (e) => {
-        e.stopPropagation();
-        await supabase.rpc('toggle_follow', {
-          p_follower: currentUser.id,
-          p_following: group.user_id
-        });
-        if (followingIds.has(group.user_id)) followingIds.delete(group.user_id);
-        else followingIds.add(group.user_id);
-        updateFollowLabel();
-      };
-      cta.appendChild(followBtn);
-
-      // Bouton SOUTENIR (25 XAF)
-      const { data: targetUser } = await supabase
-        .from('users')
-        .select('followers_count')
-        .eq('id', group.user_id)
-        .maybeSingle();
-
-      if ((targetUser?.followers_count || 0) > 0) {
-        const supportBtn = document.createElement('button');
-        supportBtn.className = 'cta-btn support-btn';
-        supportBtn.innerHTML = '<i class="fas fa-star"></i> SOUTENIR (25 XAF)';
-        supportBtn.onclick = async (e) => {
-          e.stopPropagation();
-          const ok = await prompt(
-            `Envoyer 25 XAF à ${group.user.name} ? (oui/non)`,
-            "oui"
-          );
-          if (ok?.toLowerCase() !== 'oui') return;
-
-          const { data: success, error } = await supabase.rpc('support_user', {
-            p_from: currentUser.id,
-            p_to: group.user_id,
-            p_amount: 25
-          });
-
-          if (error) return alert('Erreur : ' + error.message);
-          if (!success) return alert('💸 Solde insuffisant');
-
-          alert('✅ 25 XAF envoyés à ' + group.user.name);
-          await loadWallet();
-        };
-        cta.appendChild(supportBtn);
-      }
-    }
-  }
-
-  /* ==== BARRES DE PROGRESSION ==== */
-  renderProgressBars(group.stories.length, svState.storyIndex);
-
-  /* ==== MARQUER COMME VUE ==== */
-  if (!isOwner && currentUser) {
-    try {
-      await supabase.from('story_views').insert({
-        story_id: story.id,
-        user_id: currentUser.id
-      });
-      markStoryAsSeen(story.id);
-    } catch (_) {}
-  }
-}
-window.renderCurrentStory = renderCurrentStory;
+/* ─── UTILITAIRES ─── */
 function getSeenStories() {
   try {
     const raw = localStorage.getItem(SEEN_STORIES_KEY);
@@ -5432,8 +5226,7 @@ function getSeenStories() {
 function markStoryAsSeen(storyId) {
   const seen = getSeenStories();
   seen.add(storyId);
-  const arr = [...seen].slice(-500);
-  localStorage.setItem(SEEN_STORIES_KEY, JSON.stringify(arr));
+  localStorage.setItem(SEEN_STORIES_KEY, JSON.stringify([...seen].slice(-500)));
 }
 
 function shuffleArray(arr) {
@@ -5445,32 +5238,16 @@ function shuffleArray(arr) {
   return a;
 }
 
-function isStoryBoosted(story) {
-  if (!story) return false;
-  if (!story.boosted || story.boosted <= 0) return false;
-  if (!story.boost_at) return false;
-  const age = (Date.now() - new Date(story.boost_at).getTime()) / 86400000;
-  return age <= 2;
-}
-
-/* ✅ NOUVEAU : la fonction qui manquait — nettoie TOUS les timers */
 function clearTimers() {
-  if (svState.progressInterval) {
-    clearInterval(svState.progressInterval);
-    svState.progressInterval = null;
-  }
-  if (svState.timer) {
-    clearTimeout(svState.timer);
-    svState.timer = null;
-  }
+  if (svState.progressInterval) { clearInterval(svState.progressInterval); svState.progressInterval = null; }
+  if (svState.timer) { clearTimeout(svState.timer); svState.timer = null; }
 }
 
-/* ─────────────────────────────────────────────
-   CHARGEMENT DES STORIES (barre horizontale)
-───────────────────────────────────────────── */
+/* ─── CHARGEMENT DES STORIES (Barres) ─── */
 async function loadStories() {
-  const bar = document.getElementById('storyBar');
-  if (!bar) return;
+  // ✅ Cible les deux barres (Accueil + Section Story)
+  const bars = document.querySelectorAll('.story-bar');
+  if (!bars.length) return;
 
   const { data, error } = await supabase
     .from('stories')
@@ -5478,8 +5255,12 @@ async function loadStories() {
     .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: true });
 
-  if (error) { console.error('loadStories:', error); return; }
+  if (error) { 
+    console.error('loadStories:', error); 
+    return; 
+  }
 
+  // 1. Regroupement par utilisateur
   const grouped = new Map();
   (data || []).forEach(s => {
     if (!grouped.has(s.user_id)) {
@@ -5492,288 +5273,339 @@ async function loadStories() {
     grouped.get(s.user_id).stories.push(s);
   });
 
-  // Boosters prioritaires selon le pays
-  const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString();
-  const { data: me } = await supabase
-    .from('users').select('country_index').eq('id', currentUser?.id).maybeSingle();
-  const myCountry = me?.country_index || 1;
-
-  const { data: boosters } = await supabase
-    .from('posts')
-    .select('user_id, boost_countries')
-    .gt('boosted', 0)
-    .gte('boost_at', twoDaysAgo);
-
-  const boosterIds = new Set(
-    (boosters || [])
-      .filter(b => Array.isArray(b.boost_countries) && b.boost_countries.includes(myCountry))
-      .map(b => b.user_id)
-  );
-
+  // 2. Séparation (Moi vs Autres)
   let myGroup = null;
-  const priorityGrp = [];
-
+  const othersGrp = [];
   for (const g of grouped.values()) {
-    if (currentUser && g.user_id === currentUser.id) {
-      myGroup = g;
-    } else if (
-      currentUser &&
-      (boosterIds.has(g.user_id) || followingIds.has(g.user_id))
-    ) {
-      priorityGrp.push(g);
-    }
+    if (currentUser && g.user_id === currentUser.id) myGroup = g;
+    else othersGrp.push(g);
   }
 
+  // 3. Tri intelligent : Priorité aux abonnements (suivis)
+  const priority = othersGrp.filter(g => followingIds.has(g.user_id));
+  const rest = othersGrp.filter(g => !followingIds.has(g.user_id));
+
+  // ✅ Liste finale ordonnée : Ma story d'abord, puis abonnements, puis le reste
   allStoriesGrouped = [
     ...(myGroup ? [myGroup] : []),
-    ...shuffleArray(priorityGrp)
+    ...shuffleArray(priority),
+    ...shuffleArray(rest)
   ];
 
-  bar.innerHTML = '';
   const seenSet = getSeenStories();
 
-  if (currentUser) {
-    const create = document.createElement('div');
-    create.className = 'story-item';
-    create.innerHTML = `
-      <div class="ring create"><div class="plus">+</div></div>
-      <small>Créer</small>`;
-    create.onclick = () => openTab({ currentTarget: null }, 'create-story');
-    bar.appendChild(create);
-  }
+  // 4. Fonction de rendu pour une barre spécifique
+  const renderBars = (barElement) => {
+    barElement.innerHTML = '';
 
-  allStoriesGrouped.forEach((g, idx) => {
-    const item = document.createElement('div');
-    item.className = 'story-item';
+    // --- Bouton "Créer" ---
+    if (currentUser) {
+      const create = document.createElement('div');
+      create.className = 'story-item create-story';
+      const myPhoto = currentProfile?.photo_url || 'https://via.placeholder.com/100';
+      create.innerHTML = `
+        <img src="${myPhoto}" class="story-bg" alt="Créer">
+        <div class="plus">+</div>
+        <div class="story-name">Créer</div>
+      `;
+      create.onclick = () => openTab({ currentTarget: null }, 'create-story');
+      barElement.appendChild(create);
+    }
 
-    const allSeen = g.stories.every(s => seenSet.has(s.id));
-    const ringClass = allSeen ? 'ring seen' : 'ring';
-    const photo = g.user.photo_url || 'https://via.placeholder.com/70';
+    // --- Les stories des utilisateurs ---
+    allStoriesGrouped.forEach((g, idx) => {
+      // ✅ Sécurité : On ignore les groupes sans aucune story valide
+      if (!g.stories || g.stories.length === 0) return;
 
-    const label = (currentUser && g.user_id === currentUser.id)
-      ? 'Ma story'
-      : escapeHtml(g.user.name || 'User');
+      const item = document.createElement('div');
+      item.className = 'story-item';
+      
+      // Statut "vue" ou "non vue"
+      const allSeen = g.stories.every(s => seenSet.has(s.id));
+      const ringClass = allSeen ? 'avatar-ring seen' : 'avatar-ring';
+      
+      // ✅ Sécurité : Image de profil par défaut
+      const userPhoto = g.user.photo_url || 'https://via.placeholder.com/70';
+      
+      // ✅ Sécurité : Image de fond (la première story du groupe)
+      const firstStory = g.stories[0];
+      const bgImage = firstStory?.media_url || 'https://via.placeholder.com/110x180?text=Story';
+      
+      // Label
+      const label = (currentUser && g.user_id === currentUser.id) 
+        ? 'Ma story' 
+        : escapeHtml(g.user.name || 'User');
 
-    item.innerHTML = `
-      <div class="${ringClass}">
-        <img src="${photo}" alt="${escapeHtml(g.user.name || '')}">
-      </div>
-      <small>${label}</small>`;
+      item.innerHTML = `
+        <img src="${bgImage}" class="story-bg" alt="story" loading="lazy">
+        <div class="${ringClass}">
+          <img src="${userPhoto}" alt="${label}" loading="lazy">
+        </div>
+        <div class="story-name">${label}</div>
+      `;
 
-    item.onclick = () => window.openStoryViewer(idx, 0);
-    bar.appendChild(item);
-  });
+      item.onclick = () => window.openStoryViewer(idx, 0);
+      barElement.appendChild(item);
+    });
 
-  if (allStoriesGrouped.length === 0 && !currentUser) {
-    bar.innerHTML = '<p style="padding:10px;color:#888;font-size:13px">Aucune story pour le moment.</p>';
-  }
+    // --- Message si aucune story ---
+    if (allStoriesGrouped.length === 0 && !currentUser) {
+      barElement.innerHTML = '<p style="padding:15px;color:#888;font-size:13px;text-align:center;width:100%;">Aucune story pour le moment.</p>';
+    }
+  };
+
+  // 5. Remplissage de toutes les barres présentes sur la page
+  bars.forEach(bar => renderBars(bar));
 }
+
 window.loadStories = loadStories;
+/* ─── RENDU DE LA VISIONNEUSE ─── */
+async function renderCurrentStory() {
+  if (!svState.isOpen) return;
+  svState.isPaused = false;
 
-/* ─────────────────────────────────────────────
-   PUBLICATION D'UNE STORY
-───────────────────────────────────────────── */
-async function publishStory() {
-  if (!currentUser) return alert("Connectez-vous");
+  const group = allStoriesGrouped[svState.groupIndex];
+  if (!group || !group.stories.length) return closeStoryViewer();
 
-  const imgTab = document.getElementById('tabStoryImage');
-  const isImg = imgTab ? imgTab.classList.contains('active') : true;
-  const fileInput = isImg
-    ? document.getElementById('storyImageFile')
-    : document.getElementById('storyVideoFile');
-  const urlInput = isImg
-    ? document.getElementById('storyImageUrl')
-    : document.getElementById('storyVideoUrl');
-  const captionInput = isImg
-    ? document.getElementById('storyImageCaption')
-    : document.getElementById('storyVideoCaption');
-
-  const file = fileInput?.files[0];
-  const url = urlInput?.value.trim() || '';
-  const caption = captionInput?.value.trim() || '';
-
-  let mediaUrl = url;
-  const mediaType = isImg ? 'image' : 'video';
-
-  if (file) {
-    if (mediaType === 'video' && file.size > 20 * 1024 * 1024) {
-      return alert("Vidéo trop volumineuse (max 20 MB).");
+  const story = group.stories[svState.storyIndex];
+  if (!story) {
+    if (svState.groupIndex < allStoriesGrouped.length - 1) {
+      svState.groupIndex++;
+      svState.storyIndex = 0;
+      return renderCurrentStory();
     }
-    if (mediaType === 'image' && file.size > 5 * 1024 * 1024) {
-      return alert("Image trop volumineuse (max 5 MB).");
-    }
-    const path = `${currentUser.id}/story_${Date.now()}_${file.name}`;
-    const { error } = await supabase.storage.from('media').upload(path, file);
-    if (error) return alert(error.message);
-    mediaUrl = supabase.storage.from('media').getPublicUrl(path).data.publicUrl;
+    return closeStoryViewer();
   }
-  if (!mediaUrl) return alert("Image ou URL requise");
 
-  const { error: insertErr } = await supabase.from('stories').insert({
-    user_id: currentUser.id,
-    media_url: mediaUrl,
-    media_type: mediaType,
-    caption: caption || null
-  });
+  const isOwner = currentUser && currentUser.id === group.user_id;
 
-  if (insertErr) return alert("Erreur : " + insertErr.message);
+  /* HEADER */
+  const avatar = document.getElementById('storyViewerAvatar');
+  if (avatar) {
+    avatar.src = group.user.photo_url || 'https://via.placeholder.com/42';
+    avatar.onclick = () => { closeStoryViewer(); openUserFeed(group.user_id); };
+  }
 
-  document.getElementById('storyStatus').textContent = '✅ Story publiée';
+  const nameEl = document.getElementById('storyViewerName');
+  if (nameEl) nameEl.textContent = group.user.name || 'Utilisateur';
 
-  if (fileInput) fileInput.value = '';
-  if (urlInput) urlInput.value = '';
-  if (captionInput) captionInput.value = '';
+  const timeEl = document.getElementById('storyViewerTime');
+  if (timeEl) {
+    timeEl.textContent = `il y a ${timeSince(new Date(story.created_at))}`;
+  }
 
-  await loadStories();
+  /* BOUTON ⋮ */
+  const headerActions = document.getElementById('storyHeaderActions');
+  if (headerActions) {
+    headerActions.innerHTML = '';
+    const moreBtn = document.createElement('button');
+    moreBtn.className = 'more-btn';
+    moreBtn.innerHTML = '⋮';
+    moreBtn.onclick = () => {
+      if (typeof window.openStoryMenu === 'function') window.openStoryMenu(story, group);
+    };
+    headerActions.appendChild(moreBtn);
+  }
 
-  setTimeout(() => {
-    openTab({ currentTarget: null }, 'home');
-  }, 1000);
+  /* MEDIA */
+  const mediaDiv = document.getElementById('storyMedia');
+  if (mediaDiv) {
+    mediaDiv.innerHTML = '';
+    if (story.media_type === 'video') {
+      const video = document.createElement('video');
+      video.src = story.media_url;
+      video.autoplay = true; video.playsInline = true;
+      video.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
+      mediaDiv.appendChild(video);
+      video.onended = window.nextStory;
+      video.onloadedmetadata = () => startProgress(video.duration * 1000);
+    } else {
+      const img = document.createElement('img');
+      img.src = story.media_url;
+      img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;';
+      mediaDiv.appendChild(img);
+      img.onload = () => startProgress(STORY_DURATION);
+    }
+  }
+
+  /* CAPTION */
+  const captionEl = document.getElementById('storyCaption');
+  if (captionEl) captionEl.textContent = story.caption || '';
+
+  /* VUES (seulement pour le propriétaire) */
+  const viewsBox = document.querySelector('.story-footer .views');
+  if (viewsBox) {
+    if (isOwner) {
+      viewsBox.style.display = 'flex';
+      const { data: fresh } = await supabase.from('stories').select('views').eq('id', story.id).maybeSingle();
+      const v = fresh?.views || 0;
+      document.getElementById('storyViewerViews').textContent = fmt(v);
+      document.getElementById('storyViewerViewsPlural').textContent = v > 1 ? 's' : '';
+    } else {
+      viewsBox.style.display = 'none';
+    }
+  }
+
+  /* BOUTONS (CTA) */
+  const cta = document.getElementById('storyCtaGroup');
+  if (cta) {
+    cta.innerHTML = '';
+    if (isOwner) {
+      // Bouton supprimer
+      const del = document.createElement('button');
+      del.className = 'cta-btn';
+      del.style.background = '#e53935';
+      del.innerHTML = '<i class="fas fa-trash"></i>';
+      del.onclick = async (e) => {
+        e.stopPropagation();
+        if (await prompt("Supprimer cette story ? (oui/non)", "oui") !== 'oui') return;
+        await supabase.from('stories').delete().eq('id', story.id);
+        group.stories.splice(svState.storyIndex, 1);
+        if (group.stories.length === 0) {
+          allStoriesGrouped.splice(svState.groupIndex, 1);
+          if (!allStoriesGrouped.length) return closeStoryViewer();
+          svState.groupIndex = Math.max(0, svState.groupIndex - 1);
+          svState.storyIndex = 0;
+        } else {
+          svState.storyIndex = Math.min(svState.storyIndex, group.stories.length - 1);
+        }
+        await loadStories(); renderCurrentStory();
+      };
+      cta.appendChild(del);
+
+      // Bouton booster
+      const boostBtn = document.createElement('button');
+      boostBtn.className = 'cta-btn boost-btn';
+      boostBtn.style.background = '#1abc9c';
+      boostBtn.innerHTML = '<i class="fa-solid fa-trophy"></i> BOOSTER';
+      boostBtn.onclick = (e) => {
+        e.stopPropagation(); closeStoryViewer();
+        if (typeof window.boostStory === 'function') window.boostStory(story.id, story.caption || 'Ma story');
+      };
+      cta.appendChild(boostBtn);
+
+    } else if (currentUser) {
+      // Bouton suivre
+      const followBtn = document.createElement('button');
+      followBtn.className = 'follow-btn-story';
+      const isF = followingIds.has(group.user_id);
+      followBtn.textContent = isF ? 'Suivi ✓' : 'Suivre';
+      followBtn.classList.toggle('following', isF);
+      followBtn.disabled = isF;
+
+      followBtn.onclick = async (e) => {
+        e.stopPropagation();
+        await supabase.rpc('toggle_follow', { p_follower: currentUser.id, p_following: group.user_id });
+        if (isF) followingIds.delete(group.user_id); else followingIds.add(group.user_id);
+        renderCurrentStory();
+      };
+      cta.appendChild(followBtn);
+
+      // Bouton soutenir
+      const supportBtn = document.createElement('button');
+      supportBtn.className = 'cta-btn support-btn';
+      supportBtn.innerHTML = '<i class="fas fa-star"></i> SOUTENIR (25)';
+      supportBtn.onclick = async (e) => {
+        e.stopPropagation();
+        if (await prompt(`Envoyer 25 XAF à ${group.user.name} ? (oui/non)`, "oui") !== 'oui') return;
+        const { data: success, error } = await supabase.rpc('support_user', { p_from: currentUser.id, p_to: group.user_id, p_amount: 25 });
+        if (error) return alert(error.message);
+        if (!success) return alert('💸 Solde insuffisant');
+        alert('✅ 25 XAF envoyés !');
+        await loadWallet();
+      };
+      cta.appendChild(supportBtn);
+    }
+  }
+
+  renderProgressBars(group.stories.length, svState.storyIndex);
+
+  // Marquer comme vue
+  if (!isOwner && currentUser) {
+    try {
+      await supabase.from('story_views').insert({ story_id: story.id, user_id: currentUser.id });
+      markStoryAsSeen(story.id);
+    } catch (_) {}
+  }
 }
-window.publishStory = publishStory;
+window.renderCurrentStory = renderCurrentStory;
 
-window.switchStoryType = (type) => {
-  const isImg = type === 'image';
-  document.getElementById('tabStoryImage')?.classList.toggle('active', isImg);
-  document.getElementById('tabStoryVideo')?.classList.toggle('active', !isImg);
-
-  const imgForm = document.getElementById('storyImageForm');
-  const vidForm = document.getElementById('storyVideoForm');
-  if (imgForm) imgForm.style.display = isImg ? 'block' : 'none';
-  if (vidForm) vidForm.style.display = !isImg ? 'block' : 'none';
-};
-
-/* ─────────────────────────────────────────────
-   NAVIGATION VIEWER (open / close / next / prev)
-───────────────────────────────────────────── */
+/* ─── NAVIGATION VIEWER ─── */
 window.openStoryViewer = (groupIdx = 0, storyIdx = 0) => {
-  if (!allStoriesGrouped.length) {
-    return showCustomAlert("Aucune story disponible pour le moment.");
-  }
-  if (!allStoriesGrouped[groupIdx]) groupIdx = 0;
-
+  if (!allStoriesGrouped.length) return showCustomAlert("Aucune story disponible.");
   svState.groupIndex = groupIdx;
   svState.storyIndex = storyIdx;
   svState.isOpen = true;
-  svState.isPaused = false;
-
   const viewer = document.getElementById('storyViewer');
-  if (!viewer) return;
-  viewer.classList.add('open');
-
+  if (viewer) viewer.classList.add('open');
   document.body.style.overflow = 'hidden';
   history.pushState({ storyViewer: true }, '', '#story');
-
   renderCurrentStory();
 };
 
 window.closeStoryViewer = (fromPopState = false) => {
   if (closingStory) return;
   closingStory = true;
-
   clearTimers();
-
   const vid = document.querySelector('#storyMedia video');
   if (vid) { vid.pause(); vid.src = ''; }
-
   const viewer = document.getElementById('storyViewer');
   if (viewer) viewer.classList.remove('open');
-
   svState.isOpen = false;
-  svState.isPaused = false;
-  svState.groupIndex = 0;
-  svState.storyIndex = 0;
-
   document.body.style.overflow = '';
-
-  if (!fromPopState && history.state?.storyViewer) {
-    history.back();
-  }
-
+  if (!fromPopState && history.state?.storyViewer) history.back();
   setTimeout(() => { closingStory = false; }, 300);
 };
 
 window.nextStory = () => {
   if (!svState.isOpen) return;
   clearTimers();
-
   const group = allStoriesGrouped[svState.groupIndex];
   if (!group) return closeStoryViewer();
-
   if (svState.storyIndex < group.stories.length - 1) {
-    svState.storyIndex++;
-    renderCurrentStory();
+    svState.storyIndex++; renderCurrentStory();
   } else if (svState.groupIndex < allStoriesGrouped.length - 1) {
-    svState.groupIndex++;
-    svState.storyIndex = 0;
-    renderCurrentStory();
-  } else {
-    closeStoryViewer();
-  }
+    svState.groupIndex++; svState.storyIndex = 0; renderCurrentStory();
+  } else closeStoryViewer();
 };
 
 window.prevStory = () => {
   if (!svState.isOpen) return;
   clearTimers();
-
   if (svState.storyIndex > 0) {
-    svState.storyIndex--;
-    renderCurrentStory();
+    svState.storyIndex--; renderCurrentStory();
   } else if (svState.groupIndex > 0) {
     svState.groupIndex--;
-    const prevGroup = allStoriesGrouped[svState.groupIndex];
-    svState.storyIndex = Math.max(0, prevGroup.stories.length - 1);
-    renderCurrentStory();
-  } else {
+    svState.storyIndex = allStoriesGrouped[svState.groupIndex].stories.length - 1;
     renderCurrentStory();
   }
 };
 
-/* ─────────────────────────────────────────────
-   BARRES DE PROGRESSION
-───────────────────────────────────────────── */
+/* ─── BARRES DE PROGRESSION ─── */
 function renderProgressBars(count, currentIndex) {
   const container = document.getElementById('storyProgress');
   if (!container) return;
   container.innerHTML = '';
-
   for (let i = 0; i < count; i++) {
-    const bar = document.createElement('div');
-    bar.className = 'bar';
-    const fill = document.createElement('div');
-    fill.className = 'fill';
-    if (i < currentIndex) fill.style.width = '100%';
-    else fill.style.width = '0%';
-    bar.appendChild(fill);
-    container.appendChild(bar);
+    const bar = document.createElement('div'); bar.className = 'bar';
+    const fill = document.createElement('div'); fill.className = 'fill';
+    fill.style.width = i < currentIndex ? '100%' : '0%';
+    bar.appendChild(fill); container.appendChild(bar);
   }
 }
 window.renderProgressBars = renderProgressBars;
 
-/* ─────────────────────────────────────────────
-   LANCEMENT DE LA PROGRESSION (auto-avance)
-───────────────────────────────────────────── */
 function startProgress(durationMs = STORY_DURATION) {
   clearTimers();
-
   const container = document.getElementById('storyProgress');
   if (!container) return;
-
   const bars = container.querySelectorAll('.bar .fill');
   const currentBar = bars[svState.storyIndex];
   if (!currentBar) return;
 
-  // Reset visuel
-  bars.forEach((b, i) => {
-    if (i < svState.storyIndex) b.style.width = '100%';
-    else if (i > svState.storyIndex) b.style.width = '0%';
-  });
-  currentBar.style.width = '0%';
-
   svState.progressStart = Date.now();
   svState.isPaused = false;
 
-  // Animation fluide de la barre
   svState.progressInterval = setInterval(() => {
     if (svState.isPaused) return;
     const elapsed = Date.now() - svState.progressStart;
@@ -5781,16 +5613,13 @@ function startProgress(durationMs = STORY_DURATION) {
     currentBar.style.width = pct + '%';
   }, 50);
 
-  // Auto-avance à la fin
   svState.timer = setTimeout(() => {
     if (!svState.isPaused) nextStory();
   }, durationMs);
 }
 window.startProgress = startProgress;
 
-/* ─────────────────────────────────────────────
-   PAUSE / REPRISE (appui long)
-───────────────────────────────────────────── */
+/* ─── PAUSE / REPRISE ─── */
 let pressTimer = null;
 const storyMedia = document.getElementById('storyMedia');
 const viewerEl = document.getElementById('storyViewer');
@@ -5831,61 +5660,44 @@ document.addEventListener('visibilitychange', () => {
   else if (svState.isOpen) resumeStory();
 });
 
-/* ─────────────────────────────────────────────
-   MENU ⋮ (bouton en haut à droite)
-───────────────────────────────────────────── */
+/* ─── MENU ⋮ ─── */
 async function openStoryMenu(story, group) {
   const isOwner = currentUser && currentUser.id === group.user_id;
   const msg = isOwner
     ? "Options :\n1) Supprimer la story\n2) Annuler"
     : "Options :\n1) Voir le profil\n2) Copier le lien\n3) Signaler\n4) Annuler";
-
   const choice = await prompt(msg, isOwner ? "1" : "1");
   if (!choice) return;
 
   if (isOwner && choice === '1') {
     await supabase.from('stories').delete().eq('id', story.id);
-
-    allStoriesGrouped[svState.groupIndex].stories.splice(svState.storyIndex, 1);
-
-    if (allStoriesGrouped[svState.groupIndex].stories.length === 0) {
+    group.stories.splice(svState.storyIndex, 1);
+    if (group.stories.length === 0) {
       allStoriesGrouped.splice(svState.groupIndex, 1);
       if (!allStoriesGrouped.length) return closeStoryViewer();
       svState.groupIndex = Math.max(0, svState.groupIndex - 1);
       svState.storyIndex = 0;
     } else {
-      svState.storyIndex = Math.min(
-        svState.storyIndex,
-        allStoriesGrouped[svState.groupIndex].stories.length - 1
-      );
+      svState.storyIndex = Math.min(svState.storyIndex, group.stories.length - 1);
     }
-
-    await loadStories();
-    renderCurrentStory();
+    await loadStories(); renderCurrentStory();
   } else if (!isOwner && choice === '1') {
-    closeStoryViewer();
-    openUserFeed(group.user_id);
+    closeStoryViewer(); openUserFeed(group.user_id);
   } else if (!isOwner && choice === '2') {
     try {
       await navigator.clipboard.writeText(story.media_url);
       showCustomAlert('Lien copié ✅');
-    } catch {
-      showCustomAlert('Impossible de copier.');
-    }
+    } catch { showCustomAlert('Impossible de copier.'); }
   } else if (!isOwner && choice === '3') {
     await supabase.from('notifications').insert({
-      to_user_id: group.user_id,
-      from_user_id: currentUser.id,
+      to_user_id: group.user_id, from_user_id: currentUser.id,
       from_user_name: currentProfile?.name || currentUser.email,
-      type: 'report_story',
-      post_id: null,
-      text: 'Signalement de story'
+      type: 'report_story', text: 'Signalement de story'
     });
     showCustomAlert('✅ Story signalée');
   }
 }
 window.openStoryMenu = openStoryMenu;
-
 /* ─────────────────────────────────────────────
    BOOST STORY (depuis la visionneuse)
 ───────────────────────────────────────────── */
