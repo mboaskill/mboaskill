@@ -1377,6 +1377,69 @@ font-size:14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
+/* ═══════════════════════════════════════════════
+   TABS IMAGE / VIDÉO — Créer une story
+   ═══════════════════════════════════════════════ */
+.story-type-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 4px;
+  background: #f2f2f2;
+  border-radius: 12px;
+}
+
+.story-type-tabs button {
+  flex: 1;
+  padding: 12px 10px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+  color: #666;
+  margin: 0; /* annule le margin-bottom:10px global */
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: none;
+}
+
+.story-type-tabs button:hover {
+  background: rgba(255, 215, 0, 0.15);
+  color: #333;
+}
+
+/* État actif (bouton sélectionné) */
+.story-type-tabs button.active {
+  background: linear-gradient(135deg, #ffd700, #ffb700);
+  color: #000;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(255, 183, 0, 0.35);
+}
+
+/* On retire les anciens styles inline si tu veux */
+#tabStoryImage,
+#tabStoryVideo {
+  font-family: inherit;
+}
+
+/* Formulaires image/vidéo — petit espacement */
+#storyImageForm,
+#storyVideoForm {
+  margin-top: 4px;
+}
+
+#storyImageForm label,
+#storyVideoForm label {
+  display: block;
+  font-size: 13px;
+  color: #555;
+  margin-top: 8px;
+}
 /* Effet quand on passe la souris ou qu'on clique dessus */
 .monetization-banner:hover, 
 .monetization-banner:active {
@@ -1384,6 +1447,7 @@ font-size:14px;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
   background: linear-gradient(135deg, #9ccc65, #43a047); /* Vert un peu plus clair */
 }
+
 </style>
 
 </head>
@@ -5243,6 +5307,210 @@ function clearTimers() {
   if (svState.timer) { clearTimeout(svState.timer); svState.timer = null; }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   PUBLIER UNE STORY — VERSION CORRIGÉE
+   ═══════════════════════════════════════════════════════════ */
+
+let storyType = 'image'; // 'image' ou 'video'
+
+window.switchStoryType = function(type) {
+  storyType = type;
+
+  const imgForm = document.getElementById('storyImageForm');
+  const vidForm = document.getElementById('storyVideoForm');
+  const tabImg  = document.getElementById('tabStoryImage');
+  const tabVid  = document.getElementById('tabStoryVideo');
+
+  if (type === 'image') {
+    imgForm.style.display = 'block';
+    vidForm.style.display = 'none';
+    tabImg.classList.add('active');
+    tabVid.classList.remove('active');
+  } else {
+    imgForm.style.display = 'none';
+    vidForm.style.display = 'block';
+    tabVid.classList.add('active');
+    tabImg.classList.remove('active');
+  }
+};
+
+window.publishStory = async function() {
+  const statusEl = document.getElementById('storyStatus');
+  const setStatus = (msg, color = 'green') => {
+    if (statusEl) {
+      statusEl.textContent = msg;
+      statusEl.style.color = color;
+    }
+  };
+
+  // ─── Guard : utilisateur connecté ───
+  if (!currentUser) {
+    return setStatus('❌ Connecte-toi d\'abord', 'red');
+  }
+
+  // ─── Guard : anti-double-clic ───
+  if (window._storyPublishing) return;
+  window._storyPublishing = true;
+
+  const publishBtn = document.querySelector('#create-story button[onclick="publishStory()"]');
+  const originalBtnText = publishBtn?.innerHTML;
+  if (publishBtn) {
+    publishBtn.disabled = true;
+    publishBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publication…';
+  }
+
+  let mediaUrl = null;
+  let mediaType = storyType;
+  let caption = '';
+  let uploadedPath = null;
+
+  try {
+    /* ─── 1. Récupération du média (image ou vidéo) ─── */
+    if (storyType === 'image') {
+      const fileInput = document.getElementById('storyImageFile');
+      const urlInput  = document.getElementById('storyImageUrl');
+      const capInput  = document.getElementById('storyImageCaption');
+
+      const file = fileInput?.files?.[0] || null;
+      const url  = urlInput?.value.trim() || '';
+      caption    = capInput?.value.trim() || '';
+
+      if (!file && !url) {
+        return setStatus('❌ Ajoute une image ou un lien', 'red');
+      }
+
+      if (file) {
+        if (!file.type.startsWith('image/')) {
+          return setStatus('❌ Fichier image invalide', 'red');
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          return setStatus('❌ Image trop lourde (max 5 MB)', 'red');
+        }
+
+        setStatus('⏳ Upload image…', '#888');
+        const ext = file.name.split('.').pop() || 'jpg';
+        uploadedPath = `${currentUser.id}/story_${Date.now()}.${ext}`;
+
+        const { error: upErr } = await supabase.storage
+          .from('media')
+          .upload(uploadedPath, file, { upsert: false });
+
+        if (upErr) throw new Error('Upload échoué : ' + upErr.message);
+
+        mediaUrl = supabase.storage.from('media').getPublicUrl(uploadedPath).data.publicUrl;
+      } else {
+        mediaUrl = url;
+      }
+
+    } else {
+      // ─── VIDÉO ───
+      const fileInput = document.getElementById('storyVideoFile');
+      const urlInput  = document.getElementById('storyVideoUrl');
+      const capInput  = document.getElementById('storyVideoCaption');
+
+      const file = fileInput?.files?.[0] || null;
+      const url  = urlInput?.value.trim() || '';
+      caption    = capInput?.value.trim() || '';
+
+      if (!file && !url) {
+        return setStatus('❌ Ajoute une vidéo ou un lien', 'red');
+      }
+
+      if (file) {
+        if (!file.type.startsWith('video/')) {
+          return setStatus('❌ Fichier vidéo invalide', 'red');
+        }
+        if (file.size > 20 * 1024 * 1024) {
+          return setStatus('❌ Vidéo trop lourde (max 20 MB)', 'red');
+        }
+
+        setStatus('⏳ Upload vidéo…', '#888');
+        const ext = file.name.split('.').pop() || 'mp4';
+        uploadedPath = `${currentUser.id}/story_${Date.now()}.${ext}`;
+
+        const { error: upErr } = await supabase.storage
+          .from('media')
+          .upload(uploadedPath, file, { upsert: false });
+
+        if (upErr) throw new Error('Upload échoué : ' + upErr.message);
+
+        mediaUrl = supabase.storage.from('media').getPublicUrl(uploadedPath).data.publicUrl;
+      } else {
+        mediaUrl = url;
+      }
+    }
+
+    /* ─── 2. Insertion en base ─── */
+    setStatus('⏳ Publication…', '#888');
+
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+    const { error: insertErr } = await supabase.from('stories').insert({
+      user_id: currentUser.id,
+      media_url: mediaUrl,
+      media_type: mediaType,
+      caption: caption || null,
+      expires_at: expiresAt
+    });
+
+    if (insertErr) {
+      // Nettoyage du fichier uploadé si l'insertion échoue
+      if (uploadedPath) {
+        try {
+          await supabase.storage.from('media').remove([uploadedPath]);
+        } catch (_) { /* ignore */ }
+      }
+      throw new Error('Insertion échouée : ' + insertErr.message);
+    }
+
+    /* ─── 3. Bonus de score (NE BLOQUE PAS la publication) ─── */
+    try {
+      await supabase.rpc('bump_suggest_score', {
+        p_user_id: currentUser.id,
+        p_amount: 5
+      });
+    } catch (scoreErr) {
+      console.warn('⚠️ bump_suggest_score ignoré :', scoreErr?.message || scoreErr);
+    }
+
+    /* ─── 4. Succès ─── */
+    setStatus('✅ Story publiée !', 'green');
+
+    // Reset UI
+    [
+      'storyImageFile', 'storyImageUrl', 'storyImageCaption',
+      'storyVideoFile', 'storyVideoUrl', 'storyVideoCaption'
+    ].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+
+    // Recharge la barre de stories (les deux barres présentes)
+    try {
+      await loadStories();
+    } catch (loadErr) {
+      console.warn('loadStories échoué après publication :', loadErr);
+    }
+
+    // Redirection vers l'accueil après 1.2s
+    setTimeout(() => {
+      setStatus('', 'green');
+      openTab({ currentTarget: null }, 'home');
+    }, 1200);
+
+  } catch (err) {
+    console.error('publishStory:', err);
+    setStatus('❌ ' + (err?.message || 'Erreur inconnue'), 'red');
+  } finally {
+    // ✅ On libère TOUJOURS le verrou et le bouton
+    window._storyPublishing = false;
+    if (publishBtn) {
+      publishBtn.disabled = false;
+      publishBtn.innerHTML = originalBtnText;
+    }
+  }
+};
+
 /* ─── CHARGEMENT DES STORIES (Barres) ─── */
 async function loadStories() {
   // ✅ Cible les deux barres (Accueil + Section Story)
@@ -5359,6 +5627,8 @@ async function loadStories() {
 }
 
 window.loadStories = loadStories;
+
+
 /* ─── RENDU DE LA VISIONNEUSE ─── */
 async function renderCurrentStory() {
   if (!svState.isOpen) return;
@@ -5446,6 +5716,32 @@ async function renderCurrentStory() {
     }
   }
 
+  /* ─── VÉRIFIER SI LA STORY EST DÉJÀ BOOSTÉE (ACTIVE) ─── */
+  let isCurrentlyBoosted = false;
+  if (isOwner) {
+    try {
+      const { data: fresh } = await supabase
+        .from('stories')
+        .select('boosted, boost_at')
+        .eq('id', story.id)
+        .maybeSingle();
+
+      if (fresh && (fresh.boosted || 0) > 0 && fresh.boost_at) {
+        const boostAtMs = new Date(fresh.boost_at).getTime();
+        const expiresAtMs = boostAtMs + (fresh.boosted * 86400000);
+
+        // ✅ Boost encore actif ?
+        isCurrentlyBoosted = Date.now() < expiresAtMs;
+
+        // Met à jour l'objet en mémoire pour cohérence
+        story.boosted = fresh.boosted;
+        story.boost_at = fresh.boost_at;
+      }
+    } catch (err) {
+      console.warn('Vérification boost story échouée:', err);
+    }
+  }
+
   /* BOUTONS (CTA) */
   const cta = document.getElementById('storyCtaGroup');
   if (cta) {
@@ -5473,16 +5769,34 @@ async function renderCurrentStory() {
       };
       cta.appendChild(del);
 
-      // Bouton booster
-      const boostBtn = document.createElement('button');
-      boostBtn.className = 'cta-btn boost-btn';
-      boostBtn.style.background = '#1abc9c';
-      boostBtn.innerHTML = '<i class="fa-solid fa-trophy"></i> BOOSTER';
-      boostBtn.onclick = (e) => {
-        e.stopPropagation(); closeStoryViewer();
-        if (typeof window.boostStory === 'function') window.boostStory(story.id, story.caption || 'Ma story');
-      };
-      cta.appendChild(boostBtn);
+      // ✅ Bouton booster UNIQUEMENT si la story n'est pas déjà boostée
+      if (!isCurrentlyBoosted) {
+        const boostBtn = document.createElement('button');
+        boostBtn.className = 'cta-btn boost-btn';
+        boostBtn.style.background = '#1abc9c';
+        boostBtn.innerHTML = '<i class="fa-solid fa-trophy"></i> BOOSTER';
+        boostBtn.onclick = (e) => {
+          e.stopPropagation();
+          closeStoryViewer();
+          if (typeof window.boostStory === 'function') {
+            window.boostStory(story.id, story.caption || 'Ma story');
+          }
+        };
+        cta.appendChild(boostBtn);
+      } else {
+        // (optionnel) Afficher un badge "déjà boostée" à la place
+        const boostedBadge = document.createElement('span');
+        boostedBadge.style.cssText = `
+          display:inline-flex;align-items:center;gap:6px;
+          background:rgba(26,188,156,.25);
+          color:#1abc9c;font-weight:bold;
+          padding:8px 14px;border-radius:8px;
+          font-size:13px;
+          border:1px solid rgba(26,188,156,.5);
+        `;
+        boostedBadge.innerHTML = '<i class="fa-solid fa-trophy"></i> Boost actif';
+        cta.appendChild(boostedBadge);
+      }
 
     } else if (currentUser) {
       // Bouton suivre
@@ -5698,6 +6012,8 @@ async function openStoryMenu(story, group) {
   }
 }
 window.openStoryMenu = openStoryMenu;
+
+
 /* ─────────────────────────────────────────────
    BOOST STORY (depuis la visionneuse)
 ───────────────────────────────────────────── */
