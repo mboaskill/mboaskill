@@ -1447,7 +1447,99 @@ font-size:14px;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
   background: linear-gradient(135deg, #9ccc65, #43a047); /* Vert un peu plus clair */
 }
+/* ═══════════════════════════════════════════════════════════
+   MODULE PAIEMENT SEBPAY
+   ═══════════════════════════════════════════════════════════ */
 
+.sebpay-payment-container {
+    max-width: 450px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.sebpay-payment-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #1e293b;
+}
+
+.sebpay-form-group {
+    margin-bottom: 1rem;
+}
+
+.sebpay-form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #334155;
+}
+
+.sebpay-form-group input,
+.sebpay-form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.sebpay-form-group input:focus,
+.sebpay-form-group select:focus {
+    outline: none;
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+#sebpay-btn-submit {
+    width: 100%;
+    padding: 0.875rem;
+    background-color: #f97316;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 1rem;
+}
+
+#sebpay-btn-submit:hover:not(:disabled) {
+    background-color: #ea580c;
+}
+
+#sebpay-btn-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.sebpay-alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    display: none;
+}
+
+.sebpay-alert.error {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.sebpay-alert.success {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
 </style>
 
 </head>
@@ -2206,7 +2298,8 @@ font-size:14px;
   </div>
  </div>
  <hr>
- <button  onclick="openTab(event,'nova')">🌍autres</button>
+<!-- Après : ouvre un lien -->
+<button onclick="window.open('https://new.sebpay.bj/pay/skill-depot-fRNHCE')">🌍Deposer-Autres Pays</button>
  <hr>
      <hr style="background:#eee;height:1px;border:none;">
  <div id="emailLoginBox">
@@ -2792,68 +2885,55 @@ Dernière mise à jour : 25 juin 2026.
 </section>
 <!-- ============ NOVA (Dépôt via lien SebPay) ============ -->
 <section id="nova" class="tabcontent">
-  <br><br/>
+    <div class="sebpay-payment-container">
+        <h2>Dépôt de fonds</h2>
+        <div id="sebpay-alert" class="sebpay-alert"></div>
 
-  <!-- Bouton retour -->
-  <div class="priix" onclick="openTab(event,'home')">
-    <i class="fa-solid fa-arrow-left" style="font-size:40px;"></i>
-  </div>
+        <form id="sebpay-form">
+            <div class="sebpay-form-group">
+                <label for="sebpay-payer_name">Nom complet</label>
+                <input type="text" id="sebpay-payer_name" placeholder="Ex: Jean Dupont" required minlength="2">
+            </div>
 
-  <div id="emailLoginBox">
-    <h2 style="text-align:center;color:gold;margin-bottom:6px;">
-      <i class="fas fa-bolt"></i> Recharger mon compte
-    </h2>
+            <div class="sebpay-form-group">
+                <label for="sebpay-amount">Montant (<span id="sebpay-currency-label">XOF</span>)</label>
+                <input type="number" id="sebpay-amount" placeholder="Minimum 100" min="100" required>
+            </div>
 
-    <p style="color:#555;font-size:14px;line-height:1.6;text-align:center;margin-bottom:20px;">
-      Rechargez votre compte via <strong>SebPay</strong>.<br>
-      Vous serez redirigé vers la page de paiement sécurisée.
-    </p>
+            <div class="sebpay-form-group">
+                <label for="sebpay-phone">Numéro de téléphone</label>
+                <input type="tel" id="sebpay-phone" placeholder="Ex: 97000000" pattern="\d{8,15}" required>
+            </div>
 
-    <!-- Montant -->
-    <div style="margin:16px 0;">
-      <label for="amountInput" style="display:block;color:#333;font-weight:600;margin-bottom:6px;">
-        <i class="fas fa-coins" style="color:#999;margin-right:6px;"></i>
-        Montant à déposer (XAF)
-      </label>
-      <input 
-        type="number" 
-        id="amountInput" 
-        min="100" 
-        step="50" 
-        placeholder="Ex : 5000"
-        inputmode="numeric"
-        style="width:100%;padding:12px;border:1.5px solid #ddd;border-radius:8px;font-size:15px;outline:none;box-sizing:border-box;"
-        onfocus="this.style.borderColor='gold'"
-        onblur="this.style.borderColor='#ddd'"
-      />
-      <p style="font-size:12px;color:#888;margin-top:6px;">
-        <i class="fas fa-info-circle"></i> Montant minimum : 100 XAF
-      </p>
+            <div class="sebpay-form-group">
+                <label for="sebpay-country">Pays</label>
+                <!-- ✅ data-currency pour chaque pays -->
+                <select id="sebpay-country" required>
+                    <option value="">-- Choisir un pays --</option>
+                    <option value="BJ" data-currency="XOF">Bénin (BJ) - XOF</option>
+                    <option value="CI" data-currency="XOF">Côte d'Ivoire (CI) - XOF</option>
+                    <option value="SN" data-currency="XOF">Sénégal (SN) - XOF</option>
+                    <option value="BF" data-currency="XOF">Burkina Faso (BF) - XOF</option>
+                    <option value="TG" data-currency="XOF">Togo (TG) - XOF</option>
+                    <option value="ML" data-currency="XOF">Mali (ML) - XOF</option>
+                    <option value="CM" data-currency="XAF">Cameroun (CM) - XAF</option>
+                    <option value="GA" data-currency="XAF">Gabon (GA) - XAF</option>
+                    <option value="CG" data-currency="XAF">Congo (CG) - XAF</option>
+                    <option value="CD" data-currency="CDF">RD Congo (CD) - CDF</option>
+                </select>
+            </div>
+
+            <div class="sebpay-form-group">
+                <label for="sebpay-operator">Opérateur</label>
+                <!-- ✅ Rempli dynamiquement par updateOperators() -->
+                <select id="sebpay-operator" required>
+                    <option value="">-- Choisir d'abord un pays --</option>
+                </select>
+            </div>
+
+            <button type="submit" id="sebpay-btn-submit">Payer avec SebPay</button>
+        </form>
     </div>
-
-    <!-- ✅ Bouton payer avec window.open -->
-    <button 
-      onclick="window.open('https://new.sebpay.bj/pay/skill-depot-fRNHCE', '_blank')" 
-      style="
-        background:linear-gradient(135deg,#ffa500,#ff8c00);
-        color:#fff;font-weight:bold;
-        margin-top:10px;padding:15px;
-        font-size:16px;width:100%;
-        border:none;border-radius:8px;cursor:pointer;
-        display:flex;align-items:center;justify-content:center;gap:8px;
-        box-shadow:0 4px 12px rgba(255,140,0,0.35);
-        transition:transform .1s;
-      "
-      onmouseover="this.style.transform='scale(1.02)'"
-      onmouseout="this.style.transform='scale(1)'"
-    >
-      <i class="fas fa-external-link-alt"></i> Déposer via SebPay
-    </button>
-
-    <p style="font-size:12px;color:#888;margin-top:15px;text-align:center;">
-      <i class="fas fa-lock"></i> Paiement sécurisé. Vous serez redirigé vers SebPay.
-    </p>
-  </div> <!-- ✅ Balise fermante du div emailLoginBox -->
 </section>
 <center>
     <!-- Modal Alert -->
@@ -2892,7 +2972,9 @@ const SUPABASE_URL = 'https://hlvqvtitedwcacwmalis.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_XpUS6YuJfD12fjfbSeA3Sg_opYayt74';                  
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.supabase = supabase;  
 
+// ← AJOUTER CETTE LIGNE
 /*──────────────────────────────────────────────────────────
   2. GLOBALS
 ──────────────────────────────────────────────────────────*/
@@ -6267,68 +6349,198 @@ window.procederDepot = (evt) => {
   SEBPAY — Opérateurs disponibles par pays
 ──────────────────────────────────────────────────────────*/
 const SEBPAY_OPERATORS_BY_COUNTRY = {
-  CM: [ { code: 'mtn',     label: 'MTN Mobile Money' },
-        { code: 'orange',  label: 'Orange Money' } ],
-  CI: [ { code: 'mtn',     label: 'MTN' },
-        { code: 'orange',  label: 'Orange' },
-        { code: 'moov',    label: 'Moov' } ],
-  BJ: [ { code: 'mtn',     label: 'MTN' },
-        { code: 'moov',    label: 'Moov' } ],
-  SN: [ { code: 'orange',  label: 'Orange' },
-        { code: 'free',    label: 'Free' } ],
-  TG: [ { code: 'togocom', label: 'T-Money (Togocom)' },
-        { code: 'moov',    label: 'Moov' } ],
-  BF: [ { code: 'orange',  label: 'Orange' },
-        { code: 'moov',    label: 'Moov' } ],
-  ML: [ { code: 'orange',  label: 'Orange' },
-        { code: 'moov',    label: 'Moov' } ],
-  GA: [ { code: 'airtel',  label: 'Airtel' },
-        { code: 'moov',    label: 'Moov' } ],
-  CG: [ { code: 'mtn',     label: 'MTN' },
-        { code: 'airtel',  label: 'Airtel' } ],
-  CD: [ { code: 'vodacom', label: 'Vodacom' },
-        { code: 'airtel',  label: 'Airtel' },
-        { code: 'orange',  label: 'Orange' } ],
+    CM: [ { code: 'mtn',     label: 'MTN Mobile Money' },
+          { code: 'orange',  label: 'Orange Money' } ],
+    CI: [ { code: 'mtn',     label: 'MTN' },
+          { code: 'orange',  label: 'Orange' },
+          { code: 'moov',    label: 'Moov' } ],
+    BJ: [ { code: 'mtn',     label: 'MTN' },
+          { code: 'moov',    label: 'Moov' } ],
+    SN: [ { code: 'orange',  label: 'Orange' },
+          { code: 'free',    label: 'Free' } ],
+    TG: [ { code: 'togocom', label: 'T-Money (Togocom)' },
+          { code: 'moov',    label: 'Moov' } ],
+    BF: [ { code: 'orange',  label: 'Orange' },
+          { code: 'moov',    label: 'Moov' } ],
+    ML: [ { code: 'orange',  label: 'Orange' },
+          { code: 'moov',    label: 'Moov' } ],
+    GA: [ { code: 'airtel',  label: 'Airtel' },
+          { code: 'moov',    label: 'Moov' } ],
+    CG: [ { code: 'mtn',     label: 'MTN' },
+          { code: 'airtel',  label: 'Airtel' } ],
+    CD: [ { code: 'vodacom', label: 'Vodacom' },
+          { code: 'airtel',  label: 'Airtel' },
+          { code: 'orange',  label: 'Orange' } ],
 };
 
 /*──────────────────────────────────────────────────────────
   SEBPAY — Met à jour la liste des opérateurs selon le pays
 ──────────────────────────────────────────────────────────*/
-window.updateOperators = function () {
-  const countrySel = document.getElementById('countrySelect');
-  const opSel      = document.getElementById('operatorSelect');
-  const curLabel   = document.getElementById('currencyLabel');
+function updateOperators() {
+    const countrySel = document.getElementById('sebpay-country');
+    const opSel      = document.getElementById('sebpay-operator');
+    const curLabel   = document.getElementById('sebpay-currency-label');
 
-  if (!countrySel || !opSel) return;
+    if (!countrySel || !opSel) return;
 
-  const country  = countrySel.value;
-  const currency = countrySel.selectedOptions[0]?.dataset?.currency || 'XAF';
+    const country  = countrySel.value;
+    const currency = countrySel.selectedOptions[0]?.dataset?.currency || 'XOF';
 
-  if (curLabel) curLabel.textContent = currency;
+    if (curLabel) curLabel.textContent = currency;
 
-  opSel.innerHTML = '';
+    opSel.innerHTML = '';
 
-  if (!country) {
-    opSel.innerHTML = '<option value="">-- Choisir d\'abord un pays --</option>';
-    return;
-  }
+    if (!country) {
+        opSel.innerHTML = '<option value="">-- Choisir d\'abord un pays --</option>';
+        return;
+    }
 
-  const ops = SEBPAY_OPERATORS_BY_COUNTRY[country] || [];
-  if (ops.length === 0) {
-    opSel.innerHTML = '<option value="">Aucun opérateur disponible</option>';
-    return;
-  }
+    const ops = SEBPAY_OPERATORS_BY_COUNTRY[country] || [];
+    if (ops.length === 0) {
+        opSel.innerHTML = '<option value="">Aucun opérateur disponible</option>';
+        return;
+    }
 
-  opSel.innerHTML = '<option value="">-- Choisir --</option>';
-  ops.forEach(o => {
-    const opt = document.createElement('option');
-    opt.value = o.code;
-    opt.textContent = o.label;
-    opSel.appendChild(opt);
-  });
+    opSel.innerHTML = '<option value="">-- Choisir --</option>';
+    ops.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.code;
+        opt.textContent = o.label;
+        opSel.appendChild(opt);
+    });
+}
+
+/*──────────────────────────────────────────────────────────
+  SEBPAY — Configuration
+──────────────────────────────────────────────────────────*/
+const SEBPAY_CONFIG = {
+    functionUrl: "https://hlvqvtitedwcacwmalis.supabase.co/functions/v1/dynamic-function",
 };
 
+// ─── Helpers UI ───────────────────────────────────────────
+function showSebpayAlert(message, type = "error") {
+    const el = document.getElementById("sebpay-alert");
+    if (!el) return;
+    el.textContent = message;
+    el.className = `sebpay-alert ${type}`;
+    el.style.display = "block";
+    setTimeout(() => {
+        el.style.display = "none";
+        el.className = "sebpay-alert";
+    }, 6000);
+}
 
+function setSebpayButtonState(loading) {
+    const btn = document.getElementById("sebpay-btn-submit");
+    if (!btn) return;
+    btn.disabled = loading;
+    btn.textContent = loading ? "Initialisation..." : "Payer avec SebPay";
+}
+
+// ─── Token : récupération via Supabase Auth ───────────────
+async function getAccessToken() {
+    try {
+        const client = window.supabase;
+        if (!client) {
+            console.error("❌ window.supabase non défini. Ajoutez 'window.supabase = supabase;' dans le script principal.");
+            return null;
+        }
+
+        const { data: { session }, error } = await client.auth.getSession();
+        if (error) {
+            console.error("❌ Erreur getSession:", error.message);
+            return null;
+        }
+
+        return session?.access_token || null;
+    } catch (err) {
+        console.error("❌ Erreur récupération token:", err);
+        return null;
+    }
+}
+
+// ─── Handler principal ────────────────────────────────────
+async function handleSebpayPayment(event) {
+    event.preventDefault();
+
+    const token = await getAccessToken();
+    if (!token) {
+        showSebpayAlert("Vous devez être connecté pour effectuer un paiement.", "error");
+        return;
+    }
+
+    const countrySel = document.getElementById("sebpay-country");
+    const currency = countrySel.selectedOptions[0]?.dataset?.currency || "XOF";
+
+    const payload = {
+        payer_name: document.getElementById("sebpay-payer_name").value.trim(),
+        amount: parseFloat(document.getElementById("sebpay-amount").value),
+        phone: document.getElementById("sebpay-phone").value.trim(),
+        operator: document.getElementById("sebpay-operator").value,
+        country: countrySel.value,
+        currency: currency
+    };
+
+    // Validations client
+    if (payload.payer_name.length < 2) return showSebpayAlert("Le nom doit contenir au moins 2 caractères.", "error");
+    if (!Number.isFinite(payload.amount) || payload.amount < 100) return showSebpayAlert("Le montant minimum est de 100.", "error");
+    if (!/^\d{8,15}$/.test(payload.phone)) return showSebpayAlert("Le numéro de téléphone doit contenir 8 à 15 chiffres.", "error");
+    if (!payload.country) return showSebpayAlert("Veuillez sélectionner un pays.", "error");
+    if (!payload.operator) return showSebpayAlert("Veuillez sélectionner un opérateur.", "error");
+
+    setSebpayButtonState(true);
+
+    try {
+        const response = await fetch(SEBPAY_CONFIG.functionUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || data.details || "Erreur lors de l'initialisation du paiement.");
+        }
+
+        const redirectUrl = data.checkout_url || data.payment_url || data.url;
+
+        if (redirectUrl) {
+            showSebpayAlert("Redirection vers SebPay...", "success");
+            setTimeout(() => { window.location.href = redirectUrl; }, 800);
+        } else {
+            showSebpayAlert(`Paiement initié (ID: ${data.transaction_id}). Vérifiez votre téléphone.`, "success");
+            setSebpayButtonState(false);
+        }
+    } catch (error) {
+        console.error("❌ Erreur paiement SebPay:", error);
+        showSebpayAlert(error.message, "error");
+        setSebpayButtonState(false);
+    }
+}
+
+// ─── Init ─────────────────────────────────────────────────
+function initSebpayForm() {
+    const form = document.getElementById("sebpay-form");
+    if (form && !form.dataset.sebpayInitialized) {
+        form.addEventListener("submit", handleSebpayPayment);
+
+        const countrySel = document.getElementById("sebpay-country");
+        if (countrySel) {
+            countrySel.addEventListener("change", updateOperators);
+        }
+
+        form.dataset.sebpayInitialized = "true";
+    }
+}
+
+// Lancement immédiat + observation des changements du DOM
+initSebpayForm();
+const sebpayObserver = new MutationObserver(initSebpayForm);
+sebpayObserver.observe(document.body, { childList: true, subtree: true });
 /*──────────────────────────────────────────────────────────
 /*──────────────────────────────────────────────────────────
   37. INIT
